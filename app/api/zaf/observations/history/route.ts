@@ -1,0 +1,14 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getObservationHistory, isObservationHistoryConfigured } from "@/lib/zaf/observation-history";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const raw = Number(request.nextUrl.searchParams.get("limit") ?? "168");
+  const limit = Number.isFinite(raw) ? Math.min(Math.max(Math.floor(raw), 1), 1000) : 168;
+  const history = await getObservationHistory(limit);
+  return NextResponse.json(
+    { configured: isObservationHistoryConfigured(), count: history.length, points: history },
+    { headers: { "Cache-Control": "no-store, max-age=0" } },
+  );
+}
