@@ -1,4 +1,4 @@
-import { getEcosystemSnapshot } from "@/lib/zaf/ecosystem";
+import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib/zaf/ecosystem-history";
 
 export type EcosystemStatistics = {
@@ -21,22 +21,22 @@ export type EcosystemStatistics = {
 };
 
 export async function getEcosystemStatistics(): Promise<EcosystemStatistics> {
-  const snapshot = await getEcosystemSnapshot();
+  const snapshot = (await getUnifiedObservation()).ecosystem;
   const history = await getEcosystemSnapshotHistory(100);
 
   return {
     generatedAt: snapshot.generatedAt,
     current: {
-      observedApps: snapshot.apps.totalCount,
-      availableSources: snapshot.sources.filter((source) => source.status === "available").length,
-      totalSources: snapshot.sources.length,
-      observedSignals: snapshot.signals.length,
-      officialSignals: snapshot.officialSignals.length,
+      observedApps: snapshot?.apps.totalCount ?? null,
+      availableSources: snapshot?.sources.filter((source) => source.status === "available").length ?? 0,
+      totalSources: snapshot?.sources.length ?? 0,
+      observedSignals: snapshot?.signals.length ?? 0,
+      officialSignals: snapshot?.officialSignals.length ?? 0,
       defi: {
-        launchpad: snapshot.defi.launchpad.status,
-        dex: snapshot.defi.dex.status,
-        amm: snapshot.defi.amm.status,
-        mainnetTrading: snapshot.defi.mainnetTrading.status,
+        launchpad: snapshot?.defi.launchpad.status ?? "unavailable",
+        dex: snapshot?.defi.dex.status ?? "unavailable",
+        amm: snapshot?.defi.amm.status ?? "unavailable",
+        mainnetTrading: snapshot?.defi.mainnetTrading.status ?? "unavailable",
       },
     },
     history: {
