@@ -25,7 +25,7 @@ export async function getEcosystemStatistics(): Promise<EcosystemStatistics> {
   const history = await getEcosystemSnapshotHistory(100);
 
   return {
-    generatedAt: snapshot.generatedAt,
+    generatedAt: snapshot?.generatedAt ?? new Date().toISOString(),
     current: {
       observedApps: snapshot?.apps.totalCount ?? null,
       availableSources: snapshot?.sources.filter((source) => source.status === "available").length ?? 0,
