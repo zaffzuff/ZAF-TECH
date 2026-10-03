@@ -41,7 +41,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
 
   if (!current || !history.length) {
     return {
-      generatedAt: current.generatedAt,
+      generatedAt: current?.generatedAt ?? new Date().toISOString(),
       configured: isEcosystemHistoryConfigured(),
       comparedAt: null,
       hasBaseline: false,
