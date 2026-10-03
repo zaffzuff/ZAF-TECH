@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getZafWallet } from "@/lib/zaf/wallet-client";
+import { getWalletActivityAnalytics } from "@/lib/zaf/wallet-analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +27,9 @@ export async function GET(request: NextRequest) {
   try {
     const snapshot = await getZafWallet(address, network);
     const status = snapshot.exists === false ? 404 : 200;
+    const analytics = getWalletActivityAnalytics(snapshot);
 
-    return NextResponse.json(snapshot, {
+    return NextResponse.json({ ...snapshot, analytics }, {
       status,
       headers: { "Cache-Control": "no-store, max-age=0" },
     });
