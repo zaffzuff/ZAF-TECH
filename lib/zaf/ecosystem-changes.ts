@@ -1,4 +1,4 @@
-import { getEcosystemSnapshot } from "@/lib/zaf/ecosystem";
+import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib/zaf/ecosystem-history";
 
 type StoredPayload = {
@@ -36,10 +36,10 @@ function payloadOf(value: unknown): StoredPayload {
 }
 
 export async function getEcosystemChanges(): Promise<EcosystemChanges> {
-  const current = await getEcosystemSnapshot();
+  const current = (await getUnifiedObservation()).ecosystem;
   const history = await getEcosystemSnapshotHistory(2);
 
-  if (!history.length) {
+  if (!current || !history.length) {
     return {
       generatedAt: current.generatedAt,
       configured: isEcosystemHistoryConfigured(),
