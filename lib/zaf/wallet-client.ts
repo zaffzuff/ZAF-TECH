@@ -136,17 +136,46 @@ export async function getZafWallet(
   }
 
   try {
-    const [account, claimablePage, transactionPage, operationPage] = await Promise.all([
+    const results = await Promise.allSettled([
       horizon(selected.base, `/accounts/${encodeURIComponent(normalized)}`),
       horizon(selected.base, `/claimable_balances?claimant=${encodeURIComponent(normalized)}&limit=200&order=desc`),
       horizon(selected.base, `/accounts/${encodeURIComponent(normalized)}/transactions?order=desc&limit=20&include_failed=true`),
       horizon(selected.base, `/accounts/${encodeURIComponent(normalized)}/operations?order=desc&limit=20`),
     ]);
 
-    const transactions = recordsFromPage(transactionPage).map(mapTransaction);
-    const operations = recordsFromPage(operationPage).map(mapOperation);
+    const accountResult = results[0];
+    const account = accountResult.status === "fulfilled" ? accountResult.value : null;
+    if (!account) {
+      const reason = accountResult.status === "rejected" ? accountResult.reason : null;
+      const status = reason instanceof Error && "status" in reason ? Number((reason as Error & { status?: number }).status) : null;
+      if (status === 404) {
+        return {
+          address: normalized,
+          network: selected.label,
+          exists: false,
+          accountBalancePi: null,
+          observableClaimablePi: null,
+          lockup: null,
+          account: null,
+          lastActivity: null,
+          transactions: [],
+          operations: [],
+          source: `${selected.label} Horizon`,
+          generatedAt,
+          error: null,
+        };
+      }
+      throw reason instanceof Error ? reason : new Error("Pi wallet account request failed");
+    }
 
-    const lockups = recordsFromPage(claimablePage)
+    const claimablePage = results[1].status === "fulfilled" ? results[1].value : null;
+    const transactionPage = results[2].status === "fulfilled" ? results[2].value : null;
+    const operationPage = results[3].status === "fulfilled" ? results[3].value : null;
+
+    const transactions = transactionPage ? recordsFromPage(transactionPage).map(mapTransaction) : [];
+    const operations = operationPage ? recordsFromPage(operationPage).map(mapOperation) : [];
+
+    const lockups = claimablePage ? recordsFromPage(claimablePage)
       .filter((record) => record.asset === "native" || record.asset_type === "native")
       .map((record) => {
         const createdAt = stringOrNull(record.created_at);
