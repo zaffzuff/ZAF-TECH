@@ -175,7 +175,7 @@ export async function getZafWallet(
     const transactions = transactionPage ? recordsFromPage(transactionPage).map(mapTransaction) : [];
     const operations = operationPage ? recordsFromPage(operationPage).map(mapOperation) : [];
 
-    const lockups = claimablePage ? recordsFromPage(claimablePage)
+    const lockups = (claimablePage ? recordsFromPage(claimablePage) : [])
       .filter((record) => record.asset === "native" || record.asset_type === "native")
       .map((record) => {
         const createdAt = stringOrNull(record.created_at);
