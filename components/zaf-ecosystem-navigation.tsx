@@ -32,6 +32,7 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Explorer: ["Explorer", "Explorer", "Explorador", "浏览器", "Esplora", "Explorateur", "Explorer", "Explorador", "Обозреватель"],
   Wallet: ["Wallet", "Cüzdan", "Billetera", "钱包", "Wallet", "Portefeuille", "Wallet", "Carteira", "Кошелёк"],
   Search: ["Search", "Ara", "Buscar", "搜索", "Cerca", "Rechercher", "Suche", "Pesquisar", "Поиск"],
+  "Node Health": ["Node Health", "Node Sağlığı", "Salud Del Node", "节点健康", "Salute Del Node", "Santé Du Node", "Node-Gesundheit", "Saúde Do Node", "Состояние Node"],
 };
 
 function label(value: string, locale: Locale) {
@@ -50,6 +51,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
       {sections.map(([id, title]) => <button key={id} type="button" onClick={() => { onSectionChange(id); const first = ZAF_SECTION_TABS[id][0]; onSubtabChange(first ?? ""); }} className={"min-h-9 shrink-0 rounded-lg px-3 py-2 text-[11px] font-medium transition-colors " + (section === id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>{label(title, locale)}</button>)}
       <a href="/observatory" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Observatory", locale)} 2.0</a>
       <a href="/search" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Search", locale)}</a>
+      <a href="/node-health" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Node Health", locale)}</a>
     </div></div>
     {subtabs.length ? <div className="mt-2 overflow-x-auto ty-no-scrollbar"><div className="flex min-w-max gap-1 pb-1 sm:min-w-0 sm:flex-wrap">
       {subtabs.map(item => <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"shrink-0 rounded-md border px-2.5 py-1.5 text-[10px] font-medium transition-colors " + (subtab === item ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>{label(item, locale)}</button>)}
