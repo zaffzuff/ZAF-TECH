@@ -57,6 +57,7 @@ export function isSafeHttpUrl(value: string) {
     const url = new URL(value);
     if (url.protocol !== "https:" && url.protocol !== "http:") return false;
     if (url.username || url.password) return false;
+    if (url.port && !((url.protocol === "http:" && url.port === "80") || (url.protocol === "https:" && url.port === "443"))) return false;
     return !isPrivateHostname(url.hostname);
   } catch {
     return false;
