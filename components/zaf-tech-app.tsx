@@ -106,8 +106,8 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
         <p className="text-[11px] text-muted-foreground">{tr("Structured discovery of applications observed from the public Pi ecosystem source.", "Herkese açık Pi ekosistem kaynağında gözlemlenen uygulamaların yapılandırılmış keşfi.")}</p>
       </div>
       <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Card title={tr("Observed", "Gözlemlenen")} value={number(directoryApps.length, 0, locale)} detail={tr("Current Source Response", "Mevcut Kaynak Yanıtı")} />
-        <Card title={tr("Matching", "Eşleşen")} value={number(filtered.length, 0, locale)} detail={tr("Current Filters", "Mevcut Filtreler")} />
+        <Card title={tr("Observed", "Gözlemlenen")} value={directoryApps.length ? number(directoryApps.length, 0, locale) : "—"} detail={tr("Current Source Response", "Mevcut Kaynak Yanıtı")} />
+        <Card title={tr("Matching", "Eşleşen")} value={directoryApps.length ? number(filtered.length, 0, locale) : "—"} detail={tr("Current Filters", "Mevcut Filtreler")} />
         <Card title={tr("Source", "Kaynak")} value={displayStatus(sourceOnline ? "online" : "offline", locale)} detail={age(generatedAt, locale)} />
       </div>
       <div className="rounded-xl border border-border bg-card p-3">
