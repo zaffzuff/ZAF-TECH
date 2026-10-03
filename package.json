@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "node:connector": "node tools/zaf-node-connector.mjs"
+    "node:connector": "node tools/zaf-node-connector.mjs",
+    "regression": "node tools/zaf-regression.mjs"
   },
   "dependencies": {
     "geist": "latest",
