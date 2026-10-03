@@ -53,6 +53,8 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
       [bucketStart(record.generatedAt), record.generatedAt, record.freshnessState, record.confidenceScore, record.networkLedger, record.protocolVersion, record.observedTransactions, record.observedOperations, record.dailyTransactions, record.dailyOperations, record.observedApps, record.availableSources, record.totalSources]
     );
     return true;
+  } catch {
+    return [];
   } finally {
     await sql.end();
   }
