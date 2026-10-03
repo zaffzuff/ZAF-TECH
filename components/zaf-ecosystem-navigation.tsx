@@ -33,6 +33,7 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Wallet: ["Wallet", "Cüzdan", "Billetera", "钱包", "Wallet", "Portefeuille", "Wallet", "Carteira", "Кошелёк"],
   Search: ["Search", "Ara", "Buscar", "搜索", "Cerca", "Rechercher", "Suche", "Pesquisar", "Поиск"],
   "Node Health": ["Node Health", "Node Sağlığı", "Salud Del Node", "节点健康", "Salute Del Node", "Santé Du Node", "Node-Gesundheit", "Saúde Do Node", "Состояние Node"],
+  "Wallet Observatory": ["Wallet Observatory", "Cüzdan Gözlemleri", "Observatorio De Billetera", "钱包观测", "Osservatorio Wallet", "Observatoire Wallet", "Wallet-Observatorium", "Observatório Da Carteira", "Наблюдение Кошелька"],
 };
 
 function label(value: string, locale: Locale) {
@@ -52,6 +53,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
       <a href="/observatory" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Observatory", locale)} 2.0</a>
       <a href="/search" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Search", locale)}</a>
       <a href="/node-health" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Node Health", locale)}</a>
+      <a href="/wallet-observatory" className="min-h-9 shrink-0 rounded-lg border border-border px-3 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground">{label("Wallet Observatory", locale)}</a>
     </div></div>
     {subtabs.length ? <div className="mt-2 overflow-x-auto ty-no-scrollbar"><div className="flex min-w-max gap-1 pb-1 sm:min-w-0 sm:flex-wrap">
       {subtabs.map(item => <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"shrink-0 rounded-md border px-2.5 py-1.5 text-[10px] font-medium transition-colors " + (subtab === item ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>{label(item, locale)}</button>)}
