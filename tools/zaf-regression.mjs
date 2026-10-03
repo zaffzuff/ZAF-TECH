@@ -9,6 +9,9 @@ const required = [
   "app/api/zaf/observations/history/route.ts",
   "app/api/zaf/ledger/[sequence]/route.ts",
   "app/api/zaf/search/route.ts",
+  "app/api/zaf/radar/route.ts",
+  "lib/zaf/node-health.ts",
+  "lib/zaf/wallet-analytics.ts",
 ];
 
 for (const file of required) {
