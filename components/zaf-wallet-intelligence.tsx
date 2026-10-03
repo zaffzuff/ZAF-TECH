@@ -16,15 +16,16 @@ function age(value: string | null, locale: Locale) {
   const ms = Date.now() - Date.parse(value);
   if (!Number.isFinite(ms)) return "—";
   const min = Math.floor(ms / 60000);
-  if (locale === "tr") return min < 1 ? "Az Önce" : min < 60 ? `${min} Dk Önce` : `${Math.floor(min / 60)} Sa Önce`;
-  if (locale === "es") return min < 1 ? "Ahora Mismo" : min < 60 ? `${min} Min Antes` : `${Math.floor(min / 60)} H Antes`;
-  if (locale === "zh") return min < 1 ? "刚刚" : min < 60 ? `${min} 分钟前` : `${Math.floor(min / 60)} 小时前`;
-  if (locale === "it") return min < 1 ? "Proprio Ora" : min < 60 ? `${min} Min Fa` : `${Math.floor(min / 60)} Ore Fa`;
-  if (locale === "fr") return min < 1 ? "À L’Instant" : min < 60 ? `${min} Min Plus Tôt` : `${Math.floor(min / 60)} H Plus Tôt`;
-  if (locale === "de") return min < 1 ? "Gerade eben" : min < 60 ? `Vor ${min} Min.` : `Vor ${Math.floor(min / 60)} Std.`;
-  if (locale === "pt") return min < 1 ? "Agora mesmo" : min < 60 ? `Há ${min} min` : `Há ${Math.floor(min / 60)} h`;
-  if (locale === "ru") return min < 1 ? "Только что" : min < 60 ? `${min} мин назад` : `${Math.floor(min / 60)} ч назад`;
-  return min < 1 ? "Just Now" : min < 60 ? `${min}m Ago` : `${Math.floor(min / 60)}h Ago`;
+  const day = Math.floor(min / (60 * 24));
+  if (locale === "tr") return min < 1 ? "Az Önce" : min < 60 ? `${min} Dk Önce` : day < 1 ? `${Math.floor(min / 60)} Sa Önce` : `${day} Gün Önce`;
+  if (locale === "es") return min < 1 ? "Ahora Mismo" : min < 60 ? `${min} Min Antes` : day < 1 ? `${Math.floor(min / 60)} H Antes` : `Hace ${day} Día${day === 1 ? "" : "s"}`;
+  if (locale === "zh") return min < 1 ? "刚刚" : min < 60 ? `${min} 分钟前` : day < 1 ? `${Math.floor(min / 60)} 小时前` : `${day} 天前`;
+  if (locale === "it") return min < 1 ? "Proprio Ora" : min < 60 ? `${min} Min Fa` : day < 1 ? `${Math.floor(min / 60)} Ore Fa` : `${day} Giorni Fa`;
+  if (locale === "fr") return min < 1 ? "À L’Instant" : min < 60 ? `${min} Min Plus Tôt` : day < 1 ? `${Math.floor(min / 60)} H Plus Tôt` : `Il y a ${day} jour${day === 1 ? "" : "s"}`;
+  if (locale === "de") return min < 1 ? "Gerade eben" : min < 60 ? `Vor ${min} Min.` : day < 1 ? `Vor ${Math.floor(min / 60)} Std.` : `Vor ${day} Tag${day === 1 ? "" : "en"}`;
+  if (locale === "pt") return min < 1 ? "Agora mesmo" : min < 60 ? `Há ${min} min` : day < 1 ? `Há ${Math.floor(min / 60)} h` : `Há ${day} dia${day === 1 ? "" : "s"}`;
+  if (locale === "ru") return min < 1 ? "Только что" : min < 60 ? `${min} мин назад` : day < 1 ? `${Math.floor(min / 60)} ч назад` : `${day} дн. назад`;
+  return min < 1 ? "Just Now" : min < 60 ? `${min}m Ago` : day < 1 ? `${Math.floor(min / 60)}h Ago` : `${day} Day${day === 1 ? "" : "s"} Ago`;
 }
 
 function Card({ title, value, detail }: { title: string; value: string; detail?: string }) {
