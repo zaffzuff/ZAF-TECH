@@ -1,3 +1,5 @@
+import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
+
 export const ECOSYSTEM_SOURCES = {
   ecosystemInterface: "https://ecosystem.pinet.com/",
   ecosystemAppPlatform: "https://ecosystem-fzu6gx2rh2n94wpw.piappengine.com/",
@@ -383,5 +385,13 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
     });
   }
 
-  return { generatedAt, sources, apps: appData, news, officialSignals, signals, defi };
+  const snapshot = { generatedAt, sources, apps: appData, news, officialSignals, signals, defi };
+  void saveEcosystemSnapshot({
+    generatedAt,
+    sourceAvailable: appData.sourceAvailable,
+    observedAppCount: appData.totalCount,
+    payload: snapshot as unknown as Record<string, unknown>,
+  }).catch(() => undefined);
+
+  return snapshot;
 }
