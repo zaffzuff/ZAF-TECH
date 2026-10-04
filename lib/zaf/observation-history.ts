@@ -25,7 +25,7 @@ export function isObservationHistoryConfigured() {
 }
 
 async function ensureTable(sql: ReturnType<typeof postgres>) {
-  await sql\`
+  await sql`
     CREATE TABLE IF NOT EXISTS zaf_observation_snapshots (
       id BIGSERIAL PRIMARY KEY,
       bucket_start TIMESTAMPTZ NOT NULL UNIQUE,
@@ -42,11 +42,11 @@ async function ensureTable(sql: ReturnType<typeof postgres>) {
       available_sources INTEGER NOT NULL,
       total_sources INTEGER NOT NULL
     )
-  \`;
-  await sql\`
+  `;
+  await sql`
     CREATE INDEX IF NOT EXISTS zaf_observation_snapshots_generated_at_idx
     ON zaf_observation_snapshots (generated_at DESC)
-  \`;
+  `;
 }
 
 function bucketStart(value: string) {
@@ -59,11 +59,11 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
   if (!sql) return false;
   try {
     await ensureTable(sql);
-    await sql\`
+    await sql`
       INSERT INTO zaf_observation_snapshots
         (bucket_start, generated_at, freshness_state, confidence_score, network_ledger, protocol_version, observed_transactions, observed_operations, daily_transactions, daily_operations, observed_apps, available_sources, total_sources)
       VALUES
-        (\${bucketStart(record.generatedAt)}, \${record.generatedAt}, \${record.freshnessState}, \${record.confidenceScore}, \${record.networkLedger}, \${record.protocolVersion}, \${record.observedTransactions}, \${record.observedOperations}, \${record.dailyTransactions}, \${record.dailyOperations}, \${record.observedApps}, \${record.availableSources}, \${record.totalSources})
+        (${bucketStart(record.generatedAt)}, ${record.generatedAt}, ${record.freshnessState}, ${record.confidenceScore}, ${record.networkLedger}, ${record.protocolVersion}, ${record.observedTransactions}, ${record.observedOperations}, ${record.dailyTransactions}, ${record.dailyOperations}, ${record.observedApps}, ${record.availableSources}, ${record.totalSources})
       ON CONFLICT (bucket_start) DO UPDATE SET
         generated_at = EXCLUDED.generated_at,
         freshness_state = EXCLUDED.freshness_state,
@@ -77,7 +77,7 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
         observed_apps = EXCLUDED.observed_apps,
         available_sources = EXCLUDED.available_sources,
         total_sources = EXCLUDED.total_sources
-    \`;
+    `;
     return true;
   } catch (error) {
     console.error("[ZAF-TECH] Observation history write failed", error);
@@ -93,7 +93,7 @@ export async function getObservationHistory(limit = 336) {
   try {
     await ensureTable(sql);
     const safeLimit = Math.min(Math.max(limit, 1), 1000);
-    return await sql\`
+    return await sql`
       SELECT
         bucket_start AS "bucketStart",
         generated_at AS "generatedAt",
@@ -110,8 +110,8 @@ export async function getObservationHistory(limit = 336) {
         total_sources AS "totalSources"
       FROM zaf_observation_snapshots
       ORDER BY generated_at DESC
-      LIMIT \${safeLimit}
-    \`;
+      LIMIT ${safeLimit}
+    `;
   } catch (error) {
     console.error("[ZAF-TECH] Observation history read failed", error);
     return [];
@@ -128,7 +128,7 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
     const cutoffMs = Date.parse(beforeGeneratedAt) - (minAgeSeconds * 1000);
     if (!Number.isFinite(cutoffMs)) return null;
     const cutoff = new Date(cutoffMs).toISOString();
-    const rows = await sql\`
+    const rows = await sql`
       SELECT
         bucket_start AS "bucketStart",
         generated_at AS "generatedAt",
@@ -144,10 +144,10 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
         available_sources AS "availableSources",
         total_sources AS "totalSources"
       FROM zaf_observation_snapshots
-      WHERE generated_at <= \${cutoff}
+      WHERE generated_at <= ${cutoff}
       ORDER BY generated_at DESC
       LIMIT 1
-    \`;
+    `;
     return rows[0] ?? null;
   } catch (error) {
     console.error("[ZAF-TECH] Observation baseline read failed", error);
