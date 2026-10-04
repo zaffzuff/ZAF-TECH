@@ -591,6 +591,9 @@ export function ZafTechApp() {
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("Real Activity Radar", "Gerçek Aktivite Radarı")}</div>
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These signals are calculated from the current public Mainnet sample and stored observations. No predictive model or invented network-wide score is used.", "Bu sinyaller mevcut herkese açık Mainnet örneği ve kayıtlı gözlemlerden hesaplanır. Tahmin modeli veya uydurma ağ geneli skoru kullanılmaz.")}</p>
+              <div className="mt-2 rounded-lg border border-border bg-background px-3 py-2 text-[10px] leading-relaxed text-muted-foreground">
+                {tr("Important: percentage changes in this panel compare the current observed sample with a stored observation from at least five minutes earlier. They are not network-wide activity changes and do not mean that total Pi Network usage changed by the displayed percentage.", "Önemli: Bu paneldeki yüzde değişimleri mevcut gözlemlenen örneği en az beş dakika önce kaydedilmiş bir gözlemle karşılaştırır. Bunlar ağ geneli aktivite değişimi değildir ve Pi Network toplam kullanımının gösterilen yüzde kadar değiştiği anlamına gelmez.")}
+              </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {(radarData?.signals ?? []).map(signal => (
                   <div key={signal.id} className="rounded-lg border border-border p-3">
