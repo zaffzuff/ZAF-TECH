@@ -588,6 +588,8 @@ export function ZafTechApp() {
             </div>
 
 
+            <div className="mt-3 rounded-xl border border-border bg-card p-4">
+              <div className="text-xs font-semibold text-foreground">{tr("Real Activity Radar", "Gerçek Aktivite Radarı")}</div>
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These signals are calculated from the current public Mainnet sample and stored observations. No predictive model or invented network-wide score is used.", "Bu sinyaller mevcut herkese açık Mainnet örneği ve kayıtlı gözlemlerden hesaplanır. Tahmin modeli veya uydurma ağ geneli skoru kullanılmaz.")}</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {(radarData?.signals ?? []).map(signal => (
