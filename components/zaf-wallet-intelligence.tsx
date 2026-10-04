@@ -133,6 +133,28 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Card title={tr("Observable Claimable", "Gözlemlenebilir Talep Edilebilir")} value={fmt(data.observableClaimablePi, locale)} detail={tr("Native Claimable Balances", "Native Claimable Bakiyeler")} />
         <Card title={tr("Last Activity", "Son Aktivite")} value={age(data.lastActivity, locale)} detail={tr("Transactions + Operations", "İşlemler + Operasyonlar")} />
+        <Card title={tr("Active Days", "Aktif Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} detail={tr("Within Observed Window", "Gözlemlenen Pencere İçinde")} />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="text-xs font-semibold text-foreground">{tr("Wallet Activity Timeline", "Cüzdan Aktivite Zaman Çizelgesi")}</div>
+        <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Daily buckets from the public transactions and operations returned by Horizon. This is an observed window, not a full wallet history.", "Horizon tarafından döndürülen herkese açık işlemler ve operasyonlardan günlük dilimler. Bu gözlemlenen bir penceredir; tam cüzdan geçmişi değildir.")}</p>
+        <div className="mt-3 space-y-2">
+          {(data.analytics?.activityByDay ?? []).slice(-7).reverse().map((day) => (
+            <div key={day.day} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-[10px]">
+              <span className="text-muted-foreground">{new Date(day.day + "T00:00:00Z").toLocaleDateString(intlLocale(locale), { year: "numeric", month: "short", day: "2-digit" })}</span>
+              <span className="text-foreground">{day.transactions} {tr("tx", "işlem")} · {day.operations} {tr("ops", "op")}</span>
+              <span className="text-muted-foreground">{day.successfulTransactions}/{day.failedTransactions}</span>
+            </div>
+          ))}
+          {!data.analytics?.activityByDay?.length ? <div className="text-[10px] text-muted-foreground">{tr("No dated activity points are available in the observed window.", "Gözlemlenen pencerede tarihli aktivite noktası bulunmuyor.")}</div> : null}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Card title={tr("Observed Days", "Gözlemlenen Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} />
+          <Card title={tr("Successful", "Başarılı")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
+          <Card title={tr("Failed", "Başarısız")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
+          <Card title={tr("Fees", "Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
+        </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
