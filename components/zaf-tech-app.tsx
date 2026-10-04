@@ -251,6 +251,7 @@ export function ZafTechApp() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
@@ -276,10 +277,10 @@ export function ZafTechApp() {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (force = false) => {
     setRefreshing(true);
     try {
-      const response = await fetch("/api/zaf/observations", { cache: "no-store" });
+      const response = await fetch(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" });
       if (!response.ok) throw new Error("ZAF TECH observation request failed");
       const observation = await response.json();
       if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
@@ -292,6 +293,7 @@ export function ZafTechApp() {
         errors: Array.isArray(observation.errors) ? observation.errors : [],
       });
       setLoadError(null);
+      if (force) setRefreshNonce(value => value + 1);
     } catch {
       setLoadError("DATA_REQUEST_FAILED");
     } finally {
@@ -324,7 +326,7 @@ export function ZafTechApp() {
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
               <LanguageSelector locale={locale} onChange={setLocale} />
               <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? `☾ ${tr("Dark", "Koyu")}` : `☀ ${tr("Light", "Açık")}`}</button>
-              <button type="button" onClick={() => void load()} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
+              <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
@@ -345,7 +347,7 @@ export function ZafTechApp() {
           <div className="mt-5 rounded-xl border border-border bg-card p-5 text-center sm:mt-7">
             <div className="text-sm font-semibold text-foreground">{tr("Unable To Load Current Data", "Güncel Veriler Yüklenemedi")}</div>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{tr("The public data sources did not return a usable response. Retry when the source is available.", "Herkese açık veri kaynakları kullanılabilir bir yanıt döndürmedi. Kaynak kullanılabilir olduğunda tekrar deneyin.")}</p>
-            <button type="button" onClick={() => void load()} disabled={refreshing} className="mt-3 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Retrying…", "Tekrar Deneniyor…") : tr("Retry", "Tekrar Dene")}</button>
+            <button type="button" onClick={() => void load(true)} disabled={refreshing} className="mt-3 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Retrying…", "Tekrar Deneniyor…") : tr("Retry", "Tekrar Dene")}</button>
           </div>
         ) : null}
 
