@@ -363,7 +363,7 @@ export function ZafTechApp() {
               <div className="text-xs font-semibold text-foreground">{tr("Current Ecosystem Coverage", "Mevcut Ekosistem Kapsamı")}</div>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Card title={tr("Available Sources", "Kullanılabilir Kaynaklar")} value={ecosystem ? `${ecosystem.sources.filter(source => source.status === "online" || source.status === "available").length}/${ecosystem.sources.length}` : "—"} detail={tr("Public Sources", "Herkese Açık Kaynaklar")} />
-                <Card title={tr("Signals", "Sinyaller")} value={number(ecosystem?.signals.length, 0, locale)} detail={tr("Currently Observed", "Şu Anda Gözlemlenen")} />
+                <Card title={tr("Apps", "Uygulamalar")} value={number(ecosystem?.apps.totalCount, 0, locale)} detail={tr("Currently Observed", "Şu Anda Gözlemlenen")} />
                 <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
                 <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Review source status", "Kaynak durumunu inceleyin") : tr("No source errors", "Kaynak hatası yok")} />
               </div>
