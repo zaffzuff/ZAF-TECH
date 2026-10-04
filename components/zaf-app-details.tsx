@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { DirectoryApp } from "@/lib/zaf/app-directory";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import { LanguageSelector } from "@/components/zaf-language-selector";
@@ -20,6 +20,30 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
   };
   return labels[normalized]?.[locale] ?? normalized.replace(/^./, char => char.toUpperCase());
 }
+type AppHealthResult = {
+  url: string;
+  status?: number | null;
+  reachable: boolean;
+  responseTimeMs: number;
+  https: boolean;
+  redirect: boolean;
+  checkedAt: string;
+  error?: string | null;
+};
+
+type AppTrendSummary = {
+  checks: number;
+  reachable: number;
+  offline: number;
+  reachabilityRate: number | null;
+  online: number;
+  onlineRate: number | null;
+  averageResponseTimeMs: number | null;
+  transitions: number;
+  firstCheckedAt: string | null;
+  lastCheckedAt: string | null;
+};
+
 function verification(value: DirectoryApp["piAuthentication"], locale: Locale) {
   return value === "verified"
     ? translate(locale, "Verified", "Doğrulandı")
@@ -28,6 +52,39 @@ function verification(value: DirectoryApp["piAuthentication"], locale: Locale) {
 
 export function AppDetails({ app }: { app: DirectoryApp }) {
   const [locale, setLocale] = useState<Locale>("en");
+  const [health, setHealth] = useState<AppHealthResult | null>(null);
+  const [trendSummary, setTrendSummary] = useState<AppTrendSummary | null>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+
+  const checkHealth = useCallback(async () => {
+    setHealthLoading(true);
+    try {
+      const response = await fetch("/api/apps/check?url=" + encodeURIComponent(app.url), { cache: "no-store" });
+      const result = await response.json();
+      setHealth(result);
+      if (response.ok) {
+        const trendResponse = await fetch("/api/apps/health/trend?url=" + encodeURIComponent(app.url), { cache: "no-store" });
+        if (trendResponse.ok) {
+          const trend = await trendResponse.json();
+          setTrendSummary(trend.summary ?? null);
+        }
+      }
+    } catch {
+      setHealth({
+        url: app.url,
+        reachable: false,
+        responseTimeMs: 0,
+        https: app.url.startsWith("https://"),
+        redirect: false,
+        checkedAt: new Date().toISOString(),
+        error: "Request failed",
+      });
+    } finally {
+      setHealthLoading(false);
+    }
+  }, [app.url]);
+
+  useEffect(() => { void checkHealth(); }, [checkHealth]);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
   return (
@@ -55,6 +112,41 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
             <div className="text-xs font-semibold text-foreground">{tr("Application", "Uygulama")}</div>
             <p className="mt-2 break-all text-[11px] text-muted-foreground">{app.url}</p>
             <a href={app.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex rounded-lg bg-foreground px-3 py-2 text-[11px] font-medium text-background">{tr("Open Application", "Uygulamayı Aç")}</a>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold text-foreground">{tr("Live Health Observation", "Canlı Sağlık Gözlemi")}</div>
+                <p className="mt-1 text-[10px] text-muted-foreground">{tr("A fresh server-side reachability check of the public application URL.", "Herkese açık uygulama URL'si için güncel sunucu tarafı erişilebilirlik kontrolü.")}</p>
+              </div>
+              <button type="button" onClick={() => void checkHealth()} disabled={healthLoading} className="rounded-lg border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground disabled:opacity-50">
+                {healthLoading ? tr("Checking…", "Kontrol Ediliyor…") : tr("Check Now", "Şimdi Kontrol Et")}
+              </button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Reachability", "Erişilebilirlik")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? (health.reachable ? tr("Reachable", "Erişilebilir") : tr("Offline", "Çevrimdışı")) : "—"}</div></div>
+              <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Response", "Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? health.responseTimeMs + " ms" : "—"}</div></div>
+              <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTP</div><div className="mt-1 text-xs font-semibold text-foreground">{health?.status ?? "—"}</div></div>
+              <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTPS</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? (health.https ? tr("Yes", "Evet") : tr("No", "Hayır")) : "—"}</div></div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+              <span>{tr("Redirect", "Yönlendirme")}: {health ? (health.redirect ? tr("Yes", "Evet") : tr("No", "Hayır")) : "—"}</span>
+              <span>•</span>
+              <span>{tr("Checked", "Kontrol")}: {health?.checkedAt ? new Date(health.checkedAt).toLocaleString(intlLocale(locale)) : "—"}</span>
+              {health?.error ? <span>• {health.error}</span> : null}
+            </div>
+            {trendSummary ? (
+              <div className="mt-3 border-t border-border pt-3">
+                <div className="text-[10px] font-semibold text-foreground">{tr("Stored Health Trend", "Kayıtlı Sağlık Trendi")}</div>
+                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Checks", "Kontroller")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.checks}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Online Rate", "Çevrimiçi Oranı")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.onlineRate == null ? "—" : trendSummary.onlineRate + "%"}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Reachability", "Erişilebilirlik")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.reachabilityRate == null ? "—" : trendSummary.reachabilityRate + "%"}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Avg Response", "Ort. Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.averageResponseTimeMs == null ? "—" : trendSummary.averageResponseTimeMs + " ms"}</div></div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
