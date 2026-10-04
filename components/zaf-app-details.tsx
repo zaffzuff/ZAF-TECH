@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { DirectoryApp } from "@/lib/zaf/app-directory";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import { LanguageSelector } from "@/components/zaf-language-selector";
