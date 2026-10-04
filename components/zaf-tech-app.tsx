@@ -4,6 +4,7 @@ import Image from "next/image";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ZafSnapshot } from "@/lib/zaf/types";
+import type { RadarObservation } from "@/lib/zaf/radar";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import { LanguageSelector } from "@/components/zaf-language-selector";
@@ -40,6 +41,10 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
     falling: ["Falling", "Düşüyor", "Bajando", "下降", "In Calo", "En Baisse", "Fallend", "Em Queda", "Падает"],
     observed: ["Observed", "Gözlemlendi", "Observado", "已观测", "Osservato", "Observé", "Beobachtet", "Observado", "Наблюдается"],
     unverified: ["Unverified", "Doğrulanmadı", "No Verificado", "未验证", "Non Verificato", "Non Vérifié", "Nicht Verifiziert", "Não Verificado", "Не Проверено"],
+    limited: ["Limited", "Sınırlı", "Limitado", "有限", "Limitato", "Limité", "Begrenzt", "Limitado", "Ограничено"],
+    high: ["High", "Yüksek", "Alta", "高", "Alta", "Élevée", "Hoch", "Alta", "Высокая"],
+    medium: ["Medium", "Orta", "Media", "中", "Media", "Moyenne", "Mittel", "Média", "Средняя"],
+    low: ["Low", "Düşük", "Baja", "低", "Bassa", "Faible", "Niedrig", "Baixa", "Низкая"],
   };
   const pair = known[normalized];
   if (pair) return pair[locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0];
@@ -61,6 +66,27 @@ function age(value: string | null | undefined, locale: Locale) {
   if (locale === "ru") return min < 1 ? "Только что" : min < 60 ? `${min} мин назад` : `${Math.floor(min / 60)} ч назад`;
   return min < 1 ? "Just Now" : min < 60 ? `${min}m Ago` : `${Math.floor(min / 60)}h Ago`;
 }
+function radarSignalTitle(id: string, locale: Locale) {
+  const labels: Record<string, [string, string, string, string, string, string, string, string, string]> = {
+    "transaction-pace": ["Observed Transaction Pace", "Gözlemlenen İşlem Temposu", "Ritmo de Transacciones Observado", "已观测交易速率", "Ritmo Transazioni Osservato", "Rythme des Transactions Observé", "Beobachtete Transaktionsrate", "Ritmo de Transações Observado", "Наблюдаемый темп транзакций"],
+    "operation-pace": ["Observed Operation Pace", "Gözlemlenen Operasyon Temposu", "Ritmo de Operaciones Observado", "已观测操作速率", "Ritmo Operazioni Osservato", "Rythme des Opérations Observé", "Beobachtete Operationsrate", "Ritmo de Operações Observado", "Наблюдаемый темп операций"],
+    "transaction-success": ["Transaction Success Rate", "İşlem Başarı Oranı", "Tasa de Éxito de Transacciones", "交易成功率", "Tasso di Successo delle Transazioni", "Taux de Réussite des Transactions", "Transaktionserfolgsrate", "Taxa de Sucesso das Transações", "Успешность транзакций"],
+    "ledger-throughput": ["Ledger Throughput", "Ledger Verimi", "Rendimiento del Ledger", "Ledger 吞吐量", "Throughput del Ledger", "Débit du Ledger", "Ledger-Durchsatz", "Throughput do Ledger", "Пропускная способность Ledger"],
+    "source-coverage": ["Public Source Coverage", "Herkese Açık Kaynak Kapsamı", "Cobertura de Fuentes Públicas", "公共来源覆盖率", "Copertura delle Fonti Pubbliche", "Couverture des Sources Publiques", "Abdeckung Öffentlicher Quellen", "Cobertura de Fontes Públicas", "Охват публичных источников"],
+    "protocol": ["Protocol Observation", "Protokol Gözlemi", "Observación del Protocolo", "协议观测", "Osservazione del Protocollo", "Observation du Protocole", "Protokollbeobachtung", "Observação do Protocolo", "Наблюдение за протоколом"],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[id]?.[index] ?? id;
+}
+function radarSignalValue(id: string, value: number | string | null, locale: Locale) {
+  if (value == null) return "—";
+  if (id === "source-coverage" || typeof value === "string") return value;
+  if (id === "transaction-success") return number(value, 1, locale) + "%";
+  if (id === "ledger-throughput") return number(value, 2, locale);
+  if (id === "protocol") return "v" + value;
+  return number(value, 0, locale);
+}
+
 function categoryLabel(category: AppCategory, locale: Locale) {
   const labels: Record<AppCategory, [string, string, string, string, string, string, string, string, string]> = {
     AI: ["AI", "YZ", "IA", "AI", "IA", "IA", "KI", "IA", "ИИ"],
@@ -247,6 +273,7 @@ export function ZafTechApp() {
   const [snapshot, setSnapshot] = useState<ZafSnapshot | null>(null);
   const [ecosystem, setEcosystem] = useState<EcosystemPayload | null>(null);
   const [radarChanges, setRadarChanges] = useState<EcosystemChangePayload | null>(null);
+  const [radarData, setRadarData] = useState<RadarObservation | null>(null);
   const [observationMeta, setObservationMeta] = useState<{ generatedAt: string; freshness: { state: string; ageSeconds: number }; confidence: { score: number; level: string }; errors: string[] }>({ generatedAt: "", freshness: { state: "unknown", ageSeconds: 0 }, confidence: { score: 0, level: "low" }, errors: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -261,6 +288,15 @@ export function ZafTechApp() {
       .then(response => response.ok ? response.json() : null)
       .then(value => { if (active) setRadarChanges(value); })
       .catch(() => { if (active) setRadarChanges(null); });
+    return () => { active = false; };
+  }, [refreshNonce]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/zaf/radar", { cache: "no-store" })
+      .then(response => response.ok ? response.json() as Promise<RadarObservation> : null)
+      .then(value => { if (active) setRadarData(value); })
+      .catch(() => { if (active) setRadarData(null); });
     return () => { active = false; };
   }, [refreshNonce]);
 
@@ -413,6 +449,47 @@ export function ZafTechApp() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-border bg-card p-4">
+              <div className="text-xs font-semibold text-foreground">{tr("Real Activity Radar", "Gerçek Aktivite Radarı")}</div>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These signals are calculated from the current public Mainnet sample and stored observations. No predictive model or invented network-wide score is used.", "Bu sinyaller mevcut herkese açık Mainnet örneği ve kayıtlı gözlemlerden hesaplanır. Tahmin modeli veya uydurma ağ geneli skoru kullanılmaz.")}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {(radarData?.signals ?? []).map(signal => (
+                  <div key={signal.id} className="rounded-lg border border-border p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-[11px] font-semibold text-foreground">{radarSignalTitle(signal.id, locale)}</div>
+                      <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{displayStatus(signal.state, locale)}</span>
+                    </div>
+                    <div className="mt-2 flex items-end justify-between gap-3">
+                      <div className="text-lg font-bold ty-nums text-foreground">{radarSignalValue(signal.id, signal.value, locale)}</div>
+                      <div className="text-[10px] text-muted-foreground">{tr("Confidence", "Güven")}: {displayStatus(signal.confidence.level, locale)} · {signal.confidence.score}/100</div>
+                    </div>
+                    {signal.changePercent != null ? <div className="mt-1 text-[10px] text-muted-foreground">{signal.changePercent >= 0 ? "+" : ""}{signal.changePercent.toFixed(1)}% {tr("vs stored baseline", "kayıtlı temel değere göre")}</div> : null}
+                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? signal.detailTr : translate(locale, signal.detail, signal.detailTr)}</p>
+                  </div>
+                ))}
+                {!radarData?.signals?.length ? <div className="rounded-lg border border-border p-3 text-[10px] text-muted-foreground">{tr("Radar signals are currently unavailable.", "Radar sinyalleri şu anda kullanılamıyor.")}</div> : null}
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-border bg-card p-4">
+              <div className="text-xs font-semibold text-foreground">{tr("Signal Confidence", "Sinyal Güveni")}</div>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Confidence reflects data availability, sample size, observation freshness and, where applicable, the presence of a stored historical baseline. It is not probability and not a prediction.", "Güven; veri kullanılabilirliği, örneklem büyüklüğü, gözlem tazeliği ve uygun olduğunda kayıtlı tarihsel temel değerin varlığını yansıtır. Olasılık veya tahmin değildir.")}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Card title={tr("Overall", "Genel")} value={radarData ? radarData.confidence.score + "/100" : "—"} detail={displayStatus(radarData?.confidence.level, locale)} />
+                <Card title={tr("Data Health", "Veri Sağlığı")} value={radarData ? radarData.health.score + "/100" : "—"} detail={displayStatus(radarData?.health.status, locale)} />
+                <Card title={tr("Public Sources", "Herkese Açık Kaynaklar")} value={radarData ? radarData.sourceCoverage.available + "/" + radarData.sourceCoverage.total : "—"} />
+                <Card title={tr("Activity State", "Aktivite Durumu")} value={displayStatus(radarData?.activityState, locale)} detail={tr("Observed, Not Predictive", "Gözlemlenen, Tahmin Edici Değil")} />
+              </div>
+              {radarData?.confidence.reasons.length ? (
+                <div className="mt-3 rounded-lg border border-border p-3">
+                  <div className="text-[10px] font-medium text-foreground">{tr("Why The Confidence Is At This Level", "Bu Güven Seviyesinin Nedeni")}</div>
+                  <div className="mt-2 space-y-1">
+                    {radarData.confidence.reasons.slice(0, 5).map(reason => <div key={reason} className="text-[10px] leading-relaxed text-muted-foreground">• {reason}</div>)}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
