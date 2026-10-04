@@ -63,6 +63,11 @@ for (const token of ["activityByDay", "activeDayCount", "getWalletActivityAnalyt
   if (!walletAnalytics.includes(token)) throw new Error("Wallet analytics regression: " + token);
 }
 
+const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+for (const token of ["SearchPanel", "/api/zaf/search", "Global Search", "deepLinkReady", "/api/zaf/ledger/"]) {
+  if (!app.includes(token)) throw new Error("Search/deep-link regression: " + token);
+}
+
 const radar = fs.readFileSync(path.join(root, "lib/zaf/radar.ts"), "utf8");
 for (const token of ["getRadarObservation", "sampleConfidence", "transaction-pace", "operation-pace", "source-coverage"]) {
   if (!radar.includes(token)) throw new Error("Radar regression: " + token);
