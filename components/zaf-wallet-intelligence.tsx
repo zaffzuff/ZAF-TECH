@@ -28,6 +28,19 @@ function age(value: string | null, locale: Locale) {
   return min < 1 ? "Just Now" : min < 60 ? `${min}m Ago` : day < 1 ? `${Math.floor(min / 60)}h Ago` : `${day} Day${day === 1 ? "" : "s"} Ago`;
 }
 
+type WalletViewData = ZafWalletSnapshot & {
+  analytics?: {
+    transactionCount: number;
+    operationCount: number;
+    successfulTransactions: number;
+    failedTransactions: number;
+    successRate: number | null;
+    totalObservedFeesPi: number;
+    activeLedgerCount: number;
+    operationTypeCounts: Array<{ type: string; count: number }>;
+  };
+};
+
 function Card({ title, value, detail }: { title: string; value: string; detail?: string }) {
   return <div className="rounded-xl border border-border bg-card p-3 sm:p-4"><div className="text-xl font-bold ty-nums text-foreground sm:text-2xl">{value}</div><div className="mt-1 text-xs font-medium text-foreground">{title}</div>{detail ? <div className="mt-1 text-[11px] text-muted-foreground">{detail}</div> : null}</div>;
 }
@@ -35,7 +48,7 @@ function Card({ title, value, detail }: { title: string; value: string; detail?:
 export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
   const [address, setAddress] = useState("");
   const [network, setNetwork] = useState<"mainnet" | "testnet">("mainnet");
-  const [data, setData] = useState<ZafWalletSnapshot | null>(null);
+  const [data, setData] = useState<WalletViewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -95,8 +108,29 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         <div className="mt-2 flex flex-wrap gap-1.5"><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{data.network}</span><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{tr("Public Data Only", "Yalnızca Herkese Açık Veri")}</span></div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Card title={tr("Account Balance", "Hesap Bakiyesi")} value={fmt(data.accountBalancePi, locale)} detail="Pi" />
+        <Card title={tr("Transactions", "İşlemler")} value={fmt(data.analytics?.transactionCount ?? null, locale)} detail={tr("Observed Transactions", "Gözlemlenen İşlemler")} />
+        <Card title={tr("Operations", "Operasyonlar")} value={fmt(data.analytics?.operationCount ?? null, locale)} detail={tr("Observed Operations", "Gözlemlenen Operasyonlar")} />
+        <Card title={tr("Success Rate", "Başarı Oranı")} value={data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={tr("Observed Transaction Results", "Gözlemlenen İşlem Sonuçları")} />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
+        <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(data.analytics?.activeLedgerCount ?? null, locale)} />
+        <Card title={tr("Successful", "Başarılı")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
+        <Card title={tr("Failed", "Başarısız")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
+      </div>
+
+      <div className="mt-3 rounded-xl border border-border bg-card p-4">
+        <div className="text-xs font-semibold text-foreground">{tr("Observed Operation Types", "Gözlemlenen Operasyon Türleri")}</div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {(data.analytics?.operationTypeCounts ?? []).map(item => <div key={item.type} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="truncate text-muted-foreground">{item.type}</div><div className="mt-1 text-sm font-semibold text-foreground">{item.count}</div></div>)}
+          {!data.analytics?.operationTypeCounts?.length ? <div className="text-[10px] text-muted-foreground">{tr("No operation type data returned.", "Operasyon türü verisi döndürülmedi.")}</div> : null}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Card title={tr("Observable Claimable", "Gözlemlenebilir Talep Edilebilir")} value={fmt(data.observableClaimablePi, locale)} detail={tr("Native Claimable Balances", "Native Claimable Bakiyeler")} />
         <Card title={tr("Last Activity", "Son Aktivite")} value={age(data.lastActivity, locale)} detail={tr("Transactions + Operations", "İşlemler + Operasyonlar")} />
       </div>
