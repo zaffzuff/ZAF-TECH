@@ -38,6 +38,14 @@ type WalletViewData = ZafWalletSnapshot & {
     totalObservedFeesPi: number;
     activeLedgerCount: number;
     operationTypeCounts: Array<{ type: string; count: number }>;
+    activeDayCount: number;
+    activityByDay: Array<{
+      day: string;
+      transactions: number;
+      operations: number;
+      successfulTransactions: number;
+      failedTransactions: number;
+    }>;
   };
 };
 
