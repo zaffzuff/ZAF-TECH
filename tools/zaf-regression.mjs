@@ -14,6 +14,7 @@ const required = [
   "app/api/zaf/ledger/[sequence]/route.ts",
   "app/api/zaf/search/route.ts",
   "app/api/zaf/radar/route.ts",
+  "lib/zaf/radar.ts",
   "lib/zaf/node-health.ts",
   "lib/zaf/wallet-analytics.ts",
   "components/zaf-app-details.tsx",
@@ -60,6 +61,11 @@ for (const token of ["Promise.allSettled", "CACHE_TTL_MS", "confidenceFor", "hea
 const walletAnalytics = fs.readFileSync(path.join(root, "lib/zaf/wallet-analytics.ts"), "utf8");
 for (const token of ["activityByDay", "activeDayCount", "getWalletActivityAnalytics"]) {
   if (!walletAnalytics.includes(token)) throw new Error("Wallet analytics regression: " + token);
+}
+
+const radar = fs.readFileSync(path.join(root, "lib/zaf/radar.ts"), "utf8");
+for (const token of ["getRadarObservation", "sampleConfidence", "transaction-pace", "operation-pace", "source-coverage"]) {
+  if (!radar.includes(token)) throw new Error("Radar regression: " + token);
 }
 
 const score = fs.readFileSync(path.join(root, "lib/zaf/app-health-score.ts"), "utf8");
