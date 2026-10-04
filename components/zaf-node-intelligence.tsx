@@ -226,6 +226,43 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
         <NodeMetric label={tr("Mainnet Observation", "Mainnet Gözlemi")} value={formatNumber(data?.metrics.recentLedgerCount ?? null, locale)} detail={tr("Public Pi Mainnet ledger window used by ZAF TECH", "ZAF TECH'in kullandığı herkese açık Pi Mainnet ledger penceresi")} />
       </div>
       <div className="mt-3 rounded-xl border border-border bg-card p-3 sm:mt-4 sm:p-4">
+        <div className="text-xs font-semibold text-foreground">{tr("Current Node Alerts", "Mevcut Node Uyarıları")}</div>
+        <p className="mt-1 text-[10px] text-muted-foreground">{tr("Alerts are descriptive warnings derived from the latest local Connector sample.", "Uyarılar son yerel Connector örneğinden türetilen açıklayıcı uyarılardır.")}</p>
+        <div className="mt-3 space-y-2">
+          {[
+            !localNode ? tr("Node or Connector is unavailable.", "Node veya Connector kullanılamıyor.") : null,
+            localNode?.node?.sync && !["synced", "synced!"].includes(String(localNode.node.sync).toLowerCase()) ? tr("Node is not reporting a synced state.", "Node senkronize durumda değil.") : null,
+            localNode?.node?.ledger?.age != null && localNode.node.ledger.age >= 30 ? tr("Ledger age is 30 seconds or higher.", "Ledger yaşı 30 saniye veya daha yüksek.") : null,
+            localNode?.node?.peers?.authenticated != null && localNode.node.peers.authenticated < 4 ? tr("Authenticated peer count is below 4.", "Authenticated peer sayısı 4'ün altında.") : null,
+            localNode?.node?.quorum?.phase && String(localNode.node.quorum.phase).toUpperCase() !== "EXTERNALIZE" ? tr("SCP phase is not EXTERNALIZE.", "SCP fazı EXTERNALIZE değil.") : null,
+            localNode?.node?.quorum?.intersection === false ? tr("Quorum intersection is reported false.", "Quorum intersection false olarak raporlanıyor.") : null,
+            localResources?.host?.cpuPercent != null && localResources.host.cpuPercent >= 90 ? tr("Host CPU usage is 90% or higher.", "Host CPU kullanımı %90 veya daha yüksek.") : null,
+            localResources?.host?.memory?.usedPercent != null && localResources.host.memory.usedPercent >= 90 ? tr("Host memory usage is 90% or higher.", "Host bellek kullanımı %90 veya daha yüksek.") : null,
+            localResources?.host?.disk?.usedPercent != null && localResources.host.disk.usedPercent >= 90 ? tr("Host disk usage is 90% or higher.", "Host disk kullanımı %90 veya daha yüksek.") : null,
+            localResources?.docker?.memory?.usedPercent != null && localResources.docker.memory.usedPercent >= 90 ? tr("Node container memory usage is 90% or higher.", "Node container bellek kullanımı %90 veya daha yüksek.") : null,
+            localNode?.node?.restartCount != null && localNode.node.restartCount > 0 ? tr("The Node container has recorded one or more restarts.", "Node container bir veya daha fazla yeniden başlatma kaydetti.") : null,
+          ].filter((alert): alert is string => Boolean(alert)).map((alert) => (
+            <div key={alert} className="rounded-lg border border-border px-3 py-2 text-[10px] text-muted-foreground">{alert}</div>
+          ))}
+          {[
+            !localNode,
+            Boolean(localNode?.node?.sync && !["synced", "synced!"].includes(String(localNode.node.sync).toLowerCase())),
+            Boolean(localNode?.node?.ledger?.age != null && localNode.node.ledger.age >= 30),
+            Boolean(localNode?.node?.peers?.authenticated != null && localNode.node.peers.authenticated < 4),
+            Boolean(localNode?.node?.quorum?.phase && String(localNode.node.quorum.phase).toUpperCase() !== "EXTERNALIZE"),
+            localNode?.node?.quorum?.intersection === false,
+            Boolean(localResources?.host?.cpuPercent != null && localResources.host.cpuPercent >= 90),
+            Boolean(localResources?.host?.memory?.usedPercent != null && localResources.host.memory.usedPercent >= 90),
+            Boolean(localResources?.host?.disk?.usedPercent != null && localResources.host.disk.usedPercent >= 90),
+            Boolean(localResources?.docker?.memory?.usedPercent != null && localResources.docker.memory.usedPercent >= 90),
+            Boolean(localNode?.node?.restartCount != null && localNode.node.restartCount > 0),
+          ].filter(Boolean).length === 0 ? (
+            <div className="rounded-lg border border-border px-3 py-2 text-[10px] text-muted-foreground">{tr("No current local alerts detected.", "Mevcut yerel uyarı tespit edilmedi.")}</div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-border bg-card p-3 sm:mt-4 sm:p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Local Node Status", "Yerel Node Durumu")}</div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <NodeMetric label={tr("Node Condition", "Node Durumu")} value={tr(nodeHealth.status === "healthy" ? "Healthy" : nodeHealth.status === "degraded" ? "Degraded" : nodeHealth.status === "limited" ? "Limited" : "Offline", nodeHealth.status === "healthy" ? "Sağlıklı" : nodeHealth.status === "degraded" ? "Düşük" : nodeHealth.status === "limited" ? "Sınırlı" : "Çevrimdışı")} detail={tr("Local descriptive assessment", "Yerel açıklayıcı değerlendirme")} />
