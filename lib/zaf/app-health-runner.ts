@@ -2,6 +2,7 @@ import { getEcosystemSnapshot } from "@/lib/zaf/ecosystem";
 import { checkAppHealth, type AppHealthCheck } from "@/lib/zaf/app-health";
 import { saveAppChecks } from "@/lib/zaf/app-check-history";
 import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
+import { calculateAppHealthScore, type AppHealthScore } from "@/lib/zaf/app-health-score";
 
 export const MAX_APPS = 20;
 
@@ -14,11 +15,16 @@ export type EcosystemHealthRun = {
     reachable: number;
     online: number;
     offline: number;
+    averageScore: number | null;
+    healthy: number;
+    degraded: number;
+    limited: number;
   };
   results: Array<{
     name: string;
     url: string;
     check: AppHealthCheck;
+    score: AppHealthScore;
   }>;
 };
 
@@ -27,11 +33,15 @@ export async function runEcosystemHealthChecks(): Promise<EcosystemHealthRun> {
   const apps = ecosystem.apps.items.slice(0, MAX_APPS);
 
   const results = await Promise.all(
-    apps.map(async (app) => ({
-      name: app.name,
-      url: app.url,
-      check: await checkAppHealth(app.url),
-    })),
+    apps.map(async (app) => {
+      const check = await checkAppHealth(app.url);
+      return {
+        name: app.name,
+        url: app.url,
+        check,
+        score: calculateAppHealthScore(check),
+      };
+    }),
   );
 
   try {
@@ -53,6 +63,10 @@ export async function runEcosystemHealthChecks(): Promise<EcosystemHealthRun> {
 
   const reachable = results.filter((item) => item.check.reachable).length;
   const online = results.filter((item) => item.check.ok).length;
+  const averageScore = results.length ? Math.round(results.reduce((sum, item) => sum + item.score.score, 0) / results.length) : null;
+  const healthy = results.filter((item) => item.score.status === "healthy").length;
+  const degraded = results.filter((item) => item.score.status === "degraded").length;
+  const limited = results.filter((item) => item.score.status === "limited").length;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -63,6 +77,10 @@ export async function runEcosystemHealthChecks(): Promise<EcosystemHealthRun> {
       reachable,
       online,
       offline: results.length - reachable,
+      averageScore,
+      healthy,
+      degraded,
+      limited,
     },
     results,
   };
