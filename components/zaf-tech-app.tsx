@@ -361,6 +361,7 @@ export function ZafTechApp() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [ledgerObservation, setLedgerObservation] = useState<LedgerObservation | null>(null);
+  const [deepLinkReady, setDeepLinkReady] = useState(false);
   const router = useRouter();
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
@@ -399,14 +400,16 @@ export function ZafTechApp() {
         .then(value => setLedgerObservation(value))
         .catch(() => setLedgerObservation(null));
     }
+    setDeepLinkReady(true);
   }, []);
 
   useEffect(() => {
+    if (!deepLinkReady) return;
     const params = new URLSearchParams(window.location.search);
     params.set("section", section);
     if (subtab) params.set("subtab", subtab);
     window.history.replaceState(null, "", "/?" + params.toString());
-  }, [section, subtab]);
+  }, [deepLinkReady, section, subtab]);
 
   useEffect(() => {
     const t = window.localStorage.getItem("zaf-tech-theme-v1");
