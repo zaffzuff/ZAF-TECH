@@ -4,7 +4,15 @@ import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib
 type StoredPayload = {
   apps?: { totalCount?: number | null };
   sources?: Array<{ id: string; label: string; status: string }>;
-  signals?: Array<{ id: string; title: string; kind: string }>;
+  signals?: Array<{
+    id: string;
+    title: string;
+    kind: string;
+    detail?: string;
+    detailTr?: string;
+    sourceUrl?: string | null;
+    detectedAt?: string;
+  }>;
   defi?: {
     launchpad?: { status: string };
     dex?: { status: string };
@@ -21,6 +29,9 @@ export type EcosystemChange = {
   detailTr: string;
   previous: string | number | null;
   current: string | number | null;
+  category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+  sourceUrl?: string | null;
+  observedAt?: string | null;
 };
 
 export type EcosystemChanges = {
@@ -78,6 +89,9 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         detailTr: `${source.label} durumu ${old.status} değerinden ${source.status} değerine değişti.`,
         previous: old.status,
         current: source.status,
+        category: "source_status",
+        sourceUrl: source.url,
+        observedAt: source.checkedAt,
       });
     }
   }
@@ -90,10 +104,13 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         type: "signal_added",
         key: signal.id,
         title: signal.title,
-        detail: "A new observable signal appeared in the current snapshot.",
-        detailTr: "Mevcut snapshot'ta yeni bir gözlemlenebilir sinyal ortaya çıktı.",
+        detail: signal.detail ?? "The signal is present in the current snapshot but was not present in the previous stored snapshot.",
+        detailTr: signal.detailTr ?? "Bu sinyal mevcut snapshot'ta var ancak önceki kayıtlı snapshot'ta yoktu.",
         previous: null,
         current: signal.kind,
+        category: "signal_added",
+        sourceUrl: signal.sourceUrl ?? null,
+        observedAt: signal.detectedAt ?? current.generatedAt,
       });
     }
   }
@@ -103,10 +120,13 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         type: "signal_removed",
         key: signal.id,
         title: signal.title,
-        detail: "This signal is no longer present in the current snapshot.",
-        detailTr: "Bu sinyal mevcut snapshot'ta artık bulunmuyor.",
+        detail: signal.detail ?? "The signal is no longer present in the current snapshot.",
+        detailTr: signal.detailTr ?? "Bu sinyal mevcut snapshot'ta artık bulunmuyor.",
         previous: signal.kind,
         current: null,
+        category: "signal_removed",
+        sourceUrl: signal.sourceUrl ?? null,
+        observedAt: signal.detectedAt ?? history[0].generatedAt,
       });
     }
   }
@@ -127,6 +147,9 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         detailTr: `${key} durumu ${old} değerinden ${next} değerine değişti.`,
         previous: old,
         current: next,
+        category: "defi_status",
+        sourceUrl: current.defi[key as keyof typeof current.defi]?.sourceUrl ?? null,
+        observedAt: current.generatedAt,
       });
     }
   }
