@@ -18,6 +18,17 @@ for (const file of required) {
   if (!fs.existsSync(path.join(root, file))) throw new Error("Missing required v1.1 file: " + file);
 }
 
+const removedStandalonePages = [
+  "app/observatory/page.tsx",
+  "app/search/page.tsx",
+  "app/node-health/page.tsx",
+  "app/node-alerts/page.tsx",
+  "app/wallet-observatory/page.tsx",
+];
+for (const file of removedStandalonePages) {
+  if (fs.existsSync(path.join(root, file))) throw new Error("Redundant standalone page returned: " + file);
+}
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
