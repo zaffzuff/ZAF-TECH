@@ -1,4 +1,4 @@
-import { getObservationHistory } from "@/lib/zaf/observation-history";
+import { getPreviousObservation } from "@/lib/zaf/observation-history";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 
@@ -24,6 +24,7 @@ export type RadarObservation = {
   sourceCoverage: { available: number; total: number };
   confidence: { score: number; level: RadarConfidenceLevel; reasons: string[] };
   health: { score: number; status: "healthy" | "degraded" | "limited" };
+  baselineAt: string | null;
   signals: RadarSignal[];
 };
 
@@ -80,12 +81,7 @@ function currentConfidence(label: string, available: boolean, evidence: number, 
 
 export async function getRadarObservation(): Promise<RadarObservation> {
   const observation = await getUnifiedObservation();
-  const history = await getObservationHistory(20);
-  const baseline = history.find((item) => {
-    const currentTime = Date.parse(observation.generatedAt);
-    const storedTime = Date.parse(item.generatedAt);
-    return Number.isFinite(currentTime) && Number.isFinite(storedTime) && currentTime - storedTime >= 300000;
-  }) ?? null;
+  const baseline = await getPreviousObservation(observation.generatedAt, 300);
 
   const current = observation.network;
   const fresh = observation.freshness.state === "fresh";
@@ -149,6 +145,7 @@ export async function getRadarObservation(): Promise<RadarObservation> {
     sourceCoverage: { available: availableSources, total: sourceCount },
     confidence: observation.confidence,
     health: { score: observation.health.score, status: observation.health.status },
+    baselineAt: baseline?.generatedAt ?? null,
     signals,
   };
 }
