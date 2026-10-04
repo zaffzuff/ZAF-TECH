@@ -82,6 +82,9 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
   if (!sql) return null;
   try {
     await ensureTable(sql);
+    const cutoffMs = Date.parse(beforeGeneratedAt) - (minAgeSeconds * 1000);
+    if (!Number.isFinite(cutoffMs)) return null;
+    const cutoff = new Date(cutoffMs).toISOString();
     const rows = await sql`
       SELECT
         bucket_start AS "bucketStart",
@@ -98,7 +101,7 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
         available_sources AS "availableSources",
         total_sources AS "totalSources"
       FROM zaf_observation_snapshots
-      WHERE generated_at <= ${beforeGeneratedAt}::timestamptz - ${minAgeSeconds} * interval '1 second'
+      WHERE generated_at <= ${cutoff}
       ORDER BY generated_at DESC
       LIMIT 1
     `;
