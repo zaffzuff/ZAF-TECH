@@ -47,6 +47,11 @@ async function ensureTable(sql: ReturnType<typeof postgres>) {
     CREATE INDEX IF NOT EXISTS zaf_observation_snapshots_generated_at_idx
     ON zaf_observation_snapshots (generated_at DESC)
   `;
+  await sql.unsafe(
+    "ALTER TABLE zaf_observation_snapshots " +
+    "ALTER COLUMN daily_transactions TYPE DOUBLE PRECISION USING daily_transactions::double precision, " +
+    "ALTER COLUMN daily_operations TYPE DOUBLE PRECISION USING daily_operations::double precision"
+  );
 }
 
 function bucketStart(value: string) {
