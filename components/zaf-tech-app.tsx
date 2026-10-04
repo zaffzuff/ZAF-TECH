@@ -248,6 +248,7 @@ export function ZafTechApp() {
   const [snapshot, setSnapshot] = useState<ZafSnapshot | null>(null);
   const [ecosystem, setEcosystem] = useState<EcosystemPayload | null>(null);
   const [radarChanges, setRadarChanges] = useState<EcosystemChangePayload | null>(null);
+  const [observationMeta, setObservationMeta] = useState<{ generatedAt: string; freshness: { state: string; ageSeconds: number }; confidence: { score: number; level: string }; errors: string[] }>({ generatedAt: "", freshness: { state: "unknown", ageSeconds: 0 }, confidence: { score: 0, level: "low" }, errors: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -279,16 +280,18 @@ export function ZafTechApp() {
   const load = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [networkResponse, ecosystemResponse] = await Promise.all([
-        fetch("/api/zaf", { cache: "no-store" }),
-        fetch("/api/zaf/ecosystem", { cache: "no-store" }),
-      ]);
-      if (!networkResponse.ok || !ecosystemResponse.ok) {
-        throw new Error("ZAF TECH data request failed");
-      }
-      const [network, apps] = await Promise.all([networkResponse.json(), ecosystemResponse.json()]);
-      setSnapshot(network);
-      setEcosystem(apps);
+      const response = await fetch("/api/zaf/observations", { cache: "no-store" });
+      if (!response.ok) throw new Error("ZAF TECH observation request failed");
+      const observation = await response.json();
+      if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
+      setSnapshot(observation.network ?? null);
+      setEcosystem(observation.ecosystem ?? null);
+      setObservationMeta({
+        generatedAt: observation.generatedAt ?? "",
+        freshness: observation.freshness ?? { state: "unknown", ageSeconds: 0 },
+        confidence: observation.confidence ?? { score: 0, level: "low" },
+        errors: Array.isArray(observation.errors) ? observation.errors : [],
+      });
       setLoadError(null);
     } catch {
       setLoadError("DATA_REQUEST_FAILED");
