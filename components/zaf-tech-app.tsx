@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
@@ -13,7 +13,6 @@ import { ZafAppHealth } from "@/components/zaf-app-health";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
-import { useMemo } from "react";
 
 type AppItem = { name: string; url: string };
 type EcosystemPayload = {
