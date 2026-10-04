@@ -48,7 +48,7 @@ export async function getObservationTimeline(limit = 24) {
     items.push({
       generatedAt: current.generatedAt,
       baselineAt: baseline?.generatedAt ?? null,
-      activity: averageChange == null ? "insufficient-data" : activityFor(averageChange, 0),
+      activity: averageChange == null ? "insufficient-data" : activityFor(averageChange, null),
       transactionChangePercent,
       operationChangePercent,
       observedTransactions: current.observedTransactions,
