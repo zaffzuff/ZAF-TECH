@@ -393,7 +393,7 @@ export function ZafTechApp() {
       setSubtab(requestedSubtab && allowed.includes(requestedSubtab) ? requestedSubtab : (allowed[0] ?? ""));
     }
     const requestedLedger = params.get("ledger");
-    if (requestedLedger && /^\\d{1,12}$/.test(requestedLedger)) {
+    if (requestedLedger && /^\d{1,12}$/.test(requestedLedger)) {
       void fetch("/api/zaf/ledger/" + requestedLedger, { cache: "no-store" })
         .then(response => response.ok ? response.json() as Promise<LedgerObservation> : null)
         .then(value => setLedgerObservation(value))
