@@ -360,6 +360,15 @@ export function ZafTechApp() {
               <Card title={tr("Protocol", "Protokol")} value={snapshot?.metrics.latestProtocolVersion != null ? `v${snapshot.metrics.latestProtocolVersion}` : "—"} detail={tr("Latest Observed Ledger", "Son Gözlemlenen Ledger")} />
             </div>
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
+              <div className="text-xs font-semibold text-foreground">{tr("Current Ecosystem Coverage", "Mevcut Ekosistem Kapsamı")}</div>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Card title={tr("Available Sources", "Kullanılabilir Kaynaklar")} value={ecosystem ? `${ecosystem.sources.filter(source => source.status === "online" || source.status === "available").length}/${ecosystem.sources.length}` : "—"} detail={tr("Public Sources", "Herkese Açık Kaynaklar")} />
+                <Card title={tr("Signals", "Sinyaller")} value={number(ecosystem?.signals.length, 0, locale)} detail={tr("Currently Observed", "Şu Anda Gözlemlenen")} />
+                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
+                <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Review source status", "Kaynak durumunu inceleyin") : tr("No source errors", "Kaynak hatası yok")} />
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("What ZAF TECH Does", "ZAF TECH Ne Yapar")}</div>
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH is an independent, read-only technology project. It observes public ecosystem sources and local Node diagnostics; it does not represent Pi Core Team and does not assign subjective network health scores.", "ZAF TECH bağımsız, salt-okunur bir teknoloji projesidir. Herkese açık ekosistem kaynaklarını ve yerel Node teşhislerini gözlemler; Pi Core Team'i temsil etmez ve öznel ağ sağlık puanları üretmez.")}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[11px]"><External href="https://minepi.com/developers/">{tr("Pi Developers", "Pi Geliştiricileri")}</External><External href="https://developers.minepi.com/">{tr("Developer Docs", "Geliştirici Dokümanları")}</External><External href="https://ecosystem.pinet.com/">{tr("Pi Ecosystem", "Pi Ekosistemi")}</External></div>
