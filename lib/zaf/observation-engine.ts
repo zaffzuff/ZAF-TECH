@@ -93,7 +93,7 @@ async function collect(): Promise<UnifiedObservation> {
     network, ecosystem, errors,
   };
   if (network?.error) value.errors.push(network.error);
-  void saveObservationSnapshot(historyRecord(value)).catch(() => undefined);
+  await saveObservationSnapshot(historyRecord(value)).catch(() => false);
   return value;
 }
 
