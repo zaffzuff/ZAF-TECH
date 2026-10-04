@@ -148,7 +148,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         previous: old,
         current: next,
         category: "defi_status",
-        sourceUrl: current.defi[key as keyof typeof current.defi]?.sourceUrl ?? null,
+        sourceUrl: null,
         observedAt: current.generatedAt,
       });
     }
