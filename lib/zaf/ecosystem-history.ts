@@ -39,6 +39,21 @@ export async function saveEcosystemSnapshot(record: EcosystemSnapshotRecord) {
 
   try {
     await ensureTable(sql);
+
+    const latest = await sql`
+      SELECT generated_at AS "generatedAt"
+      FROM zaf_ecosystem_snapshots
+      ORDER BY generated_at DESC
+      LIMIT 1
+    `;
+
+    const latestAt = latest[0]?.generatedAt ? new Date(latest[0].generatedAt).getTime() : null;
+    const currentAt = new Date(record.generatedAt).getTime();
+
+    if (latestAt != null && Number.isFinite(currentAt) && currentAt - latestAt < 300000) {
+      return false;
+    }
+
     await sql`
       INSERT INTO zaf_ecosystem_snapshots
         (generated_at, source_available, observed_app_count, payload)
@@ -46,6 +61,8 @@ export async function saveEcosystemSnapshot(record: EcosystemSnapshotRecord) {
         (${record.generatedAt}, ${record.sourceAvailable}, ${record.observedAppCount}, ${JSON.stringify(record.payload)}::jsonb)
     `;
     return true;
+  } catch {
+    return false;
   } finally {
     await sql.end();
   }
