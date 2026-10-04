@@ -94,6 +94,17 @@ function radarSignalTitle(id: string, locale: Locale) {
   const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
   return labels[id]?.[index] ?? id;
 }
+function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number]["category"], locale: Locale) {
+  const labels = {
+    app_count: locale === "tr" ? "Uygulama sayısı değişti" : "App count changed",
+    source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
+    signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
+    signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
+    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
+  } as const;
+  return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
+}
+
 function radarSignalValue(id: string, value: number | string | null, locale: Locale) {
   if (value == null) return "—";
   if (id === "source-coverage" || typeof value === "string") return value;
@@ -542,30 +553,41 @@ export function ZafTechApp() {
               <Card title={tr("Daily Pace", "Günlük Tempo")} value={number(snapshot?.metrics.observedTransactionsPerDay, 0, locale)} detail={tr("Observed Transactions / Day", "Gözlemlenen İşlem / Gün")} />
               <Card title={tr("Daily Operations", "Günlük Operasyonlar")} value={number(snapshot?.metrics.observedOperationsPerDay, 0, locale)} detail={tr("Observed Operations / Day", "Gözlemlenen Operasyon / Gün")} />
               <Card title={tr("Source Coverage", "Kaynak Kapsamı")} value={ecosystem ? `${ecosystem.sources.filter(source => source.status === "online" || source.status === "available").length}/${ecosystem.sources.length}` : "—"} detail={tr("Public Sources", "Herkese Açık Kaynaklar")} />
-              <Card title={tr("Transaction Change", "İşlem Değişimi")} value={snapshot?.intelligence.transactionChangePercent != null ? `${snapshot.intelligence.transactionChangePercent > 0 ? "+" : ""}${snapshot.intelligence.transactionChangePercent.toFixed(1)}%` : "—"} detail={tr("Vs Previous Observation", "Önceki Gözleme Göre")} />
+              <Card title={tr("Sample-Window Transaction Change", "Örneklem Penceresi İşlem Değişimi")} value={snapshot?.intelligence.transactionChangePercent != null ? `${snapshot.intelligence.transactionChangePercent > 0 ? "+" : ""}${snapshot.intelligence.transactionChangePercent.toFixed(1)}%` : "—"} detail={tr("Within current 100-ledger sample", "Mevcut 100-ledger örneği içinde")} />
             </div>
 
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
-              <div className="text-xs font-semibold text-foreground">{tr("Daily Changes", "Günlük Değişiklikler")}</div>
+              <div className="text-xs font-semibold text-foreground">{tr("Ecosystem Changes", "Ekosistem Değişiklikleri")}</div>
               <p className="mt-1 text-[10px] text-muted-foreground">
-                {tr("Changes are compared with the latest stored ecosystem snapshot. They describe observed differences only.", "Değişiklikler son kayıtlı ekosistem snapshot'ı ile karşılaştırılır. Yalnızca gözlemlenen farklılıkları açıklar.")}
+                {tr("Differences observed between the current ecosystem snapshot and the latest stored snapshot. A new observation does not mean the underlying event happened today.", "Mevcut ekosistem snapshot'ı ile en son kayıtlı snapshot arasındaki farklardır. Yeni gözlemlenmesi, olayın bugün gerçekleştiği anlamına gelmez.")}
               </p>
+              {radarChanges?.hasBaseline && radarChanges.comparedAt ? (
+                <div className="mt-2 rounded-lg border border-border bg-background px-3 py-2 text-[10px] text-muted-foreground">
+                  {tr("Compared with stored snapshot", "Karşılaştırılan kayıtlı snapshot")}: {age(radarChanges.comparedAt, locale)}
+                </div>
+              ) : null}
               <div className="mt-3 space-y-2">
-                {radarChanges?.changes?.length ? radarChanges.changes.slice(0, 6).map(change => (                  <div key={`${change.type}-${change.title}`} className="rounded-lg border border-border p-3">
-                    <div className="text-[11px] font-semibold text-foreground">{change.title}</div>
+                {radarChanges?.changes?.length ? radarChanges.changes.slice(0, 6).map(change => (
+                  <div key={`${change.type}-${change.title}`} className="rounded-lg border border-border p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-[11px] font-semibold text-foreground">{change.title}</div>
+                      <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">
+                        {ecosystemChangeLabel(change.category, locale)}
+                      </span>
+                    </div>
                     <div className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? change.detailTr : translate(locale, change.detail, change.detailTr)}</div>
                     {(change.previous != null || change.current != null) ? <div className="mt-2 text-[10px] text-muted-foreground">{String(change.previous ?? "—")} → {String(change.current ?? "—")}</div> : null}
+                    {change.sourceUrl ? <div className="mt-2"><a href={change.sourceUrl} target="_blank" rel="noreferrer" className="text-[10px] font-medium text-foreground underline underline-offset-2">{tr("Open source", "Kaynağı aç")}</a></div> : null}
                   </div>
                 )) : (
                   <div className="rounded-lg border border-border p-3 text-[10px] text-muted-foreground">
-                    {radarChanges?.hasBaseline ? tr("No meaningful ecosystem changes detected.", "Anlamlı bir ekosistem değişikliği tespit edilmedi.") : tr("A baseline is not available yet.", "Henüz karşılaştırılacak bir temel snapshot yok.")}
+                    {radarChanges?.hasBaseline ? tr("No ecosystem differences detected between the two stored snapshots.", "İki kayıtlı snapshot arasında ekosistem farkı tespit edilmedi.") : tr("A historical ecosystem baseline is not available yet.", "Henüz tarihsel ekosistem temel snapshot'ı bulunmuyor.")}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border border-border bg-card p-4">
-              <div className="text-xs font-semibold text-foreground">{tr("Real Activity Radar", "Gerçek Aktivite Radarı")}</div>
+
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These signals are calculated from the current public Mainnet sample and stored observations. No predictive model or invented network-wide score is used.", "Bu sinyaller mevcut herkese açık Mainnet örneği ve kayıtlı gözlemlerden hesaplanır. Tahmin modeli veya uydurma ağ geneli skoru kullanılmaz.")}</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {(radarData?.signals ?? []).map(signal => (
@@ -842,6 +864,9 @@ type EcosystemChangePayload = {
     detailTr: string;
     previous: string | number | null;
     current: string | number | null;
+    category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+    sourceUrl?: string | null;
+    observedAt?: string | null;
   }>;
 };
 
