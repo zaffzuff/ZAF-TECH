@@ -84,7 +84,8 @@ async function collect(): Promise<UnifiedObservation> {
   const errors = results.filter((result): result is PromiseRejectedResult => result.status === "rejected")
     .map(result => result.reason instanceof Error ? result.reason.message : "Observation source failed");
   const generatedAt = new Date().toISOString();
-  const freshness = freshnessFor(network?.generatedAt ?? ecosystem?.generatedAt ?? null);
+  const sourceGeneratedAt = network?.generatedAt ?? ecosystem?.generatedAt ?? null;
+  const freshness = freshnessFor(sourceGeneratedAt);
   const value: UnifiedObservation = {
     version: "1.1", generatedAt, freshness,
     confidence: confidenceFor(network, ecosystem, freshness, errors),
