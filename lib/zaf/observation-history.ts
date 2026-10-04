@@ -25,14 +25,28 @@ export function isObservationHistoryConfigured() {
 }
 
 async function ensureTable(sql: ReturnType<typeof postgres>) {
-  await sql.unsafe(
-    "CREATE TABLE IF NOT EXISTS zaf_observation_snapshots (" +
-    "id BIGSERIAL PRIMARY KEY, bucket_start TIMESTAMPTZ NOT NULL UNIQUE, generated_at TIMESTAMPTZ NOT NULL, " +
-    "freshness_state TEXT NOT NULL, confidence_score NUMERIC NULL, network_ledger TEXT NULL, protocol_version INTEGER NULL, " +
-    "observed_transactions INTEGER NULL, observed_operations INTEGER NULL, daily_transactions INTEGER NULL, daily_operations INTEGER NULL, " +
-    "observed_apps INTEGER NULL, available_sources INTEGER NOT NULL, total_sources INTEGER NOT NULL)"
-  );
-  await sql.unsafe("CREATE INDEX IF NOT EXISTS zaf_observation_snapshots_generated_at_idx ON zaf_observation_snapshots (generated_at DESC)");
+  await sql\`
+    CREATE TABLE IF NOT EXISTS zaf_observation_snapshots (
+      id BIGSERIAL PRIMARY KEY,
+      bucket_start TIMESTAMPTZ NOT NULL UNIQUE,
+      generated_at TIMESTAMPTZ NOT NULL,
+      freshness_state TEXT NOT NULL,
+      confidence_score NUMERIC NULL,
+      network_ledger TEXT NULL,
+      protocol_version INTEGER NULL,
+      observed_transactions INTEGER NULL,
+      observed_operations INTEGER NULL,
+      daily_transactions INTEGER NULL,
+      daily_operations INTEGER NULL,
+      observed_apps INTEGER NULL,
+      available_sources INTEGER NOT NULL,
+      total_sources INTEGER NOT NULL
+    )
+  \`;
+  await sql\`
+    CREATE INDEX IF NOT EXISTS zaf_observation_snapshots_generated_at_idx
+    ON zaf_observation_snapshots (generated_at DESC)
+  \`;
 }
 
 function bucketStart(value: string) {
@@ -45,15 +59,28 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
   if (!sql) return false;
   try {
     await ensureTable(sql);
-    await sql.unsafe(
-      "INSERT INTO zaf_observation_snapshots " +
-      "(bucket_start, generated_at, freshness_state, confidence_score, network_ledger, protocol_version, observed_transactions, observed_operations, daily_transactions, daily_operations, observed_apps, available_sources, total_sources) " +
-      "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) " +
-      "ON CONFLICT (bucket_start) DO UPDATE SET generated_at=EXCLUDED.generated_at, freshness_state=EXCLUDED.freshness_state, confidence_score=EXCLUDED.confidence_score, network_ledger=EXCLUDED.network_ledger, protocol_version=EXCLUDED.protocol_version, observed_transactions=EXCLUDED.observed_transactions, observed_operations=EXCLUDED.observed_operations, daily_transactions=EXCLUDED.daily_transactions, daily_operations=EXCLUDED.daily_operations, observed_apps=EXCLUDED.observed_apps, available_sources=EXCLUDED.available_sources, total_sources=EXCLUDED.total_sources",
-      [bucketStart(record.generatedAt), record.generatedAt, record.freshnessState, record.confidenceScore, record.networkLedger, record.protocolVersion, record.observedTransactions, record.observedOperations, record.dailyTransactions, record.dailyOperations, record.observedApps, record.availableSources, record.totalSources]
-    );
+    await sql\`
+      INSERT INTO zaf_observation_snapshots
+        (bucket_start, generated_at, freshness_state, confidence_score, network_ledger, protocol_version, observed_transactions, observed_operations, daily_transactions, daily_operations, observed_apps, available_sources, total_sources)
+      VALUES
+        (\${bucketStart(record.generatedAt)}, \${record.generatedAt}, \${record.freshnessState}, \${record.confidenceScore}, \${record.networkLedger}, \${record.protocolVersion}, \${record.observedTransactions}, \${record.observedOperations}, \${record.dailyTransactions}, \${record.dailyOperations}, \${record.observedApps}, \${record.availableSources}, \${record.totalSources})
+      ON CONFLICT (bucket_start) DO UPDATE SET
+        generated_at = EXCLUDED.generated_at,
+        freshness_state = EXCLUDED.freshness_state,
+        confidence_score = EXCLUDED.confidence_score,
+        network_ledger = EXCLUDED.network_ledger,
+        protocol_version = EXCLUDED.protocol_version,
+        observed_transactions = EXCLUDED.observed_transactions,
+        observed_operations = EXCLUDED.observed_operations,
+        daily_transactions = EXCLUDED.daily_transactions,
+        daily_operations = EXCLUDED.daily_operations,
+        observed_apps = EXCLUDED.observed_apps,
+        available_sources = EXCLUDED.available_sources,
+        total_sources = EXCLUDED.total_sources
+    \`;
     return true;
-  } catch {
+  } catch (error) {
+    console.error("[ZAF-TECH] Observation history write failed", error);
     return false;
   } finally {
     await sql.end();
@@ -66,26 +93,7 @@ export async function getObservationHistory(limit = 336) {
   try {
     await ensureTable(sql);
     const safeLimit = Math.min(Math.max(limit, 1), 1000);
-    return await sql.unsafe(
-      "SELECT bucket_start AS \"bucketStart\", generated_at AS \"generatedAt\", freshness_state AS \"freshnessState\", confidence_score AS \"confidenceScore\", network_ledger AS \"networkLedger\", protocol_version AS \"protocolVersion\", observed_transactions AS \"observedTransactions\", observed_operations AS \"observedOperations\", daily_transactions AS \"dailyTransactions\", daily_operations AS \"dailyOperations\", observed_apps AS \"observedApps\", available_sources AS \"availableSources\", total_sources AS \"totalSources\" FROM zaf_observation_snapshots ORDER BY generated_at DESC LIMIT $1",
-      [safeLimit]
-    );
-  } catch {
-    return [];
-  } finally {
-    await sql.end();
-  }
-}
-
-export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSeconds = 300) {
-  const sql = getClient();
-  if (!sql) return null;
-  try {
-    await ensureTable(sql);
-    const cutoffMs = Date.parse(beforeGeneratedAt) - (minAgeSeconds * 1000);
-    if (!Number.isFinite(cutoffMs)) return null;
-    const cutoff = new Date(cutoffMs).toISOString();
-    const rows = await sql`
+    return await sql\`
       SELECT
         bucket_start AS "bucketStart",
         generated_at AS "generatedAt",
@@ -101,12 +109,48 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
         available_sources AS "availableSources",
         total_sources AS "totalSources"
       FROM zaf_observation_snapshots
-      WHERE generated_at <= ${cutoff}
+      ORDER BY generated_at DESC
+      LIMIT \${safeLimit}
+    \`;
+  } catch (error) {
+    console.error("[ZAF-TECH] Observation history read failed", error);
+    return [];
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSeconds = 300) {
+  const sql = getClient();
+  if (!sql) return null;
+  try {
+    await ensureTable(sql);
+    const cutoffMs = Date.parse(beforeGeneratedAt) - (minAgeSeconds * 1000);
+    if (!Number.isFinite(cutoffMs)) return null;
+    const cutoff = new Date(cutoffMs).toISOString();
+    const rows = await sql\`
+      SELECT
+        bucket_start AS "bucketStart",
+        generated_at AS "generatedAt",
+        freshness_state AS "freshnessState",
+        confidence_score AS "confidenceScore",
+        network_ledger AS "networkLedger",
+        protocol_version AS "protocolVersion",
+        observed_transactions AS "observedTransactions",
+        observed_operations AS "observedOperations",
+        daily_transactions AS "dailyTransactions",
+        daily_operations AS "dailyOperations",
+        observed_apps AS "observedApps",
+        available_sources AS "availableSources",
+        total_sources AS "totalSources"
+      FROM zaf_observation_snapshots
+      WHERE generated_at <= \${cutoff}
       ORDER BY generated_at DESC
       LIMIT 1
-    `;
+    \`;
     return rows[0] ?? null;
-  } catch {
+  } catch (error) {
+    console.error("[ZAF-TECH] Observation baseline read failed", error);
     return null;
   } finally {
     await sql.end();
