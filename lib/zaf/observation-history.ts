@@ -76,3 +76,23 @@ export async function getObservationHistory(limit = 336) {
     await sql.end();
   }
 }
+
+export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSeconds = 300) {
+  const sql = getClient();
+  if (!sql) return null;
+  try {
+    await ensureTable(sql);
+    const rows = await sql.unsafe(
+      "SELECT bucket_start AS \"bucketStart\", generated_at AS \"generatedAt\", freshness_state AS \"freshnessState\", confidence_score AS \"confidenceScore\", network_ledger AS \"networkLedger\", protocol_version AS \"protocolVersion\", observed_transactions AS \"observedTransactions\", observed_operations AS \"observedOperations\", daily_transactions AS \"dailyTransactions\", daily_operations AS \"dailyOperations\", observed_apps AS \"observedApps\", available_sources AS \"availableSources\", total_sources AS \"totalSources\" " +
+      "FROM zaf_observation_snapshots " +
+      "WHERE generated_at <= ($1::timestamptz - ($2::double precision * interval '1 second')) " +
+      "ORDER BY generated_at DESC LIMIT 1",
+      [beforeGeneratedAt, minAgeSeconds]
+    );
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  } finally {
+    await sql.end();
+  }
+}
