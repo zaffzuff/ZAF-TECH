@@ -586,10 +586,47 @@ type EcosystemChangePayload = {
   }>;
 };
 
+type ObservationHistoryPayload = {
+  configured: boolean;
+  count: number;
+  points: Array<{
+    generatedAt: string;
+    freshnessState: string;
+    confidenceScore: number | null;
+    networkLedger: string | null;
+    protocolVersion: number | null;
+    observedTransactions: number | null;
+    observedOperations: number | null;
+    dailyTransactions: number | null;
+    dailyOperations: number | null;
+    observedApps: number | null;
+    availableSources: number;
+    totalSources: number;
+  }>;
+};
+
+type ObservationChangePayload = {
+  generatedAt: string;
+  baselineAt: string | null;
+  hasBaseline: boolean;
+  changes: Array<{
+    type: string;
+    direction: "up" | "down" | "changed" | "stable";
+    title: string;
+    detail: string;
+    detailTr: string;
+    previous: string | number | null;
+    current: string | number | null;
+    percent: number | null;
+  }>;
+};
+
 function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: string, trText: string) => string }) {
   const [data, setData] = useState<EcosystemStatisticsPayload | null>(null);
   const [changes, setChanges] = useState<EcosystemChangePayload | null>(null);
   const [trends, setTrends] = useState<EcosystemTrendPayload | null>(null);
+  const [history, setHistory] = useState<ObservationHistoryPayload | null>(null);
+  const [observationChanges, setObservationChanges] = useState<ObservationChangePayload | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -598,12 +635,16 @@ function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: st
       fetch("/api/zaf/ecosystem/statistics", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/ecosystem/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/ecosystem/trends", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
+      fetch("/api/zaf/observations/history?limit=24", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
+      fetch("/api/zaf/observations/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
     ])
-      .then(([statistics, changeData, trendData]) => {
+      .then(([statistics, changeData, trendData, historyData, observationChangeData]) => {
         if (!active) return;
         setData(statistics);
         setChanges(changeData);
         setTrends(trendData);
+        setHistory(historyData);
+        setObservationChanges(observationChangeData);
       })
       .catch(() => {
         if (!active) return;
@@ -636,6 +677,68 @@ function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: st
           <Card title={tr("Snapshots", "Snapshot'lar")} value={number(data?.history.snapshots, 0, locale)} />
           <Card title={tr("First Stored", "İlk Kayıt")} value={age(data?.history.firstObservedAt, locale)} />
           <Card title={tr("Latest Stored", "Son Kayıt")} value={age(data?.history.latestObservedAt, locale)} />
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-foreground">{tr("Historical Data", "Tarihsel Veri")}</div>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {history?.configured
+                ? tr("Real observations stored in five-minute buckets. No synthetic history is generated.", "Beş dakikalık aralıklarda kaydedilen gerçek gözlemler. Yapay tarihsel veri üretilmez.")
+                : tr("Historical storage is not configured. Live observations remain available.", "Tarihsel depolama yapılandırılmamış. Canlı gözlemler kullanılmaya devam eder.")}
+            </p>
+          </div>
+          <span className="rounded-full border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground">
+            {number(history?.count, 0, locale)} {tr("points", "nokta")}
+          </span>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Card title={tr("Latest Transactions", "Son İşlemler")} value={number(history?.points[0]?.dailyTransactions, 0, locale)} detail={tr("Observed / Day", "Gözlemlenen / Gün")} />
+          <Card title={tr("Latest Operations", "Son Operasyonlar")} value={number(history?.points[0]?.dailyOperations, 0, locale)} detail={tr("Observed / Day", "Gözlemlenen / Gün")} />
+          <Card title={tr("Latest Apps", "Son Uygulamalar")} value={number(history?.points[0]?.observedApps, 0, locale)} detail={tr("Observed", "Gözlemlenen")} />
+          <Card title={tr("Confidence", "Güven")} value={history?.points[0]?.confidenceScore == null ? "—" : number(history.points[0].confidenceScore, 0, locale) + "%"} detail={tr("Latest Stored Point", "Son Kayıtlı Nokta")} />
+        </div>
+        <div className="mt-3 space-y-1.5">
+          {(history?.points ?? []).slice(0, 12).map((point) => (
+            <div key={point.generatedAt} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 text-[10px]">
+              <span className="text-muted-foreground">{age(point.generatedAt, locale)}</span>
+              <span className="text-foreground">{number(point.dailyTransactions, 0, locale)} {tr("tx/day", "işlem/gün")}</span>
+              <span className="text-muted-foreground">{number(point.observedApps, 0, locale)} {tr("apps", "uygulama")}</span>
+            </div>
+          ))}
+          {!history?.points.length ? <div className="text-[10px] text-muted-foreground">{tr("No persisted observation points are available yet.", "Henüz kayıtlı gözlem noktası bulunmuyor.")}</div> : null}
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-foreground">{tr("Real Change Detection", "Gerçek Değişim Tespiti")}</div>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {observationChanges?.hasBaseline
+                ? tr("Compared with a five-minute historical baseline.", "Beş dakikalık tarihsel temel ile karşılaştırılıyor.")
+                : tr("A five-minute historical baseline is not available yet.", "Henüz beş dakikalık tarihsel karşılaştırma temeli bulunmuyor.")}
+            </p>
+          </div>
+          <span className="rounded-full border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground">
+            {number(observationChanges?.changes.length, 0, locale)} {tr("changes", "değişiklik")}
+          </span>
+        </div>
+        <div className="mt-3 space-y-2">
+          {observationChanges?.changes.slice(0, 8).map((change) => (
+            <div key={change.type + "-" + change.title} className="rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[11px] font-semibold text-foreground">{change.title}</div>
+                {change.percent != null ? <span className="text-[10px] font-medium text-foreground">{change.percent > 0 ? "+" : ""}{change.percent.toFixed(1)}%</span> : null}
+              </div>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? change.detailTr : translate(locale, change.detail, change.detailTr)}</p>
+            </div>
+          ))}
+          {observationChanges?.hasBaseline && !observationChanges.changes.length ? (
+            <div className="rounded-lg border border-border p-3 text-[10px] text-muted-foreground">{tr("No measurable changes were detected between the current observation and the historical baseline.", "Mevcut gözlem ile tarihsel temel arasında ölçülebilir değişiklik tespit edilmedi.")}</div>
+          ) : null}
         </div>
       </div>
 
