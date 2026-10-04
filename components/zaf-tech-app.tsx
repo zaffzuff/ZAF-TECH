@@ -621,12 +621,35 @@ type ObservationChangePayload = {
   }>;
 };
 
+type ObservationTimelinePayload = {
+  configured: boolean;
+  points: Array<{
+    generatedAt: string;
+    baselineAt: string | null;
+    activity: "rising" | "falling" | "stable" | "insufficient-data";
+    transactionChangePercent: number | null;
+    operationChangePercent: number | null;
+    observedTransactions: number | null;
+    observedOperations: number | null;
+    dailyTransactions: number | null;
+    dailyOperations: number | null;
+    observedApps: number | null;
+    availableSources: number;
+    totalSources: number;
+    confidenceScore: number | null;
+    freshnessState: string;
+    ledger: string | null;
+    protocolVersion: number | null;
+  }>;
+};
+
 function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: string, trText: string) => string }) {
   const [data, setData] = useState<EcosystemStatisticsPayload | null>(null);
   const [changes, setChanges] = useState<EcosystemChangePayload | null>(null);
   const [trends, setTrends] = useState<EcosystemTrendPayload | null>(null);
   const [history, setHistory] = useState<ObservationHistoryPayload | null>(null);
   const [observationChanges, setObservationChanges] = useState<ObservationChangePayload | null>(null);
+  const [timeline, setTimeline] = useState<ObservationTimelinePayload | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -637,14 +660,16 @@ function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: st
       fetch("/api/zaf/ecosystem/trends", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/observations/history?limit=24", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/observations/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
+      fetch("/api/zaf/observations/timeline", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
     ])
-      .then(([statistics, changeData, trendData, historyData, observationChangeData]) => {
+      .then(([statistics, changeData, trendData, historyData, observationChangeData, timelineData]) => {
         if (!active) return;
         setData(statistics);
         setChanges(changeData);
         setTrends(trendData);
         setHistory(historyData);
         setObservationChanges(observationChangeData);
+        setTimeline(timelineData);
       })
       .catch(() => {
         if (!active) return;
@@ -709,6 +734,37 @@ function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: st
             </div>
           ))}
           {!history?.points.length ? <div className="text-[10px] text-muted-foreground">{tr("No persisted observation points are available yet.", "Henüz kayıtlı gözlem noktası bulunmuyor.")}</div> : null}
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-border bg-card p-4">
+        <div className="text-xs font-semibold text-foreground">{tr("Observation Timeline", "Gözlem Zaman Çizelgesi")}</div>
+        <p className="mt-1 text-[10px] text-muted-foreground">{tr("Historical observation points and measured activity direction. Only persisted observations are shown.", "Tarihsel gözlem noktaları ve ölçülen aktivite yönü. Yalnızca kayıtlı gözlemler gösterilir.")}</p>
+        <div className="mt-3 space-y-2">
+          {(timeline?.points ?? []).slice(0, 12).map((point) => (
+            <div key={point.generatedAt} className="grid grid-cols-[1fr_auto] gap-3 rounded-lg border border-border p-3">
+              <div>
+                <div className="text-[11px] font-semibold text-foreground">
+                  {age(point.generatedAt, locale)}
+                  <span className="ml-2 font-normal text-muted-foreground">
+                    {displayStatus(point.activity, locale)}
+                  </span>
+                </div>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {tr("Transactions", "İşlemler")}: {number(point.dailyTransactions, 0, locale)}
+                  {" · "}
+                  {tr("Operations", "Operasyonlar")}: {number(point.dailyOperations, 0, locale)}
+                  {" · "}
+                  {tr("Apps", "Uygulamalar")}: {number(point.observedApps, 0, locale)}
+                </div>
+              </div>
+              <div className="text-right text-[10px] text-muted-foreground">
+                {point.confidenceScore == null ? "—" : number(point.confidenceScore, 0, locale) + "%"}
+                <div className="mt-1">{point.ledger ?? "—"}</div>
+              </div>
+            </div>
+          ))}
+          {!timeline?.points.length ? <div className="text-[10px] text-muted-foreground">{tr("No historical timeline points are available yet.", "Henüz tarihsel zaman çizelgesi noktası bulunmuyor.")}</div> : null}
         </div>
       </div>
 
