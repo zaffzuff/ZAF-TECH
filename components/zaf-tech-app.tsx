@@ -392,6 +392,7 @@ export function ZafTechApp() {
               <Card title={tr("Daily Pace", "Günlük Tempo")} value={number(snapshot?.metrics.observedTransactionsPerDay, 0, locale)} detail={tr("Observed Transactions / Day", "Gözlemlenen İşlem / Gün")} />
               <Card title={tr("Daily Operations", "Günlük Operasyonlar")} value={number(snapshot?.metrics.observedOperationsPerDay, 0, locale)} detail={tr("Observed Operations / Day", "Gözlemlenen Operasyon / Gün")} />
               <Card title={tr("Source Coverage", "Kaynak Kapsamı")} value={ecosystem ? `${ecosystem.sources.filter(source => source.status === "online" || source.status === "available").length}/${ecosystem.sources.length}` : "—"} detail={tr("Public Sources", "Herkese Açık Kaynaklar")} />
+              <Card title={tr("Transaction Change", "İşlem Değişimi")} value={snapshot?.intelligence.transactionChangePercent != null ? `${snapshot.intelligence.transactionChangePercent > 0 ? "+" : ""}${snapshot.intelligence.transactionChangePercent.toFixed(1)}%` : "—"} detail={tr("Vs Previous Observation", "Önceki Gözleme Göre")} />
             </div>
 
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
