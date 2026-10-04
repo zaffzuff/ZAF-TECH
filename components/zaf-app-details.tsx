@@ -29,6 +29,8 @@ type AppHealthResult = {
   redirect: boolean;
   checkedAt: string;
   error?: string | null;
+  score?: number;
+  healthStatus?: "healthy" | "degraded" | "limited" | "offline";
 };
 
 type AppTrendSummary = {
@@ -124,13 +126,16 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                 {healthLoading ? tr("Checking…", "Kontrol Ediliyor…") : tr("Check Now", "Şimdi Kontrol Et")}
               </button>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
               <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Reachability", "Erişilebilirlik")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? (health.reachable ? tr("Reachable", "Erişilebilir") : tr("Offline", "Çevrimdışı")) : "—"}</div></div>
               <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Response", "Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? health.responseTimeMs + " ms" : "—"}</div></div>
               <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTP</div><div className="mt-1 text-xs font-semibold text-foreground">{health?.status ?? "—"}</div></div>
               <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTPS</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? (health.https ? tr("Yes", "Evet") : tr("No", "Hayır")) : "—"}</div></div>
+              <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Health Score","Sağlık Skoru")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health?.score == null ? "—" : health.score + "/100"}</div></div>
             </div>
             <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+              <span>{tr("Status", "Durum")}: {health?.healthStatus ? displayStatus(health.healthStatus, locale) : "—"}</span>
+              <span>•</span>
               <span>{tr("Redirect", "Yönlendirme")}: {health ? (health.redirect ? tr("Yes", "Evet") : tr("No", "Hayır")) : "—"}</span>
               <span>•</span>
               <span>{tr("Checked", "Kontrol")}: {health?.checkedAt ? new Date(health.checkedAt).toLocaleString(intlLocale(locale)) : "—"}</span>
