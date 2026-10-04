@@ -137,9 +137,17 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
         : count;
     }, 0);
 
+    const availability = pct(samples, "available");
+    const health = pct(samples, "healthy");
+    const restartPenalty = Math.min(20, restartEvents * 4);
+    const listenerCoverage = samples.length ? (samples.filter((s) => (s.listeningPorts ?? 0) >= 4).length / samples.length) * 10 : 0;
+    const stabilityScore = samples.length
+      ? Math.round(Math.max(0, Math.min(100, (availability ?? 0) * 0.35 + (health ?? 0) * 0.45 + listenerCoverage - restartPenalty)))
+      : null;
     return {
-      availability: pct(samples, "available"),
-      health: pct(samples, "healthy"),
+      availability,
+      health,
+      stabilityScore,
       inbound: avg(samples.map((s) => s.inbound)),
       outbound: avg(samples.map((s) => s.outbound)),
       listeners: avg(samples.map((s) => s.listeningPorts)),
@@ -198,13 +206,14 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
         </div>
       ) : (
         <>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6">
             {[
               [tr("Availability", "Erişilebilirlik"), stats.availability == null ? "—" : `${stats.availability.toFixed(2)}%`],
               [tr("Healthy", "Sağlıklı"), stats.health == null ? "—" : `${stats.health.toFixed(2)}%`],
               [tr("Avg Incoming", "Ort. Gelen"), stats.inbound == null ? "—" : stats.inbound.toFixed(1)],
               [tr("Avg Outgoing", "Ort. Giden"), stats.outbound == null ? "—" : stats.outbound.toFixed(1)],
               [tr("Samples", "Örnek"), samples.length.toLocaleString()],
+              [tr("Stability", "Stabilite"), stats.stabilityScore == null ? "—" : stats.stabilityScore.toString()],
               [tr("Health Changes", "Sağlık Değişimi"), stats.healthTransitions.toLocaleString()],
             ].map(([label, value]) => (
               <div key={label} className="rounded-lg border border-border px-3 py-3">
@@ -230,6 +239,16 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
               {tr("The selected window is calculated only from samples actually collected by this Connector.", "Seçilen pencere yalnızca bu Connector tarafından gerçekten toplanan örneklerden hesaplanır.")}
             </div>
           </div>
+          <div className="mt-3 rounded-lg border border-border px-3 py-3">
+            <div className="text-[10px] text-muted-foreground">{tr("Operational Stability", "Operasyonel Stabilite")}</div>
+            <div className="mt-1 text-sm font-semibold text-foreground">
+              {stats.stabilityScore == null ? "—" : stats.stabilityScore + "/100"}
+            </div>
+            <div className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+              {tr("Derived only from actual Connector samples using availability, healthy samples, listener coverage, and observed restarts.", "Yalnızca gerçek Connector örneklerinden erişilebilirlik, sağlıklı örnekler, dinleyici kapsamı ve gözlenen yeniden başlatmalar kullanılarak türetilir.")}
+            </div>
+          </div>
+
           <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-3">
             <div className="rounded-lg border border-border p-3">
               <div className="text-[10px] text-muted-foreground">{tr("Node Health Summary", "Node Sağlık Özeti")}</div>
