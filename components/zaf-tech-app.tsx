@@ -262,7 +262,7 @@ export function ZafTechApp() {
       .then(value => { if (active) setRadarChanges(value); })
       .catch(() => { if (active) setRadarChanges(null); });
     return () => { active = false; };
-  }, []);
+  }, [refreshNonce]);
 
   useEffect(() => {
     const t = window.localStorage.getItem("zaf-tech-theme-v1");
@@ -443,7 +443,7 @@ export function ZafTechApp() {
 
         {!loading && section === "wallet" ? <ZafWalletIntelligence locale={locale} /> : null}
 
-        {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ObservatoryStatisticsView locale={locale} tr={tr} /> : null}
+        {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ObservatoryStatisticsView locale={locale} tr={tr} refreshNonce={refreshNonce} /> : null}
 
         {!loading && section === "intelligence" && subtab === "Explorer" ? <ObservatoryExplorerView apps={apps} sources={ecosystem?.sources ?? []} snapshot={snapshot} locale={locale} tr={tr} /> : null}
 
@@ -695,7 +695,7 @@ type ObservationTimelinePayload = {
   }>;
 };
 
-function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: string, trText: string) => string }) {
+function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Locale; tr: (en: string, trText: string) => string; refreshNonce: number }) {
   const [data, setData] = useState<EcosystemStatisticsPayload | null>(null);
   const [changes, setChanges] = useState<EcosystemChangePayload | null>(null);
   const [trends, setTrends] = useState<EcosystemTrendPayload | null>(null);
@@ -730,7 +730,7 @@ function ObservatoryStatisticsView({ locale, tr }: { locale: Locale; tr: (en: st
       })
       .finally(() => { if (active) setLoadingStats(false); });
     return () => { active = false; };
-  }, []);
+  }, [refreshNonce]);
 
   if (loadingStats) return <div className="py-10 text-center text-xs text-muted-foreground">{tr("Loading Statistics…", "İstatistikler Yükleniyor…")}</div>;
 
