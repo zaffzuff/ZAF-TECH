@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type React from "react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 import type { RadarObservation } from "@/lib/zaf/radar";
@@ -16,6 +17,21 @@ import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
 
 type AppItem = { name: string; url: string };
+type SearchResult = { type: "app" | "source" | "signal" | "ledger"; title: string; detail: string; href: string };
+type LedgerObservation = {
+  sequence: string;
+  hash: string | null;
+  closedAt: string | null;
+  protocolVersion: number | null;
+  transactionCount: number | null;
+  operationCount: number | null;
+  successfulTransactionCount: number | null;
+  failedTransactionCount: number | null;
+  successfulOperationCount: number | null;
+  baseFeeInStroops: number | null;
+  baseReserveInStroops: number | null;
+  source: string;
+};
 type EcosystemPayload = {
   generatedAt: string;
   apps: { sourceAvailable: boolean; totalCount: number | null; items: AppItem[]; note: string };
@@ -110,6 +126,71 @@ function Card({ title, value, detail }: { title: string; value: string; detail?:
 function External({ href, children }: { href: string; children: React.ReactNode }) {
   return <a href={href} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">{children}</a>;
 }
+function searchTypeLabel(type: SearchResult["type"], locale: Locale) {
+  const labels: Record<SearchResult["type"], [string, string]> = {
+    app: ["App", "Uygulama"],
+    source: ["Source", "Kaynak"],
+    signal: ["Signal", "Sinyal"],
+    ledger: ["Ledger", "Ledger"],
+  };
+  return labels[type][locale === "tr" ? 1 : 0];
+}
+
+function SearchPanel({ locale, tr, onNavigate }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  async function submit() {
+    const q = query.trim();
+    if (q.length < 2) { setResults([]); return; }
+    setLoading(true);
+    try {
+      const response = await fetch("/api/zaf/search?q=" + encodeURIComponent(q), { cache: "no-store" });
+      const body = await response.json();
+      setResults(Array.isArray(body?.results) ? body.results : []);
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="relative w-full sm:max-w-sm">
+      <div className="flex gap-1.5">
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") void submit(); }}
+          placeholder={tr("Search ecosystem, apps, signals, or ledgers…", "Ekosistem, uygulama, sinyal veya ledger ara…")}
+          aria-label={tr("Global Search", "Genel Arama")}
+          className="min-w-0 flex-1 rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
+        />
+        <button type="button" onClick={() => void submit()} disabled={loading} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">
+          {loading ? "…" : tr("Search", "Ara")}
+        </button>
+      </div>
+      {query.trim().length >= 2 && results.length ? (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
+          {results.slice(0, 8).map(result => (
+            <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-[11px] font-medium text-foreground">{result.title}</span>
+                <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
+              </div>
+              <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{result.detail}</div>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {query.trim().length >= 2 && !loading && !results.length ? (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">{tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}</div>
+      ) : null}
+    </div>
+  );
+}
+
 
 function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }: { apps: AppItem[]; sourceOnline: boolean; generatedAt?: string; note?: string; locale: Locale; tr: (en: string, trText: string) => string }) {
   const [query, setQuery] = useState("");
@@ -279,6 +360,8 @@ export function ZafTechApp() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [ledgerObservation, setLedgerObservation] = useState<LedgerObservation | null>(null);
+  const router = useRouter();
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
@@ -299,6 +382,31 @@ export function ZafTechApp() {
       .catch(() => { if (active) setRadarData(null); });
     return () => { active = false; };
   }, [refreshNonce]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedSection = params.get("section") as ZafSection | null;
+    if (requestedSection && Object.prototype.hasOwnProperty.call(ZAF_SECTION_TABS, requestedSection)) {
+      setSection(requestedSection);
+      const requestedSubtab = params.get("subtab");
+      const allowed = ZAF_SECTION_TABS[requestedSection];
+      setSubtab(requestedSubtab && allowed.includes(requestedSubtab) ? requestedSubtab : (allowed[0] ?? ""));
+    }
+    const requestedLedger = params.get("ledger");
+    if (requestedLedger && /^\\d{1,12}$/.test(requestedLedger)) {
+      void fetch("/api/zaf/ledger/" + requestedLedger, { cache: "no-store" })
+        .then(response => response.ok ? response.json() as Promise<LedgerObservation> : null)
+        .then(value => setLedgerObservation(value))
+        .catch(() => setLedgerObservation(null));
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("section", section);
+    if (subtab) params.set("subtab", subtab);
+    window.history.replaceState(null, "", "/?" + params.toString());
+  }, [section, subtab]);
 
   useEffect(() => {
     const t = window.localStorage.getItem("zaf-tech-theme-v1");
@@ -346,6 +454,7 @@ export function ZafTechApp() {
 
   const apps = ecosystem?.apps.items ?? [];
   const sourceOnline = ecosystem?.apps.sourceAvailable ?? false;
+  const navigateResult = useCallback((href: string) => { if (href.startsWith("/")) router.push(href); else window.open(href, "_blank", "noopener,noreferrer"); }, [router]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -365,6 +474,7 @@ export function ZafTechApp() {
               <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
             </div>
           </div>
+          <div className="mt-3"><SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} /></div>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Pi Network", "Pi Network")}</span>
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
@@ -536,6 +646,23 @@ export function ZafTechApp() {
               <Card title={tr("Latest Ledger", "Son Ledger")} value={snapshot?.latestLedger?.sequence ?? "—"} detail={snapshot?.latestLedger?.closedAt ? age(snapshot.latestLedger.closedAt, locale) : "—"} />
               <Card title={tr("Data Status", "Veri Durumu")} value={displayStatus(snapshot?.error ? "error" : snapshot?.latestLedger ? "available" : "unavailable", locale)} detail={snapshot?.error ?? tr("Pi Mainnet Horizon response observed.", "Pi Mainnet Horizon yanıtı gözlemlendi.")} />
             </div>
+            {ledgerObservation ? (
+              <div className="mt-3 rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-xs font-semibold text-foreground">{tr("Linked Ledger Observation", "Bağlantılı Ledger Gözlemi")}</div>
+                  <button type="button" onClick={() => { setLedgerObservation(null); const params = new URLSearchParams(window.location.search); params.delete("ledger"); window.history.replaceState(null, "", "/?" + params.toString()); }} className="text-[10px] text-muted-foreground underline underline-offset-2">{tr("Clear", "Temizle")}</button>
+                </div>
+                <div className="mt-2 break-all font-mono text-[10px] text-muted-foreground">Ledger {ledgerObservation.sequence} · {ledgerObservation.hash ?? "—"}</div>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <Card title={tr("Protocol", "Protokol")} value={ledgerObservation.protocolVersion == null ? "—" : "v" + ledgerObservation.protocolVersion} />
+                  <Card title={tr("Transactions", "İşlemler")} value={number(ledgerObservation.transactionCount, 0, locale)} />
+                  <Card title={tr("Operations", "Operasyonlar")} value={number(ledgerObservation.operationCount, 0, locale)} />
+                  <Card title={tr("Successful", "Başarılı")} value={number(ledgerObservation.successfulTransactionCount, 0, locale)} />
+                </div>
+                <div className="mt-2 text-[10px] text-muted-foreground">{tr("Closed", "Kapanış")}: {ledgerObservation.closedAt ? new Date(ledgerObservation.closedAt).toLocaleString(intlLocale(locale)) : "—"} · {tr("Failed", "Başarısız")}: {number(ledgerObservation.failedTransactionCount, 0, locale)}</div>
+              </div>
+            ) : null}
+
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Card title={tr("Transactions", "İşlemler")} value={number(snapshot?.metrics.recentTransactions, 0, locale)} detail={tr("Current Sample", "Mevcut Örnek")} />
               <Card title={tr("Operations", "Operasyonlar")} value={number(snapshot?.metrics.recentOperations, 0, locale)} detail={tr("Current Sample", "Mevcut Örnek")} />
