@@ -9,6 +9,8 @@ const required = [
   "app/api/zaf/observations/history/route.ts",
   "app/api/zaf/observations/changes/route.ts",
   "lib/zaf/observation-changes.ts",
+  "lib/zaf/observation-timeline.ts",
+  "app/api/zaf/observations/timeline/route.ts",
   "app/api/zaf/ledger/[sequence]/route.ts",
   "app/api/zaf/search/route.ts",
   "app/api/zaf/radar/route.ts",
