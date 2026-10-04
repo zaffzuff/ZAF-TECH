@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkAppHealth } from "@/lib/zaf/app-health";
+import { calculateAppHealthScore } from "@/lib/zaf/app-health-score";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +15,9 @@ export async function GET(request: Request) {
   }
 
   const result = await checkAppHealth(target);
+  const score = calculateAppHealthScore(result);
 
-  return NextResponse.json(result, {
+  return NextResponse.json({ ...result, score: score.score, healthStatus: score.status, scoreFactors: score.factors }, {
     status: result.error === "A public HTTP(S) URL is required." ? 400 : 200,
     headers: { "Cache-Control": "no-store" },
   });
