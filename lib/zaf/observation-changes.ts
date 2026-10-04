@@ -1,5 +1,5 @@
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
-import { getObservationHistory } from "@/lib/zaf/observation-history";
+import { getPreviousObservation } from "@/lib/zaf/observation-history";
 
 export type ObservationChange = {
   type: "transactions" | "operations" | "apps" | "sources" | "protocol" | "confidence" | "ledger";
@@ -53,12 +53,7 @@ function numericChange(
 
 export async function getObservationChanges(): Promise<ObservationChanges> {
   const current = await getUnifiedObservation();
-  const history = await getObservationHistory(20);
-  const currentTime = Date.parse(current.generatedAt);
-  const baseline = history.find((item) => {
-    const time = Date.parse(item.generatedAt);
-    return Number.isFinite(time) && Number.isFinite(currentTime) && currentTime - time >= 300000;
-  }) ?? null;
+  const baseline = await getPreviousObservation(current.generatedAt, 300);
 
   if (!baseline) {
     return { generatedAt: current.generatedAt, baselineAt: null, hasBaseline: false, changes: [] };
