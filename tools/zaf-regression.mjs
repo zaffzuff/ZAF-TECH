@@ -16,6 +16,7 @@ const required = [
   "app/api/zaf/radar/route.ts",
   "lib/zaf/node-health.ts",
   "lib/zaf/wallet-analytics.ts",
+  "components/zaf-app-details.tsx",
 ];
 
 for (const file of required) {
