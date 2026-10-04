@@ -18,6 +18,8 @@ const required = [
   "lib/zaf/wallet-analytics.ts",
   "components/zaf-app-details.tsx",
   "lib/zaf/app-health-score.ts",
+  "components/zaf-node-intelligence.tsx",
+  "components/zaf-node-history.tsx",
 ];
 
 for (const file of required) {
