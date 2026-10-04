@@ -14,6 +14,8 @@ type Result = {
   redirect: boolean;
   error?: string | null;
   checkedAt: string;
+  score?: number;
+  healthStatus?: "healthy" | "degraded" | "limited" | "offline";
 };
 
 type HistoryRecord = Result & { appName: string };
@@ -40,8 +42,8 @@ type BatchResult = {
   generatedAt: string;
   checked: number;
   limit: number;
-  summary: { reachable: number; online: number; offline: number };
-  results: Array<{ name: string; url: string; check: Result }>;
+  summary: { reachable: number; online: number; offline: number; averageScore: number | null; healthy: number; degraded: number; limited: number };
+  results: Array<{ name: string; url: string; check: Result; score: { score: number; status: string } }>;
 };
 
 export function ZafAppHealth({locale}:{locale:Locale}){
@@ -105,11 +107,12 @@ export function ZafAppHealth({locale}:{locale:Locale}){
       <input value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void check()}} placeholder="https://example.com" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"/>
       <button type="button" onClick={()=>void check()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background disabled:opacity-50">{loading?tr("Checking…","Kontrol Ediliyor…"):tr("Check URL","URL'yi Kontrol Et")}</button>
     </div>
-    {result?<div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {result?<div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Reachability","Erişilebilirlik")}</div><div className="mt-1 text-sm font-semibold text-foreground">{result.reachable?tr("Online","Çevrimiçi"):tr("Offline","Çevrimdışı")}</div></div>
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTPS</div><div className="mt-1 text-sm font-semibold text-foreground">{result.https?"✓":"—"}</div></div>
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Response","Yanıt")}</div><div className="mt-1 text-sm font-semibold text-foreground">{result.responseTimeMs} ms</div></div>
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTP</div><div className="mt-1 text-sm font-semibold text-foreground">{result.status??"—"}</div></div>
+      <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Health Score","Sağlık Skoru")}</div><div className="mt-1 text-sm font-semibold text-foreground">{result.score == null ? "—" : result.score + "/100"}</div></div>
     </div>:null}
     {result?.error?<div className="mt-3 text-[10px] text-muted-foreground">{result.error}</div>:null}
 
@@ -122,15 +125,19 @@ export function ZafAppHealth({locale}:{locale:Locale}){
         <button type="button" onClick={()=>void checkEcosystem()} disabled={batchLoading} className="shrink-0 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{batchLoading?tr("Running Checks…","Kontroller Çalıştırılıyor…"):tr("Run Ecosystem Check","Ekosistem Kontrolünü Çalıştır")}</button>
       </div>
       {batch?<div className="mt-3">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Checked","Kontrol Edilen")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.checked}</div></div>
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Online","Çevrimiçi")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.online}</div></div>
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Offline","Çevrimdışı")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.offline}</div></div>
+          <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Avg Score","Ort. Skor")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.averageScore == null ? "—" : batch.summary.averageScore + "/100"}</div></div>
+          <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Healthy","Sağlıklı")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.healthy}</div></div>
+          <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Degraded","Düşük")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.degraded}</div></div>
+          <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Limited","Sınırlı")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.limited}</div></div>
         </div>
         <div className="mt-3 space-y-1.5">
           {batch.results.slice(0,8).map(item=><button type="button" onClick={()=>void loadHistory(item.url)} key={item.url} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-left text-[10px]">
             <span className="min-w-0 truncate text-foreground">{item.name}</span>
-            <span className="shrink-0 text-muted-foreground">{item.check.reachable?tr("Reachable","Erişilebilir"):tr("Offline","Çevrimdışı")} · {item.check.responseTimeMs} ms</span>
+            <span className="shrink-0 text-muted-foreground">{item.score.score}/100 · {item.check.reachable?tr("Reachable","Erişilebilir"):tr("Offline","Çevrimdışı")} · {item.check.responseTimeMs} ms</span>
           </button>)}
         </div>
         <div className="mt-3 text-[10px] text-muted-foreground">{tr("Checks are persisted when DATABASE_URL is configured. Scheduled checks run through the configured server-side scheduler.","DATABASE_URL yapılandırıldığında kontroller geçmişe kaydedilir. Zamanlanmış kontroller yapılandırılmış sunucu tarafı zamanlayıcısı üzerinden çalışır.")}</div>
