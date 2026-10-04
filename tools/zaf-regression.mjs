@@ -5,6 +5,7 @@ const root = process.cwd();
 const required = [
   "lib/zaf/observation-engine.ts",
   "lib/zaf/observation-history.ts",
+  "lib/zaf/ecosystem-history.ts",
   "app/api/zaf/observations/route.ts",
   "app/api/zaf/observations/history/route.ts",
   "app/api/zaf/observations/changes/route.ts",
@@ -63,7 +64,7 @@ for (const token of ["activityByDay", "activeDayCount", "getWalletActivityAnalyt
   if (!walletAnalytics.includes(token)) throw new Error("Wallet analytics regression: " + token);
 }
 
-const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+
 for (const token of ["SearchPanel", "/api/zaf/search", "Global Search", "deepLinkReady", "/api/zaf/ledger/"]) {
   if (!app.includes(token)) throw new Error("Search/deep-link regression: " + token);
 }
