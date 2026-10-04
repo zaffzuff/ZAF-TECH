@@ -455,11 +455,20 @@ export function ZafTechApp() {
               <Card title={tr("Daily Operations", "Günlük Operasyonlar")} value={number(snapshot?.metrics.observedOperationsPerDay, 0, locale)} detail={tr("Observed Daily Pace", "Gözlemlenen Günlük Tempo")} />
             </div>
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
+              <div className="text-xs font-semibold text-foreground">{tr("Observation Status", "Gözlem Durumu")}</div>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
+                <Card title={tr("Confidence", "Güven")} value={String(observationMeta.confidence.score)} detail={observationMeta.confidence.level} />
+                <Card title={tr("Latest Ledger Hash", "Son Ledger Hash")} value={snapshot?.latestLedger?.hash ? snapshot.latestLedger.hash.slice(0, 10) + "…" : "—"} detail={tr("Observed Mainnet Record", "Gözlemlenen Mainnet Kaydı")} />
+                <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Source issues reported", "Kaynak sorunları bildirildi") : tr("No source errors", "Kaynak hatası yok")} />
+              </div>
+            </div>
+            <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("Network Measurement Boundary", "Ağ Ölçüm Sınırı")}</div>
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH reads public Mainnet Horizon data and reports the observed sample. Daily values are normalized from the observed ledger window; they are not a complete calendar-day count.", "ZAF TECH herkese açık Mainnet Horizon verisini okur ve gözlemlenen örneği raporlar. Günlük değerler gözlemlenen ledger penceresinden normalize edilir; tam bir takvim günü toplamı değildir.")}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[11px]">
                 <External href="https://api.mainnet.minepi.com">{tr("Pi Mainnet Horizon", "Pi Mainnet Horizon")}</External>
-                <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
+                <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>\n                {snapshot?.latestLedger?.sequence ? <a className="underline underline-offset-2" href={"/api/zaf/ledger/" + snapshot.latestLedger.sequence} target="_blank" rel="noreferrer">{tr("Ledger JSON", "Ledger JSON")}</a> : null}
               </div>
             </div>
           </section>
