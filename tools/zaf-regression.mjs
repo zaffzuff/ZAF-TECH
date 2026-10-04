@@ -57,6 +57,11 @@ for (const token of ["Promise.allSettled", "CACHE_TTL_MS", "confidenceFor", "hea
   if (!engine.includes(token)) throw new Error("Unified observation engine regression: " + token);
 }
 
+const walletAnalytics = fs.readFileSync(path.join(root, "lib/zaf/wallet-analytics.ts"), "utf8");
+for (const token of ["activityByDay", "activeDayCount", "getWalletActivityAnalytics"]) {
+  if (!walletAnalytics.includes(token)) throw new Error("Wallet analytics regression: " + token);
+}
+
 const score = fs.readFileSync(path.join(root, "lib/zaf/app-health-score.ts"), "utf8");
 for (const token of ["calculateAppHealthScore", "healthy", "degraded", "offline"]) {
   if (!score.includes(token)) throw new Error("App health score regression: " + token);
