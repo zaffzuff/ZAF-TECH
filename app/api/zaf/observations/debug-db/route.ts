@@ -11,7 +11,7 @@ export async function GET() {
   try {
     const table = await sql.unsafe('SELECT to_regclass($1) AS "table"', ["public.zaf_observation_snapshots"]);
     const columns = await sql.unsafe('SELECT column_name AS "column", data_type AS "type", is_nullable AS "nullable" FROM information_schema.columns WHERE table_schema=$1 AND table_name=$2 ORDER BY ordinal_position', ["public", "zaf_observation_snapshots"]);
-    let writeTest = { ok: false, error: null };
+    let writeTest: { ok: boolean; error: string | null } = { ok: false, error: null };
     try {
       await sql.unsafe("BEGIN");
       await sql.unsafe(
