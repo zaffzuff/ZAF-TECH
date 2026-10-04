@@ -465,6 +465,57 @@ export function ZafTechApp() {
               <Card title={tr("Daily Operations", "Günlük Operasyonlar")} value={number(snapshot?.metrics.observedOperationsPerDay, 0, locale)} detail={tr("Observed Daily Pace", "Gözlemlenen Günlük Tempo")} />
             </div>
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-semibold text-foreground">{tr("Network Activity Detail", "Ağ Aktivite Detayı")}</div>
+                  <p className="mt-1 text-[10px] text-muted-foreground">{tr("Observed Mainnet activity metrics from the current ledger sample.", "Mevcut ledger örneğinden gözlemlenen Mainnet aktivite metrikleri.")}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground">{displayStatus(snapshot?.intelligence.activityState, locale)}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Card title={tr("Transaction Change", "İşlem Değişimi")} value={snapshot?.intelligence.transactionChangePercent == null ? "—" : (snapshot.intelligence.transactionChangePercent > 0 ? "+" : "") + snapshot.intelligence.transactionChangePercent.toFixed(1) + "%"} detail={tr("Vs Previous Observation", "Önceki Gözleme Göre")} />
+                <Card title={tr("Operation Change", "Operasyon Değişimi")} value={snapshot?.intelligence.operationChangePercent == null ? "—" : (snapshot.intelligence.operationChangePercent > 0 ? "+" : "") + snapshot.intelligence.operationChangePercent.toFixed(1) + "%"} detail={tr("Vs Previous Observation", "Önceki Gözleme Göre")} />
+                <Card title={tr("Success Rate", "Başarı Oranı")} value={snapshot?.metrics.transactionSuccessRate == null ? "—" : snapshot.metrics.transactionSuccessRate.toFixed(1) + "%"} detail={tr("Observed Transactions", "Gözlemlenen İşlemler")} />
+                <Card title={tr("Ops / Transaction", "Operasyon / İşlem")} value={snapshot?.metrics.averageOperationsPerTransaction == null ? "—" : snapshot.metrics.averageOperationsPerTransaction.toFixed(2)} detail={tr("Observed Average", "Gözlemlenen Ortalama")} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <Card title={tr("Ledger Close Time", "Ledger Kapanış Süresi")} value={snapshot?.metrics.avgLedgerCloseSeconds == null ? "—" : snapshot.metrics.avgLedgerCloseSeconds.toFixed(2) + "s"} detail={tr("Observed Average", "Gözlemlenen Ortalama")} />
+                <Card title={tr("Ledger Interval Variation", "Ledger Aralık Değişimi")} value={snapshot?.metrics.ledgerIntervalCoefficientVariationPercent == null ? "—" : snapshot.metrics.ledgerIntervalCoefficientVariationPercent.toFixed(1) + "%"} detail={tr("Coefficient Of Variation", "Varyasyon Katsayısı")} />
+                <Card title={tr("Empty Ledgers", "Boş Ledger'lar")} value={snapshot?.metrics.emptyLedgerRatePercent == null ? "—" : snapshot.metrics.emptyLedgerRatePercent.toFixed(1) + "%"} detail={tr("Observed Sample", "Gözlemlenen Örnek")} />
+                <Card title={tr("Ledger Activity", "Ledger Aktivitesi")} value={snapshot?.metrics.ledgerActivityRatePerMinute == null ? "—" : snapshot.metrics.ledgerActivityRatePerMinute.toFixed(2)} detail={tr("Ledgers / Minute", "Ledger / Dakika")} />
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="text-xs font-semibold text-foreground">{tr("Operation Distribution", "Operasyon Dağılımı")}</div>
+                <p className="mt-1 text-[10px] text-muted-foreground">{tr("Observed operation types in the current sample.", "Mevcut örnekte gözlemlenen operasyon türleri.")}</p>
+                <div className="mt-3 space-y-2">
+                  {(snapshot?.metrics.operationTypeDistribution ?? []).slice(0, 6).map(item => (
+                    <div key={item.type} className="flex items-center justify-between gap-3 text-[10px]">
+                      <span className="text-muted-foreground">{item.type}</span>
+                      <span className="font-medium text-foreground">{number(item.count, 0, locale)} · {item.percentage.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                  {!snapshot?.metrics.operationTypeDistribution?.length ? <div className="text-[10px] text-muted-foreground">{tr("No operation distribution is available.", "Operasyon dağılımı bulunmuyor.")}</div> : null}
+                </div>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="text-xs font-semibold text-foreground">{tr("Protocol Distribution", "Protokol Dağılımı")}</div>
+                <p className="mt-1 text-[10px] text-muted-foreground">{tr("Protocol versions observed across the current ledger sample.", "Mevcut ledger örneğinde gözlemlenen protokol sürümleri.")}</p>
+                <div className="mt-3 space-y-2">
+                  {(snapshot?.metrics.protocolVersionDistribution ?? []).slice(0, 6).map(item => (
+                    <div key={item.version} className="flex items-center justify-between gap-3 text-[10px]">
+                      <span className="text-muted-foreground">v{item.version}</span>
+                      <span className="font-medium text-foreground">{number(item.count, 0, locale)} · {item.percentage.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                  {!snapshot?.metrics.protocolVersionDistribution?.length ? <div className="text-[10px] text-muted-foreground">{tr("No protocol distribution is available.", "Protokol dağılımı bulunmuyor.")}</div> : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("Observation Status", "Gözlem Durumu")}</div>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
