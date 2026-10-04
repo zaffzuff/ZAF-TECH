@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import type { ZafSnapshot } from "@/lib/zaf/types";
+import { calculateNodeHealth } from "@/lib/zaf/node-health";
 
 const NODE_KEY_STORAGE = "zaf-tech-node-public-key-v1";
 const MIN_CONNECTOR_VERSION = "1.6.0";
@@ -165,6 +166,17 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
     }
   }, []);
 
+  const nodeHealth = useMemo(() => calculateNodeHealth({
+    available: !localNodeError && Boolean(localNode),
+    synced: ["synced", "synced!"].includes(String(localNode?.node?.sync || "").toLowerCase()),
+    ledgerAgeSeconds: localNode?.node?.ledger?.age ?? null,
+    authenticatedPeers: localNode?.node?.peers?.authenticated ?? null,
+    listeningPorts: localNode?.ports?.filter(item => item.listeningLocally).length ?? null,
+    quorumPhase: localNode?.node?.quorum?.phase ?? null,
+    intersection: localNode?.node?.quorum?.intersection ?? null,
+    restarts: localNode?.node?.restartCount ?? null,
+  }), [localNode, localNodeError]);
+
   const keyValid = useMemo(() => isPiPublicKey(publicKey.trim()), [publicKey]);
 
   function saveIdentity() {
@@ -213,6 +225,19 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
         <NodeMetric label={tr("Restart Count", "Yeniden Başlatma")} value={localNode?.node?.restartCount != null ? formatNumber(localNode.node.restartCount, locale) : "—"} detail={tr("Docker restart counter for the detected Node Container", "Algılanan Node Container'ının Docker yeniden başlatma sayacı")} />
         <NodeMetric label={tr("Mainnet Observation", "Mainnet Gözlemi")} value={formatNumber(data?.metrics.recentLedgerCount ?? null, locale)} detail={tr("Public Pi Mainnet ledger window used by ZAF TECH", "ZAF TECH'in kullandığı herkese açık Pi Mainnet ledger penceresi")} />
       </div>
+      <div className="mt-3 rounded-xl border border-border bg-card p-3 sm:mt-4 sm:p-4">
+        <div className="text-xs font-semibold text-foreground">{tr("Local Node Status", "Yerel Node Durumu")}</div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <NodeMetric label={tr("Node Condition", "Node Durumu")} value={tr(nodeHealth.status === "healthy" ? "Healthy" : nodeHealth.status === "degraded" ? "Degraded" : nodeHealth.status === "limited" ? "Limited" : "Offline", nodeHealth.status === "healthy" ? "Sağlıklı" : nodeHealth.status === "degraded" ? "Düşük" : nodeHealth.status === "limited" ? "Sınırlı" : "Çevrimdışı")} detail={tr("Local descriptive assessment", "Yerel açıklayıcı değerlendirme")} />
+          <NodeMetric label={tr("Health Score", "Durum Puanı")} value={String(nodeHealth.score)} detail={tr("Based on observable local signals", "Gözlemlenebilir yerel sinyallere göre")} />
+          <NodeMetric label={tr("Alerts", "Uyarılar")} value={String(nodeHealth.reasons.filter(reason => /low|above|not currently|restart|did not/i.test(reason)).length)} detail={tr("Current local warnings", "Mevcut yerel uyarılar")} />
+          <NodeMetric label={tr("Last Connector Read", "Son Connector Okuması")} value={localNode?.observedAt ? new Date(localNode.observedAt).toLocaleTimeString(intlLocale(locale)) : "—"} detail={tr("Local observation timestamp", "Yerel gözlem zamanı")} />
+        </div>
+        <div className="mt-3 space-y-1.5">
+          {nodeHealth.reasons.slice(0, 4).map(reason => <div key={reason} className="rounded-lg border border-border px-3 py-2 text-[10px] text-muted-foreground">{reason}</div>)}
+        </div>
+      </div>
+
       <div className="mt-3 rounded-xl border border-border bg-card p-3 sm:mt-4 sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
