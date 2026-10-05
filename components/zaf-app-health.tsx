@@ -22,7 +22,23 @@ type Result = {
 type HistoryRecord = Result & { appName: string };
 
 type TrendPoint = { checkedAt:string; reachable:boolean; responseTimeMs:number; status:number|null; https:boolean; redirect:boolean };
-type TrendSummary = { checks:number; reachable:number; offline:number; reachabilityRate:number|null; online:number; onlineRate:number|null; averageResponseTimeMs:number|null; transitions:number; firstCheckedAt:string|null; lastCheckedAt:string|null };
+type TrendSummary = {
+  checks:number;
+  reachable:number;
+  offline:number;
+  reachabilityRate:number|null;
+  online:number;
+  onlineRate:number|null;
+  averageResponseTimeMs:number|null;
+  averageHealthScore:number|null;
+  trendDirection:"improving"|"stable"|"declining"|"insufficient";
+  trendDelta:number|null;
+  freshness:{state:"fresh"|"aging"|"stale"|"old"|"unknown";ageSeconds:number|null};
+  dataConfidence:{score:number;level:"high"|"medium"|"low"|"insufficient";checks:number;observedWindowMinutes:number|null;cadenceStabilityScore:number};
+  transitions:number;
+  firstCheckedAt:string|null;
+  lastCheckedAt:string|null;
+};
 
 function AppTrend({points,summary,locale,tr}:{points:TrendPoint[];summary:TrendSummary|null;locale:Locale;tr:(en:string,tr:string)=>string}){
  if(!points.length) return <div className="mt-3 text-[10px] text-muted-foreground">{tr("No stored trend data is available yet.","Henüz kaydedilmiş trend verisi bulunmuyor.")}</div>;
@@ -225,6 +241,20 @@ export function ZafAppHealth({locale}:{locale:Locale}){
               <span className="shrink-0 text-muted-foreground">{item.reachable?tr("Reachable","Erişilebilir"):tr("Offline","Çevrimdışı")} · {item.responseTimeMs} ms</span>
             </div>)}
           {trendLoading?<div className="mt-3 text-[10px] text-muted-foreground">{tr("Loading Trend…","Trend Yükleniyor…")}</div>:<AppTrend points={trend ?? []} summary={trendSummary} locale={locale} tr={tr}/>}
+          {trendSummary ? (
+            <div className="mt-3 rounded-lg border border-border p-3">
+              <div className="text-[10px] font-semibold text-foreground">{tr("Measurement Evidence","Ölçüm Kanıtı")}</div>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="rounded-md border border-border p-2"><div className="text-[9px] text-muted-foreground">{tr("Stored Checks","Kayıtlı Kontroller")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.dataConfidence.checks}</div></div>
+                <div className="rounded-md border border-border p-2"><div className="text-[9px] text-muted-foreground">{tr("Observed Window","Gözlemlenen Aralık")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.dataConfidence.observedWindowMinutes == null ? "—" : trendSummary.dataConfidence.observedWindowMinutes + " min"}</div></div>
+                <div className="rounded-md border border-border p-2"><div className="text-[9px] text-muted-foreground">{tr("Latest Age","Son Veri Yaşı")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.freshness.ageSeconds == null ? "—" : Math.round(trendSummary.freshness.ageSeconds / 60) + " min"}</div></div>
+                <div className="rounded-md border border-border p-2"><div className="text-[9px] text-muted-foreground">{tr("Confidence","Güven")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.dataConfidence.score}/100</div></div>
+              </div>
+              <div className="mt-2 text-[9px] leading-relaxed text-muted-foreground">
+                {tr("Synthetic data: none. Evidence is limited to stored server-side URL checks; health is not a security or ownership claim.", "Sentetik veri: yok. Kanıt yalnızca kayıtlı sunucu tarafı URL kontrolleriyle sınırlıdır; sağlık skoru güvenlik veya sahiplik iddiası değildir.")}
+              </div>
+            </div>
+          ) : null}
           </div>:<div className="mt-3 text-[10px] text-muted-foreground">{tr("No Stored History Is Available Yet.","Henüz Kaydedilmiş Geçmiş Bulunmuyor.")}</div>}
         </div>:null}
       </div>:null}
