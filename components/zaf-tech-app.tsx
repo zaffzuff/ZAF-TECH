@@ -13,7 +13,6 @@ import { ZafEcosystemNavigation, ZAF_SECTION_TABS, type ZafSection } from "@/com
 import { ZafNodeCompute } from "@/components/zaf-node-compute";
 import { ZafAppHealth } from "@/components/zaf-app-health";
 import { ZafEcosystemHealthTimeline } from "@/components/zaf-ecosystem-health-timeline";
-import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
@@ -532,7 +531,6 @@ export function ZafTechApp() {
               </div>
             </div>
             <ZafEcosystemHealthTimeline locale={locale} snapshot={snapshot} radar={radarData} />
-            <ZafProtocolObservation locale={locale} currentProtocol={snapshot?.metrics.latestProtocolVersion ?? null} currentObservedAt={snapshot?.generatedAt ?? null} tr={tr} />
 
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("What ZAF TECH Does", "ZAF TECH Ne Yapar")}</div>
@@ -670,7 +668,7 @@ export function ZafTechApp() {
 
         {!loading && section === "wallet" ? <ZafWalletIntelligence locale={locale} /> : null}
 
-        {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ObservatoryStatisticsView locale={locale} tr={tr} refreshNonce={refreshNonce} /> : null}
+        {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ObservatoryStatisticsView locale={locale} tr={tr} refreshNonce={refreshNonce} currentProtocol={snapshot?.metrics.latestProtocolVersion ?? null} currentObservedAt={snapshot?.generatedAt ?? null} /> : null}
 
         {!loading && section === "intelligence" && subtab === "Explorer" ? <ObservatoryExplorerView apps={apps} sources={ecosystem?.sources ?? []} snapshot={snapshot} locale={locale} tr={tr} /> : null}
 
@@ -967,7 +965,7 @@ function averageHistoryValue(points: ObservationHistoryPayload["points"], key: "
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Locale; tr: (en: string, trText: string) => string; refreshNonce: number }) {
+function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, currentObservedAt }: { locale: Locale; tr: (en: string, trText: string) => string; refreshNonce: number; currentProtocol: number | null; currentObservedAt: string | null }) {
   const [data, setData] = useState<EcosystemStatisticsPayload | null>(null);
   const [changes, setChanges] = useState<EcosystemChangePayload | null>(null);
   const [trends, setTrends] = useState<EcosystemTrendPayload | null>(null);
@@ -1160,6 +1158,76 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
           </div>
         </div>
       ) : null}
+
+      {history?.points.length ? (() => {
+        const protocolPoints = history.points.filter(point => point.protocolVersion != null);
+        const latestStoredProtocol = protocolPoints[0]?.protocolVersion ?? null;
+        const previousStoredPoint = latestStoredProtocol == null ? null : protocolPoints.slice(1).find(point => point.protocolVersion !== latestStoredProtocol) ?? null;
+        let latestProtocolTransition: { from: number; to: number; observedAt: string; previousObservedAt: string | null } | null = null;
+        for (let index = protocolPoints.length - 2; index >= 0; index -= 1) {
+          const older = protocolPoints[index + 1];
+          const newer = protocolPoints[index];
+          if (older.protocolVersion !== newer.protocolVersion) {
+            latestProtocolTransition = {
+              from: older.protocolVersion as number,
+              to: newer.protocolVersion as number,
+              observedAt: newer.generatedAt,
+              previousObservedAt: older.generatedAt,
+            };
+            break;
+          }
+        }
+        const liveStoredGap = currentProtocol != null && latestStoredProtocol != null && currentProtocol !== latestStoredProtocol;
+        return (
+          <div className="mt-3 rounded-xl border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold text-foreground">{tr("Protocol Observation", "Protokol Gözlemi")}</div>
+                <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Protocol versions actually observed in persisted Mainnet snapshots. A transition is shown only when the stored protocol value changed between observations.", "Kayıtlı Mainnet snapshot'larında gerçekten gözlemlenen protokol sürümleri. Geçiş yalnızca kayıtlı gözlemler arasındaki protokol değeri değiştiğinde gösterilir.")}</p>
+              </div>
+              <span className="rounded-full border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground">{currentProtocol == null ? (latestStoredProtocol == null ? "—" : `v${latestStoredProtocol}`) : `v${currentProtocol}`}</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Card title={tr("Current Observed", "Mevcut Gözlenen")} value={currentProtocol == null ? (latestStoredProtocol == null ? "—" : `v${latestStoredProtocol}`) : `v${currentProtocol}`} detail={currentObservedAt ? age(currentObservedAt, locale) : "—"} />
+              <Card title={tr("Previous Stored", "Önceki Kayıtlı")} value={previousStoredPoint?.protocolVersion == null ? "—" : `v${previousStoredPoint.protocolVersion}`} detail={tr("Latest distinct prior value", "Son farklı önceki değer")} />
+              <Card title={tr("Recorded Transitions", "Kayıtlı Geçişler")} value={protocolPoints.reduce((count, point, index) => count + (index > 0 && point.protocolVersion !== protocolPoints[index - 1].protocolVersion ? 1 : 0), 0).toLocaleString(intlLocale(locale))} detail={tr("Within selected history range", "Seçilen tarih aralığında")} />
+              <Card title={tr("Protocol Points", "Protokol Noktaları")} value={protocolPoints.length.toLocaleString(intlLocale(locale))} detail={tr("Persisted observations", "Kayıtlı gözlemler")} />
+            </div>
+            {liveStoredGap ? (
+              <div className="mt-3 rounded-lg border border-border bg-background p-3 text-[10px] leading-relaxed text-muted-foreground">
+                {tr(
+                  `The live observation is v${currentProtocol}, while the newest persisted protocol point is v${latestStoredProtocol}. The history will reflect the newer value after the next persisted snapshot.`,
+                  `Canlı gözlem v${currentProtocol}, en yeni kayıtlı protokol noktası ise v${latestStoredProtocol}. Yeni değer bir sonraki kayıtlı snapshot sonrasında tarihçeye yansır.`
+                )}
+              </div>
+            ) : null}
+            {latestProtocolTransition ? (
+              <div className="mt-3 rounded-lg border border-border bg-background p-3">
+                <div className="text-[10px] font-medium text-foreground">{tr("Latest Recorded Change", "Son Kayıtlı Değişim")}</div>
+                <div className="mt-1 text-base font-bold ty-nums text-foreground">v{latestProtocolTransition.from} → v{latestProtocolTransition.to}</div>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {tr("Observed", "Gözlemlendi")}: {new Date(latestProtocolTransition.observedAt).toLocaleString(intlLocale(locale))}
+                  {latestProtocolTransition.previousObservedAt ? ` · ${tr("Previous point", "Önceki nokta")}: ${age(latestProtocolTransition.previousObservedAt, locale)}` : ""}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 rounded-lg border border-border bg-background p-3 text-[10px] leading-relaxed text-muted-foreground">
+                {tr("No protocol transition has been recorded in the selected history range yet. ZAF TECH does not infer a change from a single current sample.", "Seçilen tarih aralığında henüz protokol geçişi kaydedilmedi. ZAF TECH tek bir güncel örnekten değişim çıkarmaz.")}
+              </div>
+            )}
+            <div className="mt-3 space-y-1.5">
+              {protocolPoints.slice(0, 8).map(point => (
+                <div key={point.generatedAt + "-" + point.protocolVersion} className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px]">
+                  <span className="text-muted-foreground">{age(point.generatedAt, locale)}</span>
+                  <span className="font-medium text-foreground">v{point.protocolVersion}</span>
+                  <span className="text-muted-foreground">{point.networkLedger ? `#${point.networkLedger}` : "—"}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[9px] leading-relaxed text-muted-foreground">{tr("Boundary: this is the protocol version observed in public Mainnet data. It does not mean every Pi Node has upgraded and it does not inspect your local Docker node.", "Sınır: bu, herkese açık Mainnet verisinde gözlemlenen protokol sürümüdür. Her Pi Node'un yükseltildiği anlamına gelmez ve yerel Docker Node'unuzu incelemez.")}</p>
+          </div>
+        );
+      })() : null}
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Observation Timeline", "Gözlem Zaman Çizelgesi")}</div>
