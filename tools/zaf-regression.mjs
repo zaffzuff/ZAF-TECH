@@ -80,7 +80,7 @@ for (const token of ["function median", "getRollingObservationBaseline", "DOUBLE
   if (!observationHistory.includes(token)) throw new Error("Observation history regression: " + token);
 }
 
-for (const token of ["30-minute rolling median", "Rolling baseline", "rolling medyana"]) {
+for (const token of ["30-minute rolling median", "Rolling baseline", "30 dakikalık hareketli medyana göre"]) {
   if (!app.includes(token)) throw new Error("Radar UI interpretation regression: " + token);
 }
 
