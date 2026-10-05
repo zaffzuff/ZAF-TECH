@@ -592,8 +592,13 @@ export function ZafTechApp() {
               <div className="text-xs font-semibold text-foreground">{tr("Real Activity Radar", "Gerçek Aktivite Radarı")}</div>
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These signals are calculated from the current public Mainnet sample and stored observations. No predictive model or invented network-wide score is used.", "Bu sinyaller mevcut herkese açık Mainnet örneği ve kayıtlı gözlemlerden hesaplanır. Tahmin modeli veya uydurma ağ geneli skoru kullanılmaz.")}</p>
               <div className="mt-2 rounded-lg border border-border bg-background px-3 py-2 text-[10px] leading-relaxed text-muted-foreground">
-                {tr("Important: percentage changes in this panel compare the current observed sample with a stored observation from at least five minutes earlier. They are not network-wide activity changes and do not mean that total Pi Network usage changed by the displayed percentage.", "Önemli: Bu paneldeki yüzde değişimleri mevcut gözlemlenen örneği en az beş dakika önce kaydedilmiş bir gözlemle karşılaştırır. Bunlar ağ geneli aktivite değişimi değildir ve Pi Network toplam kullanımının gösterilen yüzde kadar değiştiği anlamına gelmez.")}
+                {tr("Important: percentage changes in this panel compare the current observed sample with a 30-minute rolling median built from stored observations that are at least five minutes old. They are not network-wide activity changes and do not mean that total Pi Network usage changed by the displayed percentage.", "Önemli: Bu paneldeki yüzde değişimleri mevcut gözlemlenen örneği, en az beş dakika eski kayıtlı gözlemlerden oluşturulan 30 dakikalık hareketli medyan ile karşılaştırır. Bunlar ağ geneli aktivite değişimi değildir ve Pi Network toplam kullanımının gösterilen yüzde kadar değiştiği anlamına gelmez.")}
               </div>
+              {radarData?.baselineSampleCount ? (
+                <div className="mt-2 text-[10px] text-muted-foreground">
+                  {tr("Rolling baseline", "Hareketli temel")}: {radarData.baselineWindowMinutes} {tr("min", "dk")} · {radarData.baselineSampleCount} {tr("stored points", "kayıtlı nokta")}
+                </div>
+              ) : null}
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {(radarData?.signals ?? []).map(signal => (
                   <div key={signal.id} className="rounded-lg border border-border p-3">
@@ -605,7 +610,7 @@ export function ZafTechApp() {
                       <div className="text-lg font-bold ty-nums text-foreground">{radarSignalValue(signal.id, signal.value, locale)}</div>
                       <div className="text-[10px] text-muted-foreground">{tr("Confidence", "Güven")}: {displayStatus(signal.confidence.level, locale)} · {signal.confidence.score}/100</div>
                     </div>
-                    {signal.changePercent != null ? <div className="mt-1 text-[10px] text-muted-foreground">{signal.changePercent >= 0 ? "+" : ""}{signal.changePercent.toFixed(1)}% {tr("vs stored baseline", "kayıtlı temel değere göre")}</div> : null}
+                    {signal.changePercent != null ? <div className="mt-1 text-[10px] text-muted-foreground">{signal.changePercent >= 0 ? "+" : ""}{signal.changePercent.toFixed(1)}% {tr("vs 30-minute rolling median", "30 dakikalık hareketli medyana göre")}</div> : null}
                     <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? signal.detailTr : translate(locale, signal.detail, signal.detailTr)}</p>
                   </div>
                 ))}
