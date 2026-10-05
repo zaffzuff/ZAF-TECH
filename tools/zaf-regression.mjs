@@ -70,8 +70,17 @@ for (const token of ["SearchPanel", "/api/zaf/search", "Global Search", "deepLin
 }
 
 const radar = fs.readFileSync(path.join(root, "lib/zaf/radar.ts"), "utf8");
-for (const token of ["getRadarObservation", "sampleConfidence", "transaction-pace", "operation-pace", "source-coverage"]) {
+for (const token of ["getRadarObservation", "getRollingObservationBaseline", "sampleConfidence", "transaction-pace", "operation-pace", "source-coverage"]) {
   if (!radar.includes(token)) throw new Error("Radar regression: " + token);
+}
+
+const observationHistory = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
+for (const token of ["function median", "getRollingObservationBaseline", "DOUBLE PRECISION", "daily_transactions"]) {
+  if (!observationHistory.includes(token)) throw new Error("Observation history regression: " + token);
+}
+
+for (const token of ["30-minute rolling median", "Rolling baseline", "rolling medyana"]) {
+  if (!app.includes(token)) throw new Error("Radar UI interpretation regression: " + token);
 }
 
 const score = fs.readFileSync(path.join(root, "lib/zaf/app-health-score.ts"), "utf8");
