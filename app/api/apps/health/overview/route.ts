@@ -10,8 +10,9 @@ export async function GET() {
     return NextResponse.json({ configured: false, records: [], summary: null }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   }
 
-  const records = (await getLatestAppChecks(20)) ?? [];
-  const enriched = await Promise.all(records.map(async record => {
+  try {
+    const records = (await getLatestAppChecks(20)) ?? [];
+    const enriched = await Promise.all(records.map(async record => {
     const score = calculateAppHealthScore({
       reachable: Boolean(record.reachable),
       ok: Boolean(record.ok),
@@ -39,11 +40,17 @@ export async function GET() {
   const attention = enriched.filter(item => item.healthStatus !== "healthy" || item.trend.direction === "declining").length;
   const latestCheckedAt = records.map(item => Date.parse(String(item.checkedAt))).filter(Number.isFinite).reduce((max, value) => Math.max(max, value), 0);
 
-  return NextResponse.json({
-    configured: true,
-    generatedAt: new Date().toISOString(),
-    latestCheckedAt: latestCheckedAt ? new Date(latestCheckedAt).toISOString() : null,
-    records: enriched,
-    summary: { checked: enriched.length, averageScore, healthy, degraded, limited, offline, declining, improving, stale, attention },
-  }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    return NextResponse.json({
+      configured: true,
+      generatedAt: new Date().toISOString(),
+      latestCheckedAt: latestCheckedAt ? new Date(latestCheckedAt).toISOString() : null,
+      records: enriched,
+      summary: { checked: enriched.length, averageScore, healthy, degraded, limited, offline, declining, improving, stale, attention },
+    }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+  } catch {
+    return NextResponse.json(
+      { configured: true, records: [], summary: null, error: "Stored App Health history is temporarily unavailable." },
+      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
+  }
 }
