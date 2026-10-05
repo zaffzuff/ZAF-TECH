@@ -1,4 +1,5 @@
 import type { ZafWalletOperation, ZafWalletSnapshot, ZafWalletTransaction } from "./types";
+import type { ZafNetworkScope } from "@/lib/zaf/network-scope";
 
 const NETWORKS = {
   mainnet: { label: "Pi Mainnet" as const, base: "https://api.mainnet.minepi.com" },
@@ -129,6 +130,7 @@ export async function getZafWallet(
 ): Promise<ZafWalletSnapshot> {
   const normalized = address.trim().toUpperCase();
   const selected = NETWORKS[network];
+  const networkScope: ZafNetworkScope = network;
   const generatedAt = new Date().toISOString();
 
   if (!ADDRESS_RE.test(normalized)) {
@@ -152,6 +154,7 @@ export async function getZafWallet(
         return {
           address: normalized,
           network: selected.label,
+          networkScope,
           exists: false,
           accountBalancePi: null,
           observableClaimablePi: null,
@@ -211,6 +214,7 @@ export async function getZafWallet(
     return {
       address: normalized,
       network: selected.label,
+      networkScope,
       exists: true,
       accountBalancePi: totalBalancePi,
       observableClaimablePi,
@@ -239,6 +243,7 @@ export async function getZafWallet(
     return {
       address: normalized,
       network: selected.label,
+      networkScope,
       exists: status !== 404 ? null : false,
       accountBalancePi: null,
       observableClaimablePi: null,
