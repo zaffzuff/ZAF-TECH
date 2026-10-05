@@ -20,6 +20,12 @@ const required = [
   "lib/zaf/wallet-analytics.ts",
   "components/zaf-app-details.tsx",
   "components/zaf-ecosystem-health-timeline.tsx",
+  "components/zaf-ecosystem-app-activity.tsx",
+  "components/zaf-ecosystem-staking.tsx",
+  "lib/zaf/ecosystem-app-observations.ts",
+  "lib/zaf/ecosystem-staking.ts",
+  "app/api/zaf/ecosystem/apps/route.ts",
+  "app/api/zaf/ecosystem/staking/route.ts",
   "lib/zaf/app-health-score.ts",
   "components/zaf-node-intelligence.tsx",
   "components/zaf-node-history.tsx",
@@ -122,6 +128,30 @@ for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthS
 const appDetails = fs.readFileSync(path.join(root, "components/zaf-app-details.tsx"), "utf8");
 for (const token of ["Avg Health", "Health Score Trend", "Trend Direction", "Data Confidence", "Freshness", "Latest Age", "First → Latest Status", "Observed Window", "Status Transition Timeline", "toLocaleString", "healthStatus"]) {
   if (!appDetails.includes(token)) throw new Error("App Health trend visualization regression: " + token);
+}
+
+const ecosystemAppActivity = fs.readFileSync(path.join(root, "components/zaf-ecosystem-app-activity.tsx"), "utf8");
+for (const token of ["App Activity", "Newly Observed Apps", "Not Present In Latest Source Response", "does not claim access to Pi's internal ranking or moderation systems"]) {
+  if (!ecosystemAppActivity.includes(token)) throw new Error("Ecosystem app activity regression: " + token);
+}
+
+const ecosystemStaking = fs.readFileSync(path.join(root, "components/zaf-ecosystem-staking.tsx"), "utf8");
+for (const token of ["Ecosystem Directory Staking", "Live Data Boundary", "Published Staking Evidence", "Coming soon target", "Historical official statements"]) {
+  if (!ecosystemStaking.includes(token)) throw new Error("Ecosystem staking regression: " + token);
+}
+
+const ecosystemAppObservationModel = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
+for (const token of ["getEcosystemAppObservations", "firstSeenAt", "observationCount", "notPresentInLatest"]) {
+  if (!ecosystemAppObservationModel.includes(token)) throw new Error("Ecosystem app observation model regression: " + token);
+}
+
+const ecosystemStakingModel = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-staking.ts"), "utf8");
+for (const token of ["EcosystemStakingAvailability", "broadPublicFeed", "app-specific-whitelist", "PublishedStakingEvidence"]) {
+  if (!ecosystemStakingModel.includes(token)) throw new Error("Ecosystem staking model regression: " + token);
+}
+
+for (const token of ["App Activity", "Staking"]) {
+  if (!app.includes(token)) throw new Error("Ecosystem navigation regression: " + token);
 }
 
 const appHealthTimeline = fs.readFileSync(path.join(root, "components/zaf-ecosystem-health-timeline.tsx"), "utf8");
