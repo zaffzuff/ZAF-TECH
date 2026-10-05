@@ -12,6 +12,7 @@ import { LanguageSelector } from "@/components/zaf-language-selector";
 import { ZafEcosystemNavigation, ZAF_SECTION_TABS, type ZafSection } from "@/components/zaf-ecosystem-navigation";
 import { ZafNodeCompute } from "@/components/zaf-node-compute";
 import { ZafAppHealth } from "@/components/zaf-app-health";
+import { ZafEcosystemHealthTimeline } from "@/components/zaf-ecosystem-health-timeline";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
@@ -529,6 +530,8 @@ export function ZafTechApp() {
                 <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Review source status", "Kaynak durumunu inceleyin") : tr("No source errors", "Kaynak hatası yok")} />
               </div>
             </div>
+            <ZafEcosystemHealthTimeline locale={locale} snapshot={snapshot} radar={radarData} />
+
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("What ZAF TECH Does", "ZAF TECH Ne Yapar")}</div>
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH is an independent, read-only technology project. It observes public ecosystem sources and local Node diagnostics; it does not represent Pi Core Team and does not assign subjective network health scores.", "ZAF TECH bağımsız, salt-okunur bir teknoloji projesidir. Herkese açık ekosistem kaynaklarını ve yerel Node teşhislerini gözlemler; Pi Core Team'i temsil etmez ve öznel ağ sağlık puanları üretmez.")}</p>
