@@ -2,12 +2,13 @@
 
 import type { Locale } from "@/lib/zaf/i18n";
 
-export type ZafSection = "overview" | "apps" | "testnet" | "node" | "intelligence" | "wallet";
+export type ZafSection = "overview" | "apps" | "testnet" | "defi" | "node" | "intelligence" | "wallet";
 
 export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
   overview: ["Ecosystem", "Network", "Tools"],
   apps: ["App Directory", "App Health", "App Activity", "Staking"],
   testnet: ["Assets"],
+  defi: ["Overview", "DEX", "AMM & Pools", "Tokens"],
   node: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
   intelligence: ["Radar", "Activity Signals", "Explorer"],
   wallet: [],
@@ -20,10 +21,14 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Tools: ["Tools", "Araçlar", "Herramientas", "工具", "Strumenti", "Outils", "Werkzeuge", "Ferramentas", "Инструменты"],
   Apps: ["Apps", "Uygulamalar", "Aplicaciones", "应用", "App", "Applications", "Apps", "Aplicativos", "Приложения"],
   Testnet: ["Testnet", "Testnet", "Testnet", "测试网", "Testnet", "Testnet", "Testnet", "Testnet", "Тестнет"],
+  DeFi: ["DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi"],
   "App Directory": ["App Directory", "Uygulama Dizini", "Directorio De Apps", "应用目录", "Elenco App", "Annuaire Des Apps", "App-Verzeichnis", "Diretório De Apps", "Каталог Приложений"],
   "App Health": ["App Health", "Uygulama Sağlığı", "Salud De Apps", "应用健康", "Salute App", "Santé Des Apps", "App-Gesundheit", "Saúde Dos Apps", "Состояние Приложений"],
   "App Activity": ["App Activity", "Uygulama Aktivitesi", "Actividad De Apps", "应用活动", "Attività App", "Activité Des Apps", "App-Aktivität", "Atividade De Apps", "Активность Приложений"],
   Assets: ["Assets", "Varlıklar", "Activos", "资产", "Asset", "Actifs", "Vermögenswerte", "Ativos", "Активы"],
+  "DEX": ["DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX"],
+  "AMM & Pools": ["AMM & Pools", "AMM & Havuzlar", "AMM Y Pools", "AMM 与池", "AMM & Pool", "AMM & Pools", "AMM & Pools", "AMM & Pools", "AMM и Пулы"],
+  "Tokens": ["Tokens", "Tokenlar", "Tokens", "代币", "Token", "Tokens", "Token", "Tokens", "Токены"],
   Staking: ["Staking", "Staking", "Staking", "质押", "Staking", "Staking", "Staking", "Staking", "Стейкинг"],
   "Node & Compute": ["Node & Compute", "Node & Hesaplama", "Node Y Cómputo", "节点与计算", "Node E Calcolo", "Node Et Calcul", "Node & Computing", "Node E Computação", "Node И Вычисления"],
   Node: ["Node", "Node", "Node", "节点", "Node", "Node", "Node", "Node", "Node"],
@@ -51,7 +56,7 @@ function label(value: string, locale: Locale) {
 export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChange, onSubtabChange }: {
   locale: Locale; section: ZafSection; subtab: string; onSectionChange: (section: ZafSection) => void; onSubtabChange: (subtab: string) => void;
 }) {
-  const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["apps", "Apps"], ["testnet", "Testnet"], ["node", "Node & Compute"], ["intelligence", "Observatory"], ["wallet", "Wallet"]];
+  const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["apps", "Apps"], ["testnet", "Testnet"], ["defi", "DeFi"], ["node", "Node & Compute"], ["intelligence", "Observatory"], ["wallet", "Wallet"]];
   const subtabs = ZAF_SECTION_TABS[section];
   return <nav className="mt-4 border-t border-border pt-3" aria-label={locale === "tr" ? "Ekosistem Bölümleri" : locale === "es" ? "Secciones Del Ecosistema" : locale === "zh" ? "生态系统分区" : locale === "it" ? "Sezioni Dell’Ecosistema" : locale === "fr" ? "Sections De L’Écosystème" : locale === "de" ? "Ökosystembereiche" : locale === "pt" ? "Seções do Ecossistema" : locale === "ru" ? "Разделы экосистемы" : "Ecosystem Sections"}>
     <div className="overflow-x-auto ty-no-scrollbar"><div className="flex min-w-max gap-1 rounded-xl border border-border bg-card p-1 sm:min-w-0 sm:flex-wrap">
