@@ -123,6 +123,31 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         <Card title={tr("Success Rate", "Başarı Oranı")} value={data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={tr("Observed Transaction Results", "Gözlemlenen İşlem Sonuçları")} />
       </div>
 
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-foreground">{tr("Observed Assets", "Gözlemlenen Varlıklar")}</div>
+            <p className="mt-1 text-[10px] text-muted-foreground">{tr("Public asset balances returned by the selected Pi Horizon network. Custom assets are shown with issuer information when available.", "Seçilen Pi Horizon ağının döndürdüğü herkese açık varlık bakiyeleri. Özel varlıklar mevcut olduğunda issuer bilgisiyle gösterilir.")}</p>
+          </div>
+          <span className="rounded-full border border-border px-2 py-1 text-[9px] text-muted-foreground">{data.networkScope}</span>
+        </div>
+        <div className="mt-3 space-y-2">
+          {(data.assets ?? []).map(asset => (
+            <div key={asset.assetType + "-" + (asset.assetIssuer ?? "native")} className="rounded-lg border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[11px] font-semibold text-foreground">{asset.isNative ? "Pi" : (asset.assetCode ?? "—")}</div>
+                  <div className="mt-1 break-all text-[9px] text-muted-foreground">{asset.isNative ? tr("Native asset", "Native varlık") : (asset.assetIssuer ?? tr("Issuer unavailable", "Issuer bilgisi yok"))}</div>
+                </div>
+                <span className="shrink-0 text-[10px] font-medium text-foreground">{fmt(asset.balance, locale)}</span>
+              </div>
+            </div>
+          ))}
+          {!data.assets?.length ? <div className="text-[10px] text-muted-foreground">{tr("No public asset balances were returned.", "Herkese açık varlık bakiyesi döndürülmedi.")}</div> : null}
+        </div>
+        <p className="mt-3 text-[9px] leading-relaxed text-muted-foreground">{tr("Boundary: this lists balances exposed by the selected public account response. It does not infer hidden balances or wallet activity outside the observable Horizon response.", "Sınır: bu bölüm seçilen herkese açık hesap yanıtında açığa çıkan bakiyeleri listeler. Gizli bakiyeleri veya gözlemlenebilir Horizon yanıtı dışındaki cüzdan aktivitesini çıkarmaz.")}</p>
+      </div>
+
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
         <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(data.analytics?.activeLedgerCount ?? null, locale)} />
