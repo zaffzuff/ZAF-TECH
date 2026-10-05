@@ -100,7 +100,7 @@ for (const token of ["calculateAppHealthScore", "healthStatus", "score: score.sc
 }
 
 const appHealthTrendModel = fs.readFileSync(path.join(root, "lib/zaf/app-health-trend.ts"), "utf8");
-for (const token of ["classifyHealthTrend", "assessHealthData", "freshness", "dataConfidence", "improving", "declining"]) {
+for (const token of ["classifyHealthTrend", "assessHealthData", "freshness", "confidence", "improving", "declining"]) {
   if (!appHealthTrendModel.includes(token)) throw new Error("App Health trend model regression: " + token);
 }
 
