@@ -91,7 +91,6 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
       ON CONFLICT (bucket_start) DO UPDATE SET
         generated_at = EXCLUDED.generated_at,
         freshness_state = EXCLUDED.freshness_state,
-        freshness_state = EXCLUDED.freshness_state,
         confidence_score = EXCLUDED.confidence_score,
         network_ledger = EXCLUDED.network_ledger,
         protocol_version = EXCLUDED.protocol_version,
