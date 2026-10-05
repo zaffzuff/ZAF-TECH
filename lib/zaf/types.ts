@@ -1,3 +1,5 @@
+import type { ZafNetworkScope } from "@/lib/zaf/network-scope";
+
 export interface ZafLedger {
   sequence: string;
   hash: string;
@@ -141,6 +143,7 @@ export interface ZafWalletOperation {
 export interface ZafWalletSnapshot {
   address: string;
   network: "Pi Mainnet" | "Pi Testnet";
+  networkScope: ZafNetworkScope;
   exists: boolean | null;
   accountBalancePi: number | null;
   observableClaimablePi: number | null;
