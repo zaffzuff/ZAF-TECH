@@ -76,6 +76,7 @@ export interface ZafIntelligence {
 
 export interface ZafSnapshot {
   network: "Pi Network";
+  networkScope: ZafNetworkScope;
   source: "Pi Mainnet Horizon";
   generatedAt: string;
   latestLedger: ZafLedger | null;
