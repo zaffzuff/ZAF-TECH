@@ -108,7 +108,13 @@ export async function getAppCheckHistory(url: string, limit = 50) {
 export async function getAppHealthTrend(url: string, limit = 48) {
   const records = (await getAppCheckHistory(url, limit)) ?? [];
   return records.reverse().map((record) => {
-    const score = calculateAppHealthScore(record);
+    const score = calculateAppHealthScore({
+      reachable: Boolean(record.reachable),
+      ok: Boolean(record.ok),
+      responseTimeMs: Number(record.responseTimeMs) || 0,
+      https: Boolean(record.https),
+      redirect: Boolean(record.redirect),
+    });
     return {
       checkedAt: record.checkedAt,
       reachable: record.reachable,
