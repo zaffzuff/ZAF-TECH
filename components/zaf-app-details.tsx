@@ -44,7 +44,10 @@ type AppTrendSummary = {
   averageHealthScore: number | null;
   minimumHealthScore: number | null;
   maximumHealthScore: number | null;
+  firstHealthScore: number | null;
   latestHealthScore: number | null;
+  firstHealthStatus: "healthy" | "degraded" | "limited" | "offline" | null;
+  latestHealthStatus: "healthy" | "degraded" | "limited" | "offline" | null;
   healthScoreDelta: number | null;
   transitions: number;
   healthStatusTransitions: number;
@@ -210,6 +213,11 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                         );
                       })}
                     </div>
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-[9px] text-muted-foreground">
+                      <span className="text-left">{trendPoints[0] ? new Date(trendPoints[0].checkedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}</span>
+                      <span className="text-center">{trendPoints.length > 2 ? new Date(trendPoints[Math.floor((trendPoints.length - 1) / 2)].checkedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}</span>
+                      <span className="text-right">{trendPoints.at(-1) ? new Date(trendPoints.at(-1)!.checkedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}</span>
+                    </div>
                     <div className="mt-2 flex items-center justify-between text-[9px] text-muted-foreground">
                       <span>{tr("Health score: 0–100", "Sağlık skoru: 0–100")}</span>
                       <span>{tr("Status changes", "Durum değişimleri")}: {trendSummary.healthStatusTransitions}</span>
@@ -219,6 +227,34 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                       <span>{tr("Degraded", "Bozulmuş")}: 55–79</span>
                       <span>{tr("Limited", "Sınırlı")}: 0–54</span>
                       <span>{tr("Offline", "Çevrimdışı")}: 0</span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div className="rounded-lg border border-border p-2.5">
+                        <div className="text-[9px] text-muted-foreground">{tr("First → Latest Status", "İlk → Son Durum")}</div>
+                        <div className="mt-1 text-xs font-semibold text-foreground">
+                          {trendSummary.firstHealthStatus ? displayStatus(trendSummary.firstHealthStatus, locale) : "—"}
+                          <span className="mx-1.5 text-muted-foreground">→</span>
+                          {trendSummary.latestHealthStatus ? displayStatus(trendSummary.latestHealthStatus, locale) : "—"}
+                        </div>
+                        <div className="mt-1 text-[9px] text-muted-foreground">
+                          {trendSummary.firstHealthScore == null || trendSummary.latestHealthScore == null
+                            ? "—"
+                            : trendSummary.firstHealthScore + "/100 → " + trendSummary.latestHealthScore + "/100"}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border border-border p-2.5">
+                        <div className="text-[9px] text-muted-foreground">{tr("Observed Window", "Gözlemlenen Aralık")}</div>
+                        <div className="mt-1 text-xs font-semibold text-foreground">
+                          {trendSummary.firstCheckedAt && trendSummary.lastCheckedAt
+                            ? Math.max(0, Math.round((new Date(trendSummary.lastCheckedAt).getTime() - new Date(trendSummary.firstCheckedAt).getTime()) / 60000)) + " min"
+                            : "—"}
+                        </div>
+                        <div className="mt-1 text-[9px] text-muted-foreground">
+                          {trendSummary.firstCheckedAt && trendSummary.lastCheckedAt
+                            ? new Date(trendSummary.firstCheckedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) + " → " + new Date(trendSummary.lastCheckedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+                            : "—"}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : null}
