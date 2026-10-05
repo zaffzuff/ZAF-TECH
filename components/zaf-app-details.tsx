@@ -42,9 +42,25 @@ type AppTrendSummary = {
   onlineRate: number | null;
   averageResponseTimeMs: number | null;
   averageHealthScore: number | null;
+  minimumHealthScore: number | null;
+  maximumHealthScore: number | null;
+  latestHealthScore: number | null;
+  healthScoreDelta: number | null;
   transitions: number;
+  healthStatusTransitions: number;
   firstCheckedAt: string | null;
   lastCheckedAt: string | null;
+};
+
+type AppHealthTrendPoint = {
+  checkedAt: string;
+  reachable: boolean;
+  responseTimeMs: number;
+  status: number | null;
+  https: boolean;
+  redirect: boolean;
+  score: number;
+  healthStatus: "healthy" | "degraded" | "limited" | "offline";
 };
 
 function verification(value: DirectoryApp["piAuthentication"], locale: Locale) {
@@ -57,6 +73,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
   const [locale, setLocale] = useState<Locale>("en");
   const [health, setHealth] = useState<AppHealthResult | null>(null);
   const [trendSummary, setTrendSummary] = useState<AppTrendSummary | null>(null);
+  const [trendPoints, setTrendPoints] = useState<AppHealthTrendPoint[]>([]);
   const [healthLoading, setHealthLoading] = useState(false);
 
   const checkHealth = useCallback(async () => {
@@ -70,9 +87,12 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
         if (trendResponse.ok) {
           const trend = await trendResponse.json();
           setTrendSummary(trend.summary ?? null);
+          setTrendPoints(Array.isArray(trend.points) ? trend.points : []);
         }
       }
     } catch {
+      setTrendSummary(null);
+      setTrendPoints([]);
       setHealth({
         url: app.url,
         reachable: false,
@@ -145,12 +165,63 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
             {trendSummary ? (
               <div className="mt-3 border-t border-border pt-3">
                 <div className="text-[10px] font-semibold text-foreground">{tr("Stored Health Trend", "Kayıtlı Sağlık Trendi")}</div>
+                <div className="mt-1 text-[9px] text-muted-foreground">
+                  {tr("Health score and status over stored server-side checks. This measures observable URL/infrastructure behavior only.", "Kayıtlı sunucu tarafı kontrollerinde sağlık skoru ve durum. Bu yalnızca gözlemlenebilir URL/altyapı davranışını ölçer.")}
+                </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Checks", "Kontroller")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.checks}</div></div>
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Online Rate", "Çevrimiçi Oranı")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.onlineRate == null ? "—" : trendSummary.onlineRate + "%"}</div></div>
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Avg Health", "Ort. Sağlık")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.averageHealthScore == null ? "—" : trendSummary.averageHealthScore + "/100"}</div></div>
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Avg Response", "Ort. Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.averageResponseTimeMs == null ? "—" : trendSummary.averageResponseTimeMs + " ms"}</div></div>
                 </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Latest Health", "Son Sağlık")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.latestHealthScore == null ? "—" : trendSummary.latestHealthScore + "/100"}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Score Δ", "Skor Δ")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.healthScoreDelta == null ? "—" : (trendSummary.healthScoreDelta > 0 ? "+" : "") + trendSummary.healthScoreDelta}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Range", "Aralık")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.minimumHealthScore == null || trendSummary.maximumHealthScore == null ? "—" : trendSummary.minimumHealthScore + "–" + trendSummary.maximumHealthScore}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Status Changes", "Durum Değişimi")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.healthStatusTransitions}</div></div>
+                </div>
+
+                {trendPoints.length > 0 ? (
+                  <div className="mt-3 rounded-lg border border-border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="text-[9px] font-semibold text-foreground">{tr("Health Score Trend", "Sağlık Skoru Trendi")}</div>
+                        <div className="mt-0.5 text-[9px] text-muted-foreground">{tr("Earliest → latest stored checks", "En eski → en yeni kayıtlı kontroller")}</div>
+                      </div>
+                      <div className="text-[9px] text-muted-foreground">{trendPoints.length} {tr("points", "nokta")}</div>
+                    </div>
+                    <div className="mt-3 flex h-28 items-end gap-px overflow-hidden rounded-md border border-border/60 bg-muted/20 px-1 py-1">
+                      {trendPoints.map((point, index) => {
+                        const height = Math.max(4, Math.min(100, point.score));
+                        const title = point.score + "/100 · " + displayStatus(point.healthStatus, locale) + " · " + new Date(point.checkedAt).toLocaleString(intlLocale(locale));
+                        const statusClass =
+                          point.healthStatus === "healthy"
+                            ? "bg-foreground"
+                            : point.healthStatus === "degraded"
+                              ? "bg-foreground/70"
+                              : point.healthStatus === "limited"
+                                ? "bg-foreground/45"
+                                : "bg-foreground/25";
+                        return (
+                          <div key={point.checkedAt + "-" + index} className="flex h-full flex-1 items-end" title={title} aria-label={title}>
+                            <div className={"w-full rounded-t-sm " + statusClass} style={{ height: height + "%" }} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[9px] text-muted-foreground">
+                      <span>{tr("Health score: 0–100", "Sağlık skoru: 0–100")}</span>
+                      <span>{tr("Status changes", "Durum değişimleri")}: {trendSummary.healthStatusTransitions}</span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-[9px] text-muted-foreground sm:grid-cols-4">
+                      <span>{tr("Healthy", "Sağlıklı")}: 80–100</span>
+                      <span>{tr("Degraded", "Bozulmuş")}: 55–79</span>
+                      <span>{tr("Limited", "Sınırlı")}: 0–54</span>
+                      <span>{tr("Offline", "Çevrimdışı")}: 0</span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
