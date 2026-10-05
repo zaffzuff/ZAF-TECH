@@ -17,8 +17,16 @@ export async function GET(request: Request) {
   const averageResponseTimeMs = responseTimes.length ? Math.round(responseTimes.reduce((sum, n) => sum + n, 0) / responseTimes.length) : null;
   const healthScores = points.map((p) => p.score).filter((n) => Number.isFinite(n));
   const averageHealthScore = healthScores.length ? Math.round(healthScores.reduce((sum, n) => sum + n, 0) / healthScores.length) : null;
+  const minimumHealthScore = healthScores.length ? Math.min(...healthScores) : null;
+  const maximumHealthScore = healthScores.length ? Math.max(...healthScores) : null;
+  const latestHealthScore = healthScores.length ? healthScores.at(-1) ?? null : null;
+  const healthScoreDelta = healthScores.length >= 2 ? Math.round((healthScores.at(-1)! - healthScores[0]) * 10) / 10 : null;
   let transitions = 0;
-  for (let i = 1; i < points.length; i += 1) if (points[i].reachable !== points[i - 1].reachable) transitions += 1;
+  let healthStatusTransitions = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    if (points[i].reachable !== points[i - 1].reachable) transitions += 1;
+    if (points[i].healthStatus !== points[i - 1].healthStatus) healthStatusTransitions += 1;
+  }
   return NextResponse.json({
     configured: true,
     url,
@@ -32,7 +40,12 @@ export async function GET(request: Request) {
       onlineRate: checks ? Math.round((online / checks) * 100) : null,
       averageResponseTimeMs,
       averageHealthScore,
+      minimumHealthScore,
+      maximumHealthScore,
+      latestHealthScore,
+      healthScoreDelta,
       transitions,
+      healthStatusTransitions,
       firstCheckedAt: points[0]?.checkedAt ?? null,
       lastCheckedAt: points.at(-1)?.checkedAt ?? null,
     },
