@@ -15,6 +15,16 @@ export type ObservationHistoryRecord = {
   totalSources: number;
 };
 
+export type RollingObservationBaseline = {
+  generatedAt: string;
+  dailyTransactions: number | null;
+  dailyOperations: number | null;
+  sampleCount: number;
+  oldestGeneratedAt: string;
+  newestGeneratedAt: string;
+  windowMinutes: number;
+};
+
 function getClient() {
   const url = process.env.DATABASE_URL;
   return url ? postgres(url, { max: 2, prepare: false }) : null;
@@ -59,6 +69,15 @@ function bucketStart(value: string) {
   return new Date(Math.floor(date.getTime() / 300000) * 300000).toISOString();
 }
 
+function median(values: number[]) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 export async function saveObservationSnapshot(record: ObservationHistoryRecord) {
   const sql = getClient();
   if (!sql) return false;
@@ -71,6 +90,7 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
         (${bucketStart(record.generatedAt)}, ${record.generatedAt}, ${record.freshnessState}, ${record.confidenceScore}, ${record.networkLedger}, ${record.protocolVersion}, ${record.observedTransactions}, ${record.observedOperations}, ${record.dailyTransactions}, ${record.dailyOperations}, ${record.observedApps}, ${record.availableSources}, ${record.totalSources})
       ON CONFLICT (bucket_start) DO UPDATE SET
         generated_at = EXCLUDED.generated_at,
+        freshness_state = EXCLUDED.freshness_state,
         freshness_state = EXCLUDED.freshness_state,
         confidence_score = EXCLUDED.confidence_score,
         network_ledger = EXCLUDED.network_ledger,
@@ -156,6 +176,55 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
     return rows[0] ?? null;
   } catch (error) {
     console.error("[ZAF-TECH] Observation baseline read failed", error);
+    return null;
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function getRollingObservationBaseline(beforeGeneratedAt: string, windowMinutes = 30, minAgeSeconds = 300, minPoints = 3) {
+  const sql = getClient();
+  if (!sql) return null;
+  try {
+    await ensureTable(sql);
+    const generatedAtMs = Date.parse(beforeGeneratedAt);
+    if (!Number.isFinite(generatedAtMs)) return null;
+
+    const cutoff = new Date(generatedAtMs - (minAgeSeconds * 1000)).toISOString();
+    const windowStart = new Date(generatedAtMs - (windowMinutes * 60 * 1000)).toISOString();
+    const safeMinPoints = Math.max(1, Math.floor(minPoints));
+    const rows = await sql`
+      SELECT
+        generated_at AS "generatedAt",
+        daily_transactions AS "dailyTransactions",
+        daily_operations AS "dailyOperations"
+      FROM zaf_observation_snapshots
+      WHERE generated_at <= ${cutoff}
+        AND generated_at >= ${windowStart}
+      ORDER BY generated_at DESC
+      LIMIT 12
+    `;
+
+    if (rows.length < safeMinPoints) return null;
+
+    const transactionValues = rows
+      .map(row => typeof row.dailyTransactions === "number" ? row.dailyTransactions : Number(row.dailyTransactions))
+      .filter((value): value is number => Number.isFinite(value));
+    const operationValues = rows
+      .map(row => typeof row.dailyOperations === "number" ? row.dailyOperations : Number(row.dailyOperations))
+      .filter((value): value is number => Number.isFinite(value));
+
+    return {
+      generatedAt: rows[0].generatedAt,
+      dailyTransactions: median(transactionValues),
+      dailyOperations: median(operationValues),
+      sampleCount: rows.length,
+      oldestGeneratedAt: rows[rows.length - 1].generatedAt,
+      newestGeneratedAt: rows[0].generatedAt,
+      windowMinutes,
+    };
+  } catch (error) {
+    console.error("[ZAF-TECH] Rolling observation baseline read failed", error);
     return null;
   } finally {
     await sql.end();
