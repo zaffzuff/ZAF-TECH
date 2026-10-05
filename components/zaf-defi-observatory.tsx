@@ -61,12 +61,12 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
       <p className="text-[11px] text-muted-foreground">{tr("A read-only observation layer for Pi Testnet DEX and AMM infrastructure.","Pi Testnet DEX ve AMM altyapısı için salt-okunur gözlem katmanı.")}</p>
     </div>
 
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 [&>div]:min-w-0">
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.pools??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Pools","Havuzlar")}</div><div className="mt-1 text-[9px] text-muted-foreground">Testnet</div></div>
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.trades??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Trades","İşlemler")}</div><div className="mt-1 text-[9px] text-muted-foreground">Testnet</div></div>
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.pairs??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Observed Pairs","Gözlemlenen Pariteler")}</div></div>
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.distinctAssets??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Assets In DeFi Sample","DeFi Örneğindeki Varlıklar")}</div></div>
-      <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold text-foreground">{loading?"…":stateLabel(data?.summary.state??"unavailable",tr)}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Observation State","Gözlem Durumu")}</div></div>
+      <div className="rounded-xl border border-border bg-card p-3"><div className="min-w-0 break-words text-base font-bold leading-tight text-foreground sm:text-lg" style={{ overflowWrap: "anywhere" }}>{loading?"…":stateLabel(data?.summary.state??"unavailable",tr)}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Observation State","Gözlem Durumu")}</div></div>
     </div>
 
     {unavailable || empty ? <div className="mt-3 rounded-xl border border-border bg-card p-4">
