@@ -30,7 +30,7 @@ export function classifyHealthTrend(points: TrendPoint[]): Pick<HealthTrendAsses
   return { direction: "stable", delta };
 }
 
-export function assessHealthData(points: TrendPoint[], nowMs = Date.now()): HealthTrendAssessment["freshness"] & { confidence: HealthTrendAssessment["confidence"] } {
+export function assessHealthData(points: TrendPoint[], nowMs = Date.now()): { freshness: HealthTrendAssessment["freshness"]; confidence: HealthTrendAssessment["confidence"] } {
   const ordered = points.filter(point => Number.isFinite(Date.parse(point.checkedAt)));
   const latestMs = ordered.length ? Date.parse(ordered.at(-1)!.checkedAt) : NaN;
   const ageSeconds = Number.isFinite(latestMs) ? Math.max(0, Math.round((nowMs - latestMs) / 1000)) : null;
