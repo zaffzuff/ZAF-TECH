@@ -169,6 +169,7 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
       SELECT
         bucket_start AS "bucketStart",
         generated_at AS "generatedAt",
+        network_scope AS "networkScope",
         freshness_state AS "freshnessState",
         confidence_score AS "confidenceScore",
         network_ledger AS "networkLedger",
