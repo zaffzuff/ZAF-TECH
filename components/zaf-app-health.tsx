@@ -44,7 +44,18 @@ type BatchResult = {
   checked: number;
   limit: number;
   summary: { reachable: number; online: number; offline: number; averageScore: number | null; healthy: number; degraded: number; limited: number };
-  results: Array<{ name: string; url: string; check: Result; score: { score: number; status: string } }>;
+  results: Array<{
+    name: string;
+    url: string;
+    check: Result;
+    score: { score: number; status: string };
+    trend: {
+      direction: "improving" | "stable" | "declining" | "insufficient";
+      delta: number | null;
+      freshness: { state: "fresh" | "aging" | "stale" | "old" | "unknown"; ageSeconds: number | null };
+      confidence: { score: number; level: "high" | "medium" | "low" | "insufficient"; checks: number; observedWindowMinutes: number | null; cadenceStabilityScore: number };
+    };
+  }>;
 };
 
 export function ZafAppHealth({locale}:{locale:Locale}){
@@ -161,13 +172,50 @@ export function ZafAppHealth({locale}:{locale:Locale}){
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Degraded","Düşük")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.degraded}</div></div>
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Limited","Sınırlı")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.limited}</div></div>
         </div>
+        <div className="mt-4 rounded-lg border border-border p-3">
+          <div className="text-xs font-semibold text-foreground">{tr("Health Overview","Sağlık Genel Görünümü")}</div>
+          <p className="mt-1 text-[10px] text-muted-foreground">{tr("Current scores plus stored-history trend signals for the checked application sample.","Kontrol edilen uygulama örneği için güncel skorlar ve kayıtlı geçmiş trend sinyalleri.")}</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Average","Ortalama")}</div><div className="mt-1 text-xs font-semibold text-foreground">{batch.summary.averageScore == null ? "—" : batch.summary.averageScore + "/100"}</div></div>
+            <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Attention","Dikkat")}</div><div className="mt-1 text-xs font-semibold text-foreground">{batch.summary.attention}</div></div>
+            <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Declining","Gerileyen")}</div><div className="mt-1 text-xs font-semibold text-foreground">{batch.summary.declining}</div></div>
+            <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Improving","İyileşen")}</div><div className="mt-1 text-xs font-semibold text-foreground">{batch.summary.improving}</div></div>
+            <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Stale History","Eski Geçmiş")}</div><div className="mt-1 text-xs font-semibold text-foreground">{batch.summary.stale}</div></div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-lg border border-border p-3">
+          <div className="text-xs font-semibold text-foreground">{tr("Health Change Radar","Sağlık Değişim Radarı")}</div>
+          <p className="mt-1 text-[10px] text-muted-foreground">{tr("Signals are observational: they highlight current status and stored-history movement, not confirmed incidents.","Sinyaller gözlemseldir: mevcut durumu ve kayıtlı geçmiş hareketini öne çıkarır; doğrulanmış olay iddiası değildir.")}</p>
+          <div className="mt-3 space-y-1.5">
+            {[...batch.results]
+              .sort((a,b) => {
+                const priority = (item: typeof a) => item.score.status === "offline" ? 5 : item.score.status === "limited" ? 4 : item.score.status === "degraded" ? 3 : item.trend.direction === "declining" ? 2 : item.trend.direction === "improving" ? 1 : 0;
+                return priority(b) - priority(a);
+              })
+              .filter(item => item.score.status !== "healthy" || item.trend.direction !== "stable")
+              .slice(0,8)
+              .map(item => (
+                <button type="button" onClick={()=>void loadHistory(item.url)} key={item.url} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-left">
+                  <span className="min-w-0 truncate text-[10px] font-medium text-foreground">{item.name}</span>
+                  <span className="shrink-0 text-[9px] text-muted-foreground">
+                    {item.score.score}/100 · {item.trend.direction === "declining" ? tr("Declining","Geriliyor") : item.trend.direction === "improving" ? tr("Improving","İyileşiyor") : item.score.status}
+                  </span>
+                </button>
+              ))}
+            {!batch.results.some(item => item.score.status !== "healthy" || item.trend.direction !== "stable") ? (
+              <div className="rounded-lg border border-border p-3 text-[10px] text-muted-foreground">{tr("No health changes or attention signals detected in this sample.","Bu örnekte sağlık değişimi veya dikkat sinyali tespit edilmedi.")}</div>
+            ) : null}
+          </div>
+        </div>
+
         <div className="mt-3 space-y-1.5">
           {batch.results.slice(0,8).map(item=><button type="button" onClick={()=>void loadHistory(item.url)} key={item.url} className="flex w-full items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-left text-[10px]">
             <span className="min-w-0 truncate text-foreground">{item.name}</span>
             <span className="shrink-0 text-muted-foreground">{item.score.score}/100 · {item.check.reachable?tr("Reachable","Erişilebilir"):tr("Offline","Çevrimdışı")} · {item.check.responseTimeMs} ms</span>
           </button>)}
         </div>
-        <div className="mt-3 text-[10px] text-muted-foreground">{tr("Checks are persisted when DATABASE_URL is configured. Scheduled checks run through the configured server-side scheduler.","DATABASE_URL yapılandırıldığında kontroller geçmişe kaydedilir. Zamanlanmış kontroller yapılandırılmış sunucu tarafı zamanlayıcısı üzerinden çalışır.")}</div>
+        <div className="mt-3 text-[10px] text-muted-foreground">{tr("Checks are persisted when DATABASE_URL is configured. Stored-history trend and confidence require historical checks to be available.","DATABASE_URL yapılandırıldığında kontroller geçmişe kaydedilir. Zamanlanmış kontroller yapılandırılmış sunucu tarafı zamanlayıcısı üzerinden çalışır.")}</div>
         {historyUrl?<div className="mt-4 border-t border-border pt-4">
           <div className="text-xs font-semibold text-foreground">{tr("Historical Checks","Geçmiş Kontroller")}</div>
           <div className="mt-1 truncate text-[10px] text-muted-foreground">{historyUrl}</div>
