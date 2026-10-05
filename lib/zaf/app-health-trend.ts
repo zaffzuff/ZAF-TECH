@@ -63,8 +63,7 @@ export function assessHealthData(points: TrendPoint[], nowMs = Date.now()): Heal
     score >= 55 ? "medium" : "low";
 
   return {
-    state,
-    ageSeconds,
+    freshness: { state, ageSeconds },
     confidence: { score, level, checks, observedWindowMinutes, cadenceStabilityScore },
   };
 }
