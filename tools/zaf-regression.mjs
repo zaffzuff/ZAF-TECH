@@ -110,12 +110,12 @@ for (const token of ["getAppHealthTrend", "assessHealthTrend", "declining", "imp
 }
 
 const appHealthOverviewRoute = fs.readFileSync(path.join(root, "app/api/apps/health/overview/route.ts"), "utf8");
-for (const token of ["getLatestAppChecks", "assessHealthTrend", "averageScore", "declining", "attention"]) {
+for (const token of ["getLatestAppChecks", "assessHealthTrend", "averageScore", "declining", "attention", "temporarily unavailable"]) {
   if (!appHealthOverviewRoute.includes(token)) throw new Error("App Health overview API regression: " + token);
 }
 
 const appHealthTrendRoute = fs.readFileSync(path.join(root, "app/api/apps/health/trend/route.ts"), "utf8");
-for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthScore", "firstHealthScore", "latestHealthScore", "firstHealthStatus", "latestHealthStatus", "healthScoreDelta", "healthStatusTransitions", "trendDirection", "dataConfidence", "freshness"]) {
+for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthScore", "firstHealthScore", "latestHealthScore", "firstHealthStatus", "latestHealthStatus", "healthScoreDelta", "healthStatusTransitions", "trendDirection", "dataConfidence", "freshness", "temporarily unavailable"]) {
   if (!appHealthTrendRoute.includes(token)) throw new Error("App Health trend summary regression: " + token);
 }
 
