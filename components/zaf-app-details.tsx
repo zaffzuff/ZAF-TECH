@@ -313,7 +313,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
               [tr("Pi Authentication", "Pi Kimlik Doğrulama"), verification(app.piAuthentication, locale)],
               [tr("Pi Payments", "Pi Ödemeleri"), verification(app.piPayments, locale)],
               [tr("PiNet", "PiNet"), verification(app.piNet, locale)],
-              [tr("Network", "Ağ"), displayStatus(app.network, locale)],
+              [tr("Network", "Ağ"), displayStatus(app.networkScope, locale)],
               [tr("Status", "Durum"), displayStatus(app.status, locale)],
               [tr("Last Checked", "Son Kontrol"), new Date(app.lastChecked).toLocaleString(intlLocale(locale))],
             ].map(([label, value]) => (
