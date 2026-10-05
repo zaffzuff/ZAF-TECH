@@ -5,6 +5,11 @@ const root = process.cwd();
 const required = [
   "lib/zaf/observation-engine.ts",
   "lib/zaf/observation-history.ts",
+  "lib/zaf/network-scope.ts",
+  "lib/zaf/observation-scope.ts",
+  "lib/zaf/testnet-assets.ts",
+  "app/api/zaf/assets/route.ts",
+  "components/zaf-testnet-assets.tsx",
   "lib/zaf/ecosystem-history.ts",
   "app/api/zaf/observations/route.ts",
   "app/api/zaf/observations/history/route.ts",
@@ -170,6 +175,46 @@ for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", 
 
 const appHealthHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/app-check-history.ts"), "utf8");
 if (!appHealthHistorySchema.includes("appChecksSchemaReady")) throw new Error("App Health schema initialization regression");
+
+const networkScope = fs.readFileSync(path.join(root, "lib/zaf/network-scope.ts"), "utf8");
+for (const token of ["ZAF_NETWORK_SCOPES", "ZafNetworkScope", "mainnet", "testnet", "unknown"]) {
+  if (!networkScope.includes(token)) throw new Error("Network scope model regression: " + token);
+}
+
+const appDirectoryScope = fs.readFileSync(path.join(root, "lib/zaf/app-directory.ts"), "utf8");
+for (const token of ["ZafNetworkScope", "networkScope", '"unknown"']) {
+  if (!appDirectoryScope.includes(token)) throw new Error("App network scope regression: " + token);
+}
+
+const walletScope = fs.readFileSync(path.join(root, "lib/zaf/wallet-client.ts"), "utf8");
+for (const token of ["networkScope", "mapAssets", "selected.label"]) {
+  if (!walletScope.includes(token)) throw new Error("Wallet network scope regression: " + token);
+}
+
+const walletTypes = fs.readFileSync(path.join(root, "lib/zaf/types.ts"), "utf8");
+for (const token of ["ZafWalletAsset", "networkScope: ZafNetworkScope"]) {
+  if (!walletTypes.includes(token)) throw new Error("Wallet asset scope regression: " + token);
+}
+
+const testnetAssets = fs.readFileSync(path.join(root, "lib/zaf/testnet-assets.ts"), "utf8");
+for (const token of ["getTestnetAssets", "api.testnet.minepi.com", 'networkScope: "testnet"', "numLiquidityPools"]) {
+  if (!testnetAssets.includes(token)) throw new Error("Testnet asset regression: " + token);
+}
+
+const testnetAssetsRoute = fs.readFileSync(path.join(root, "app/api/zaf/assets/route.ts"), "utf8");
+for (const token of ["getTestnetAssets", "network=testnet", "networkScope"]) {
+  if (!testnetAssetsRoute.includes(token)) throw new Error("Testnet asset API regression: " + token);
+}
+
+const testnetAssetsUI = fs.readFileSync(path.join(root, "components/zaf-testnet-assets.tsx"), "utf8");
+for (const token of ["Testnet Assets", "Observed Testnet Assets", "Coming Soon target", "Test-Pi has no real-world value"]) {
+  if (!testnetAssetsUI.includes(token)) throw new Error("Testnet asset UI regression: " + token);
+}
+
+const walletUI = fs.readFileSync(path.join(root, "components/zaf-wallet-intelligence.tsx"), "utf8");
+for (const token of ["Observed Assets", "asset.assetIssuer", "Public asset balances"]) {
+  if (!walletUI.includes(token)) throw new Error("Wallet asset UI regression: " + token);
+}
 
 const observationHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
 if (!observationHistorySchema.includes("observationSchemaReady")) throw new Error("Observation schema initialization regression");
