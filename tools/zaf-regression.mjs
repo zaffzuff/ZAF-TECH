@@ -127,6 +127,12 @@ for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", 
   if (!app.includes(token)) throw new Error("Historical observatory UI regression: " + token);
 }
 
+const appHealthHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/app-check-history.ts"), "utf8");
+if (!appHealthHistorySchema.includes("appChecksSchemaReady")) throw new Error("App Health schema initialization regression");
+
+const observationHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
+if (!observationHistorySchema.includes("observationSchemaReady")) throw new Error("Observation schema initialization regression");
+
 const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
 if (!observationHistoryRoute.includes("10000")) throw new Error("Historical observation route limit regression");
 
