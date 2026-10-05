@@ -119,7 +119,7 @@ for (const token of ["Avg Health", "Health Score Trend", "Trend Direction", "Dat
 }
 
 const appHealthOverview = fs.readFileSync(path.join(root, "components/zaf-app-health.tsx"), "utf8");
-for (const token of ["Health Overview", "Health Change Radar", "attention", "Declining", "Improving", "Stale History"]) {
+for (const token of ["Health Overview", "Health Change Radar", "Measurement Evidence", "attention", "Declining", "Improving", "Stale History", "Synthetic data: none"]) {
   if (!appHealthOverview.includes(token)) throw new Error("App Health overview UI regression: " + token);
 }
 
