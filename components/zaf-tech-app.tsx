@@ -1133,6 +1133,29 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
         );
       })() : null}
 
+      {history?.points.length ? (
+        <div className="mt-3 rounded-xl border border-border bg-card p-4">
+          <div className="text-xs font-semibold text-foreground">{tr("Measurement Evidence", "Ölçüm Kanıtı")}</div>
+          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+            {tr("This panel records what ZAF TECH actually stored for the selected period. It does not invent missing observations or infer unseen network activity.", "Bu panel, ZAF TECH'in seçilen dönem için gerçekten kaydettiği verileri gösterir. Eksik gözlemler uydurulmaz ve görülmeyen ağ aktivitesi çıkarımla tamamlanmaz.")}
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Card title={tr("Stored Points", "Kayıtlı Noktalar")} value={number(history.count, 0, locale)} detail={tr("Five-minute buckets", "Beş dakikalık aralıklar")} />
+            <Card title={tr("Observed Window", "Gözlem Penceresi")} value={history.points.length > 1 ? age(history.points.at(-1)?.generatedAt, locale) : "—"} detail={history.points.length > 1 ? tr("Oldest stored point", "En eski kayıtlı nokta") : tr("Single point", "Tek nokta")} />
+            <Card title={tr("Latest Stored", "Son Kayıt")} value={age(history.points[0]?.generatedAt, locale)} detail={history.points[0]?.freshnessState ?? "—"} />
+            <Card title={tr("Source Coverage", "Kaynak Kapsamı")} value={history.points[0] ? history.points[0].availableSources + "/" + history.points[0].totalSources : "—"} detail={tr("Latest stored point", "Son kayıtlı nokta")} />
+          </div>
+          <div className="mt-3 rounded-lg border border-border bg-background p-3">
+            <div className="grid gap-2 text-[10px] text-muted-foreground sm:grid-cols-2">
+              <div><span className="font-medium text-foreground">{tr("Range start", "Aralık başlangıcı")}:</span> {history.points.at(-1) ? new Date(history.points.at(-1)!.generatedAt).toLocaleString(intlLocale(locale)) : "—"}</div>
+              <div><span className="font-medium text-foreground">{tr("Range end", "Aralık sonu")}:</span> {history.points[0] ? new Date(history.points[0].generatedAt).toLocaleString(intlLocale(locale)) : "—"}</div>
+              <div><span className="font-medium text-foreground">{tr("Historical storage", "Tarihsel depolama")}:</span> {history.configured ? tr("Configured", "Yapılandırılmış") : tr("Not configured", "Yapılandırılmadı")}</div>
+              <div><span className="font-medium text-foreground">{tr("Synthetic data", "Yapay veri")}:</span> {tr("None", "Yok")}</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Observation Timeline", "Gözlem Zaman Çizelgesi")}</div>
         <p className="mt-1 text-[10px] text-muted-foreground">{tr("Historical observation points and measured activity direction. Only persisted observations are shown.", "Tarihsel gözlem noktaları ve ölçülen aktivite yönü. Yalnızca kayıtlı gözlemler gösterilir.")}</p>
