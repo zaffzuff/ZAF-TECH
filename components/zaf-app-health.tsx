@@ -43,7 +43,7 @@ type BatchResult = {
   generatedAt: string;
   checked: number;
   limit: number;
-  summary: { reachable: number; online: number; offline: number; averageScore: number | null; healthy: number; degraded: number; limited: number };
+  summary: { reachable: number; online: number; offline: number; averageScore: number | null; healthy: number; degraded: number; limited: number; declining: number; improving: number; stale: number; attention: number };
   results: Array<{
     name: string;
     url: string;
