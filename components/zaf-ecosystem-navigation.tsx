@@ -6,7 +6,7 @@ export type ZafSection = "overview" | "apps" | "node" | "intelligence" | "wallet
 
 export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
   overview: ["Ecosystem", "Network", "Tools"],
-  apps: ["App Directory", "App Health"],
+  apps: ["App Directory", "App Health", "App Activity", "Staking"],
   node: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
   intelligence: ["Radar", "Activity Signals", "Explorer"],
   wallet: [],
@@ -20,6 +20,8 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Apps: ["Apps", "Uygulamalar", "Aplicaciones", "应用", "App", "Applications", "Apps", "Aplicativos", "Приложения"],
   "App Directory": ["App Directory", "Uygulama Dizini", "Directorio De Apps", "应用目录", "Elenco App", "Annuaire Des Apps", "App-Verzeichnis", "Diretório De Apps", "Каталог Приложений"],
   "App Health": ["App Health", "Uygulama Sağlığı", "Salud De Apps", "应用健康", "Salute App", "Santé Des Apps", "App-Gesundheit", "Saúde Dos Apps", "Состояние Приложений"],
+  "App Activity": ["App Activity", "Uygulama Aktivitesi", "Actividad De Apps", "应用活动", "Attività App", "Activité Des Apps", "App-Aktivität", "Atividade De Apps", "Активность Приложений"],
+  Staking: ["Staking", "Staking", "Staking", "质押", "Staking", "Staking", "Staking", "Staking", "Стейкинг"],
   "Node & Compute": ["Node & Compute", "Node & Hesaplama", "Node Y Cómputo", "节点与计算", "Node E Calcolo", "Node Et Calcul", "Node & Computing", "Node E Computação", "Node И Вычисления"],
   Node: ["Node", "Node", "Node", "节点", "Node", "Node", "Node", "Node", "Node"],
   "Node History": ["Node History", "Node Geçmişi", "Historial Del Node", "节点历史", "Cronologia Node", "Historique Du Node", "Node-Verlauf", "Histórico Do Node", "История Node"],
