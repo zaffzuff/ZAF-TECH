@@ -19,7 +19,10 @@ export async function GET(request: Request) {
   const averageHealthScore = healthScores.length ? Math.round(healthScores.reduce((sum, n) => sum + n, 0) / healthScores.length) : null;
   const minimumHealthScore = healthScores.length ? Math.min(...healthScores) : null;
   const maximumHealthScore = healthScores.length ? Math.max(...healthScores) : null;
+  const firstHealthScore = healthScores.length ? healthScores[0] : null;
   const latestHealthScore = healthScores.length ? healthScores.at(-1) ?? null : null;
+  const firstHealthStatus = points[0]?.healthStatus ?? null;
+  const latestHealthStatus = points.at(-1)?.healthStatus ?? null;
   const healthScoreDelta = healthScores.length >= 2 ? Math.round((healthScores.at(-1)! - healthScores[0]) * 10) / 10 : null;
   let transitions = 0;
   let healthStatusTransitions = 0;
@@ -42,7 +45,10 @@ export async function GET(request: Request) {
       averageHealthScore,
       minimumHealthScore,
       maximumHealthScore,
+      firstHealthScore,
       latestHealthScore,
+      firstHealthStatus,
+      latestHealthStatus,
       healthScoreDelta,
       transitions,
       healthStatusTransitions,
