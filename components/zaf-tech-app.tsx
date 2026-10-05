@@ -13,6 +13,7 @@ import { ZafEcosystemNavigation, ZAF_SECTION_TABS, type ZafSection } from "@/com
 import { ZafNodeCompute } from "@/components/zaf-node-compute";
 import { ZafAppHealth } from "@/components/zaf-app-health";
 import { ZafEcosystemHealthTimeline } from "@/components/zaf-ecosystem-health-timeline";
+import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
@@ -531,6 +532,7 @@ export function ZafTechApp() {
               </div>
             </div>
             <ZafEcosystemHealthTimeline locale={locale} snapshot={snapshot} radar={radarData} />
+            <ZafProtocolObservation locale={locale} currentProtocol={snapshot?.metrics.latestProtocolVersion ?? null} currentObservedAt={snapshot?.generatedAt ?? null} tr={tr} />
 
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("What ZAF TECH Does", "ZAF TECH Ne Yapar")}</div>
