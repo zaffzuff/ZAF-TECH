@@ -93,8 +93,8 @@ for (const token of ["Observable Health Factors", "scoreFactors", "security audi
   if (!appHealthComponent.includes(token)) throw new Error("App health UI regression: " + token);
 }
 
-for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", "historyLimit"]) {
-  if (!app.includes(token)) throw new Error("Historical range UI regression: " + token);
+for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", "historyLimit", "Period Trend Analysis", "periodPercentChange", "averageHistoryValue"]) {
+  if (!app.includes(token)) throw new Error("Historical trend UI regression: " + token);
 }
 
 const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
