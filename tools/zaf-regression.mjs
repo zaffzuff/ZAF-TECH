@@ -202,7 +202,7 @@ for (const token of ["getTestnetAssets", "api.testnet.minepi.com", 'networkScope
 }
 
 const testnetAssetsRoute = fs.readFileSync(path.join(root, "app/api/zaf/assets/route.ts"), "utf8");
-for (const token of ["getTestnetAssets", "network=testnet", "networkScope"]) {
+for (const token of ["getTestnetAssets", "Only Testnet asset observations", "networkScope"]) {
   if (!testnetAssetsRoute.includes(token)) throw new Error("Testnet asset API regression: " + token);
 }
 
