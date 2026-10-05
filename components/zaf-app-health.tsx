@@ -16,6 +16,7 @@ type Result = {
   checkedAt: string;
   score?: number;
   healthStatus?: "healthy" | "degraded" | "limited" | "offline";
+  scoreFactors?: { reachability: number; https: number; response: number; redirect: number };
 };
 
 type HistoryRecord = Result & { appName: string };
@@ -115,6 +116,32 @@ export function ZafAppHealth({locale}:{locale:Locale}){
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Health Score","Sağlık Skoru")}</div><div className="mt-1 text-sm font-semibold text-foreground">{result.score == null ? "—" : result.score + "/100"}</div></div>
     </div>:null}
     {result?.error?<div className="mt-3 text-[10px] text-muted-foreground">{result.error}</div>:null}
+    {result?.scoreFactors ? (
+      <div className="mt-3 rounded-lg border border-border bg-background p-3">
+        <div className="text-[10px] font-medium text-foreground">{tr("Observable Health Factors","Gözlemlenebilir Sağlık Faktörleri")}</div>
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="rounded-md border border-border p-2">
+            <div className="text-[9px] text-muted-foreground">{tr("Reachability","Erişilebilirlik")}</div>
+            <div className="mt-1 text-xs font-semibold text-foreground">{result.scoreFactors.reachability} pts</div>
+          </div>
+          <div className="rounded-md border border-border p-2">
+            <div className="text-[9px] text-muted-foreground">HTTPS</div>
+            <div className="mt-1 text-xs font-semibold text-foreground">{result.scoreFactors.https} pts</div>
+          </div>
+          <div className="rounded-md border border-border p-2">
+            <div className="text-[9px] text-muted-foreground">{tr("Response","Yanıt")}</div>
+            <div className="mt-1 text-xs font-semibold text-foreground">{result.scoreFactors.response} pts</div>
+          </div>
+          <div className="rounded-md border border-border p-2">
+            <div className="text-[9px] text-muted-foreground">{tr("Redirect","Yönlendirme")}</div>
+            <div className="mt-1 text-xs font-semibold text-foreground">{result.scoreFactors.redirect} pts</div>
+          </div>
+        </div>
+        <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground">
+          {tr("The score describes observable URL/infrastructure behavior only. It is not a security audit, ownership verification, or legitimacy assessment.", "Bu skor yalnızca gözlemlenebilir URL/altyapı davranışını açıklar. Güvenlik denetimi, sahiplik doğrulaması veya meşruiyet değerlendirmesi değildir.")}
+        </p>
+      </div>
+    ) : null}
 
     <div className="mt-5 border-t border-border pt-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
