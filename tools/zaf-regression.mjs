@@ -104,7 +104,7 @@ for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthS
 }
 
 const appDetails = fs.readFileSync(path.join(root, "components/zaf-app-details.tsx"), "utf8");
-for (const token of ["Avg Health", "Health Score Trend", "Latest Health", "Score Δ", "Status Changes", "First → Latest Status", "Observed Window", "toLocaleString", "healthStatus"]) {
+for (const token of ["Avg Health", "Health Score Trend", "Latest Health", "Score Δ", "Status Changes", "First → Latest Status", "Observed Window", "Status Transition Timeline", "toLocaleString", "healthStatus"]) {
   if (!appDetails.includes(token)) throw new Error("App Health trend visualization regression: " + token);
 }
 
