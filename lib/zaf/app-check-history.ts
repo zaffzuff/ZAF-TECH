@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { calculateAppHealthScore } from "@/lib/zaf/app-health-score";
 
 export type AppCheckRecord = {
   appName: string;
@@ -106,12 +107,17 @@ export async function getAppCheckHistory(url: string, limit = 50) {
 
 export async function getAppHealthTrend(url: string, limit = 48) {
   const records = (await getAppCheckHistory(url, limit)) ?? [];
-  return records.reverse().map((record) => ({
-    checkedAt: record.checkedAt,
-    reachable: record.reachable,
-    responseTimeMs: record.responseTimeMs,
-    status: record.status,
-    https: record.https,
-    redirect: record.redirect,
-  }));
+  return records.reverse().map((record) => {
+    const score = calculateAppHealthScore(record);
+    return {
+      checkedAt: record.checkedAt,
+      reachable: record.reachable,
+      responseTimeMs: record.responseTimeMs,
+      status: record.status,
+      https: record.https,
+      redirect: record.redirect,
+      score: score.score,
+      healthStatus: score.status,
+    };
+  });
 }
