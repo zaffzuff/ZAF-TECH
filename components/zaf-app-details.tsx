@@ -25,6 +25,8 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
     aging: { en: "Aging", es: "Envejeciendo", tr: "Yaşlanıyor", zh: "正在变旧", it: "Invecchiando", fr: "Alterando", de: "Alternd", pt: "Envelhecendo", ru: "Устаревает" },
     stale: { en: "Stale", es: "Eski", tr: "Bayat", zh: "陈旧", it: "Obsoleto", fr: "Stale", de: "Veraltet", pt: "Desatualizado", ru: "Устаревшие" },
     old: { en: "Old", es: "Antiguo", tr: "Eski", zh: "很旧", it: "Vecchio", fr: "Ancien", de: "Alt", pt: "Antigo", ru: "Старые" },
+    mainnet: { en: "Mainnet", es: "Mainnet", tr: "Mainnet", zh: "主网", it: "Mainnet", fr: "Mainnet", de: "Mainnet", pt: "Mainnet", ru: "Mainnet" },
+    testnet: { en: "Testnet", es: "Testnet", tr: "Testnet", zh: "测试网", it: "Testnet", fr: "Testnet", de: "Testnet", pt: "Testnet", ru: "Testnet" },
   };
   return labels[normalized]?.[locale] ?? normalized.replace(/^./, char => char.toUpperCase());
 }
@@ -139,7 +141,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
             <h1 className="mt-1 text-xl font-bold tracking-tight text-foreground">{app.name}</h1>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <span className="rounded-full border border-border bg-card px-2 py-1 text-[10px] text-muted-foreground">{app.category}</span>
-              <span className="rounded-full border border-border bg-card px-2 py-1 text-[10px] text-muted-foreground">{displayStatus(app.network, locale)}</span>
+              <span className="rounded-full border border-border bg-card px-2 py-1 text-[10px] text-muted-foreground">{displayStatus(app.networkScope, locale)}</span>
               <span className="rounded-full border border-border bg-card px-2 py-1 text-[10px] text-muted-foreground">{displayStatus(app.status, locale)}</span>
             </div>
           </div>
