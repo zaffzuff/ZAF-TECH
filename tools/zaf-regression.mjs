@@ -210,7 +210,7 @@ for (const token of ["getTestnetAssets", "Only Testnet asset observations", "net
 }
 
 const defiObservation = fs.readFileSync(path.join(root, "lib/zaf/defi-observation.ts"), "utf8");
-for (const token of ["getDefiObservation", "liquidity_pools", "/trades?", "networkScope: "testnet"", "distinctAssets"]) {
+for (const token of ["getDefiObservation", "liquidity_pools", "/trades?", 'networkScope: "testnet"', "distinctAssets"]) {
   if (!defiObservation.includes(token)) throw new Error("DeFi observation model regression: " + token);
 }
 
