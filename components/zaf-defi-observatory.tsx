@@ -7,12 +7,14 @@ import { intlLocale } from "@/lib/zaf/i18n";
 type AssetRef = { assetType:string|null; assetCode:string|null; issuer:string|null; label:string };
 type Pool = { networkScope:"testnet"; poolId:string; feeBp:number|null; totalShares:number|null; reserves:Array<{asset:AssetRef;amount:number|null}>; lastModifiedLedger:string|null };
 type Trade = { networkScope:"testnet"; id:string; ledgerCloseTime:string|null; tradeType:string|null; base:{asset:AssetRef;amount:number|null;poolId:string|null;offerId:string|null}; counter:{asset:AssetRef;amount:number|null;poolId:string|null;offerId:string|null}; price:number|null };
+type PairActivity = { networkScope:"testnet"; pairKey:string; base:AssetRef; counter:AssetRef; trades:number; baseAmount:number; counterAmount:number; liquidityPoolTrades:number; orderbookTrades:number; latestCloseTime:string|null };
 type Payload = {
   generatedAt:string;
   networkScope:"testnet";
-  summary:{pools:number;trades:number;distinctAssets:number;state:"observed"|"empty"|"unavailable"};
+  summary:{pools:number;trades:number;pairs:number;distinctAssets:number;state:"observed"|"empty"|"unavailable"};
   sources:{liquidityPools:{state:string;source:string;count:number;error:string|null;records:Pool[]};trades:{state:string;source:string;count:number;error:string|null;records:Trade[]}};
   assets:AssetRef[];
+  pairActivity:PairActivity[];
   notes:string[];
   errors:string[];
 };
@@ -62,6 +64,7 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.pools??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Pools","Havuzlar")}</div><div className="mt-1 text-[9px] text-muted-foreground">Testnet</div></div>
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.trades??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Trades","İşlemler")}</div><div className="mt-1 text-[9px] text-muted-foreground">Testnet</div></div>
+      <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.pairs??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Observed Pairs","Gözlemlenen Pariteler")}</div></div>
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{loading?"…":data?.summary.distinctAssets??"—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Assets In DeFi Sample","DeFi Örneğindeki Varlıklar")}</div></div>
       <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold text-foreground">{loading?"…":stateLabel(data?.summary.state??"unavailable",tr)}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Observation State","Gözlem Durumu")}</div></div>
     </div>
@@ -94,12 +97,22 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
       </div>)}{!pools.length?<div className="text-[10px] text-muted-foreground">{tr("No pool records are currently observable.","Şu anda gözlemlenebilir havuz kaydı yok.")}</div>:null}</div>
     </div>:null}
 
-    {view==="DEX" ? <div className="mt-3 rounded-xl border border-border bg-card p-4">
-      <div className="text-xs font-semibold text-foreground">{tr("Observed Trades","Gözlemlenen İşlemler")}</div>
-      <div className="mt-3 space-y-2">{trades.slice(0,50).map(trade=><div key={trade.id} className="rounded-lg border border-border p-3">
-        <div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold text-foreground">{trade.base.asset.label} → {trade.counter.asset.label}</div><div className="mt-1 text-[9px] text-muted-foreground">{trade.ledgerCloseTime?new Date(trade.ledgerCloseTime).toLocaleString(intlLocale(locale)):"—"} · {trade.tradeType??"—"}</div></div><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">Testnet</span></div>
-        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"><div><div className="text-[9px] text-muted-foreground">{tr("Base Amount","Baz Miktar")}</div><div className="text-[10px] text-foreground">{num(trade.base.amount,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Counter Amount","Karşı Miktar")}</div><div className="text-[10px] text-foreground">{num(trade.counter.amount,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Price","Fiyat")}</div><div className="text-[10px] text-foreground">{num(trade.price,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Pool","Havuz")}</div><div className="text-[10px] text-foreground">{trade.base.poolId??trade.counter.poolId??"—"}</div></div></div>
-      </div>)}{!trades.length?<div className="text-[10px] text-muted-foreground">{tr("No trade records are currently observable.","Şu anda gözlemlenebilir işlem kaydı yok.")}</div>:null}</div>
+    {view==="DEX" ? <div className="mt-3 space-y-3">
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between gap-3"><div className="text-xs font-semibold text-foreground">{tr("Observed Pair Activity","Gözlemlenen Parite Aktivitesi")}</div><span className="text-[9px] text-muted-foreground">{tr("No USD conversion inferred","USD dönüşümü çıkarılmaz")}</span></div>
+        <div className="mt-3 space-y-2">{(data?.pairActivity??[]).slice(0,25).map(pair=><div key={pair.pairKey} className="rounded-lg border border-border p-3">
+          <div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold text-foreground">{pair.base.label} / {pair.counter.label}</div><div className="mt-1 text-[9px] text-muted-foreground">{tr("Latest","Son")}: {pair.latestCloseTime?new Date(pair.latestCloseTime).toLocaleString(intlLocale(locale)):"—"}</div></div><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{pair.trades} {tr("trades","işlem")}</span></div>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"><div><div className="text-[9px] text-muted-foreground">{tr("Base Volume","Baz Hacim")}</div><div className="text-[10px] text-foreground">{num(pair.baseAmount,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Counter Volume","Karşı Hacim")}</div><div className="text-[10px] text-foreground">{num(pair.counterAmount,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Liquidity Pool","Likidite Havuzu")}</div><div className="text-[10px] text-foreground">{pair.liquidityPoolTrades}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Orderbook","Emir Defteri")}</div><div className="text-[10px] text-foreground">{pair.orderbookTrades}</div></div></div>
+        </div>)}{!data?.pairActivity?.length?<div className="text-[10px] text-muted-foreground">{tr("No pair activity is currently observable.","Şu anda gözlemlenebilir parite aktivitesi yok.")}</div>:null}</div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="text-xs font-semibold text-foreground">{tr("Observed Trades","Gözlemlenen İşlemler")}</div>
+        <div className="mt-3 space-y-2">{trades.slice(0,50).map(trade=><div key={trade.id} className="rounded-lg border border-border p-3">
+          <div className="flex items-start justify-between gap-3"><div><div className="text-[10px] font-semibold text-foreground">{trade.base.asset.label} → {trade.counter.asset.label}</div><div className="mt-1 text-[9px] text-muted-foreground">{trade.ledgerCloseTime?new Date(trade.ledgerCloseTime).toLocaleString(intlLocale(locale)):"—"} · {trade.tradeType??"—"}</div></div><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">Testnet</span></div>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"><div><div className="text-[9px] text-muted-foreground">{tr("Base Amount","Baz Miktar")}</div><div className="text-[10px] text-foreground">{num(trade.base.amount,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Counter Amount","Karşı Miktar")}</div><div className="text-[10px] text-foreground">{num(trade.counter.amount,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Price","Fiyat")}</div><div className="text-[10px] text-foreground">{num(trade.price,locale)}</div></div><div><div className="text-[9px] text-muted-foreground">{tr("Pool","Havuz")}</div><div className="text-[10px] text-foreground">{trade.base.poolId??trade.counter.poolId??"—"}</div></div></div>
+        </div>)}{!trades.length?<div className="text-[10px] text-muted-foreground">{tr("No trade records are currently observable.","Şu anda gözlemlenebilir işlem kaydı yok.")}</div>:null}</div>
+      </div>
     </div>:null}
 
     {view==="Tokens" ? <div className="mt-3 rounded-xl border border-border bg-card p-4">
