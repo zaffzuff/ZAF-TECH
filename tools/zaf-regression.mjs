@@ -11,6 +11,9 @@ const required = [
   "lib/zaf/defi-observation.ts",
   "app/api/zaf/defi/route.ts",
   "components/zaf-defi-observatory.tsx",
+  "lib/zaf/launchpad-observation.ts",
+  "app/api/zaf/launchpad/route.ts",
+  "components/zaf-launchpad-observatory.tsx",
   "app/api/zaf/assets/route.ts",
   "components/zaf-testnet-assets.tsx",
   "lib/zaf/ecosystem-history.ts",
@@ -252,3 +255,23 @@ if (!workflow.includes("npm run regression")) throw new Error("CI regression gat
 
 console.log("ZAF TECH v1.1 regression checks passed.");
 
+
+
+const launchpadObservation = fs.readFileSync(path.join(root, "lib/zaf/launchpad-observation.ts"), "utf8");
+for (const token of ["getLaunchpadObservation", "published-evidence", "IRRA", "SLICE", "Testnet", "Mainnet"]) {
+  if (!launchpadObservation.includes(token)) throw new Error("Launchpad observation model regression: " + token);
+}
+
+const launchpadRoute = fs.readFileSync(path.join(root, "app/api/zaf/launchpad/route.ts"), "utf8");
+for (const token of ["getLaunchpadObservation", "Only Testnet Launchpad observations", "networkScope"]) {
+  if (!launchpadRoute.includes(token)) throw new Error("Launchpad API regression: " + token);
+}
+
+const launchpadUI = fs.readFileSync(path.join(root, "components/zaf-launchpad-observatory.tsx"), "utf8");
+for (const token of ["Launchpad Observatory", "Published Launch Evidence", "IRRA", "SLICE", "Live Launchpad Feed", "Mainnet Readiness", "published-evidence"]) {
+  if (!launchpadUI.includes(token)) throw new Error("Launchpad UI regression: " + token);
+}
+
+for (const token of ["Launchpad", "ZafLaunchpadObservatory"]) {
+  if (!app.includes(token)) throw new Error("Launchpad navigation/mount regression: " + token);
+}

@@ -17,6 +17,7 @@ import { ZafEcosystemAppActivity } from "@/components/zaf-ecosystem-app-activity
 import { ZafEcosystemStaking } from "@/components/zaf-ecosystem-staking";
 import { ZafTestnetAssets } from "@/components/zaf-testnet-assets";
 import { ZafDefiObservatory } from "@/components/zaf-defi-observatory";
+import { ZafLaunchpadObservatory } from "@/components/zaf-launchpad-observatory";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
@@ -548,7 +549,8 @@ export function ZafTechApp() {
         {!loading && section === "apps" && subtab === "App Activity" ? <ZafEcosystemAppActivity locale={locale} tr={tr} /> : null}
         {!loading && section === "apps" && subtab === "Staking" ? <ZafEcosystemStaking locale={locale} tr={tr} /> : null}
         {!loading && section === "testnet" && subtab === "Assets" ? <ZafTestnetAssets locale={locale} tr={tr} /> : null}
-        {!loading && section === "defi" ? <ZafDefiObservatory locale={locale} tr={tr} view={subtab as "Overview" | "DEX" | "AMM & Pools" | "Tokens"} /> : null}
+        {!loading && section === "defi" && subtab === "Launchpad" ? <ZafLaunchpadObservatory locale={locale} tr={tr} /> : null}
+        {!loading && section === "defi" && subtab !== "Launchpad" ? <ZafDefiObservatory locale={locale} tr={tr} view={subtab as "Overview" | "DEX" | "AMM & Pools" | "Tokens"} /> : null}
 
         {!loading && section === "apps" && subtab === "App Directory" ? <AppDirectoryView apps={apps} sourceOnline={sourceOnline} generatedAt={ecosystem?.generatedAt} note={ecosystem?.apps.note} locale={locale} tr={tr} /> : null}
 
