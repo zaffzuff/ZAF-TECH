@@ -31,6 +31,19 @@ export type DefiTradeObservation = {
   price: number | null;
 };
 
+export type DefiPairObservation = {
+  networkScope: "testnet";
+  pairKey: string;
+  base: DefiAssetRef;
+  counter: DefiAssetRef;
+  trades: number;
+  baseAmount: number;
+  counterAmount: number;
+  liquidityPoolTrades: number;
+  orderbookTrades: number;
+  latestCloseTime: string | null;
+};
+
 type EndpointResult<T> = {
   state: DefiSourceState;
   source: string;
@@ -75,6 +88,82 @@ function assetRef(record: Record<string, unknown>, prefix = ""): DefiAssetRef {
   };
 }
 
+function reserveAssetRef(value: unknown): DefiAssetRef {
+  if (typeof value === "string") {
+    const raw = value.trim();
+    if (!raw || raw === "native") return {
+      assetType: raw === "native" ? "native" : null,
+      assetCode: null,
+      issuer: null,
+      label: raw === "native" ? "Pi" : "Unknown asset",
+    };
+    const separator = raw.indexOf(":");
+    if (separator > 0) {
+      const code = raw.slice(0, separator);
+      const issuer = raw.slice(separator + 1) || null;
+      return {
+        assetType: "credit_alphanum",
+        assetCode: code,
+        issuer,
+        label: issuer ? code + " (" + issuer.slice(0, 8) + "…)" : code,
+      };
+    }
+    return {
+      assetType: "unknown",
+      assetCode: raw,
+      issuer: null,
+      label: raw,
+    };
+  }
+
+  if (value && typeof value === "object") {
+    const asset = value as Record<string, unknown>;
+    const assetType = stringOrNull(asset.asset_type);
+    const assetCode = stringOrNull(asset.asset_code);
+    const issuer = stringOrNull(asset.asset_issuer);
+    return {
+      assetType,
+      assetCode,
+      issuer,
+      label: assetType === "native"
+        ? "Pi"
+        : assetCode && issuer
+          ? assetCode + " (" + issuer.slice(0, 8) + "…)"
+          : assetCode ?? assetType ?? "Unknown asset",
+    };
+  }
+
+  return { assetType: null, assetCode: null, issuer: null, label: "Unknown asset" };
+}
+
+function assetKey(asset: DefiAssetRef) {
+  return [asset.assetType, asset.assetCode, asset.issuer].join("|");
+}
+
+function pairKeyFor(base: DefiAssetRef, counter: DefiAssetRef) {
+  const left = assetKey(base);
+  const right = assetKey(counter);
+  return left <= right ? left + "||" + right : right + "||" + left;
+}
+
+function createPairObservation(base: DefiAssetRef, counter: DefiAssetRef): DefiPairObservation {
+  const ordered = assetKey(base) <= assetKey(counter)
+    ? { base, counter }
+    : { base: counter, counter: base };
+  return {
+    networkScope: "testnet",
+    pairKey: pairKeyFor(base, counter),
+    base: ordered.base,
+    counter: ordered.counter,
+    trades: 0,
+    baseAmount: 0,
+    counterAmount: 0,
+    liquidityPoolTrades: 0,
+    orderbookTrades: 0,
+    latestCloseTime: null,
+  };
+}
+
 async function fetchJson(path: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -106,16 +195,8 @@ async function readPools(limit: number): Promise<EndpointResult<DefiPoolObservat
     const records = recordsFromPage(body).map((record): DefiPoolObservation => {
       const reserves = Array.isArray(record.reserves)
         ? record.reserves.filter((reserve): reserve is Record<string, unknown> => Boolean(reserve) && typeof reserve === "object").map((reserve) => {
-            const asset = reserve.asset && typeof reserve.asset === "object" ? reserve.asset as Record<string, unknown> : {};
             return {
-              asset: {
-                assetType: stringOrNull(asset.asset_type),
-                assetCode: stringOrNull(asset.asset_code),
-                issuer: stringOrNull(asset.asset_issuer),
-                label: asset.asset_type === "native"
-                  ? "Pi"
-                  : stringOrNull(asset.asset_code) ?? stringOrNull(asset.asset_type) ?? "Unknown asset",
-              },
+              asset: reserveAssetRef(reserve.asset),
               amount: numberOrNull(reserve.amount),
             };
           })
@@ -200,18 +281,40 @@ export async function getDefiObservation(limit = 100) {
   const [pools, trades] = await Promise.all([readPools(safeLimit), readTrades(safeLimit)]);
 
   const tokenKeys = new Map<string, DefiAssetRef>();
+  const pairKeys = new Map<string, DefiPairObservation>();
   for (const pool of pools.records) {
     for (const reserve of pool.reserves) {
-      const key = [reserve.asset.assetType, reserve.asset.assetCode, reserve.asset.issuer].join("|");
-      tokenKeys.set(key, reserve.asset);
+      tokenKeys.set(assetKey(reserve.asset), reserve.asset);
     }
   }
   for (const trade of trades.records) {
     for (const asset of [trade.base.asset, trade.counter.asset]) {
-      const key = [asset.assetType, asset.assetCode, asset.issuer].join("|");
-      tokenKeys.set(key, asset);
+      tokenKeys.set(assetKey(asset), asset);
+    }
+
+    if (trade.base.asset.label !== "Unknown asset" && trade.counter.asset.label !== "Unknown asset") {
+      const key = pairKeyFor(trade.base.asset, trade.counter.asset);
+      const pair = pairKeys.get(key) ?? createPairObservation(trade.base.asset, trade.counter.asset);
+      const baseFirst = assetKey(trade.base.asset) <= assetKey(trade.counter.asset);
+      const orderedBaseAmount = baseFirst ? trade.base.amount : trade.counter.amount;
+      const orderedCounterAmount = baseFirst ? trade.counter.amount : trade.base.amount;
+      pair.trades += 1;
+      pair.baseAmount += orderedBaseAmount ?? 0;
+      pair.counterAmount += orderedCounterAmount ?? 0;
+      if (trade.tradeType === "liquidity_pool" || trade.tradeType?.includes("liquidity")) pair.liquidityPoolTrades += 1;
+      else pair.orderbookTrades += 1;
+      if (!pair.latestCloseTime || (trade.ledgerCloseTime && trade.ledgerCloseTime > pair.latestCloseTime)) {
+        pair.latestCloseTime = trade.ledgerCloseTime;
+      }
+      pairKeys.set(key, pair);
     }
   }
+
+  const pairActivity = [...pairKeys.values()].sort((a, b) =>
+    b.trades - a.trades ||
+    b.baseAmount - a.baseAmount ||
+    b.counterAmount - a.counterAmount
+  );
 
   const errors = [pools.error, trades.error].filter((value): value is string => Boolean(value));
   const availableCount = [pools.state, trades.state].filter(state => state !== "unavailable").length;
@@ -231,10 +334,12 @@ export async function getDefiObservation(limit = 100) {
     summary: {
       pools: pools.count,
       trades: trades.count,
+      pairs: pairActivity.length,
       distinctAssets: tokenKeys.size,
       state,
     },
     assets: [...tokenKeys.values()],
+    pairActivity,
     notes: [
       "DEX/AMM observations are currently scoped to Pi Testnet public data.",
       "An unavailable endpoint is not treated as proof that the underlying blockchain feature does not exist.",
