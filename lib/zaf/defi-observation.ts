@@ -18,6 +18,7 @@ export type DefiPoolObservation = {
   feeBp: number | null;
   totalShares: number | null;
   reserves: Array<{ asset: DefiAssetRef; amount: number | null }>;
+  observedTrades: number;
   lastModifiedLedger: string | null;
 };
 
@@ -207,6 +208,7 @@ async function readPools(limit: number): Promise<EndpointResult<DefiPoolObservat
         feeBp: numberOrNull(record.fee_bp ?? record.fee_bp),
         totalShares: numberOrNull(record.total_shares),
         reserves,
+        observedTrades: 0,
         lastModifiedLedger: stringOrNull(record.last_modified_ledger),
       };
     }).filter(pool => pool.poolId.length > 0);
@@ -282,12 +284,16 @@ export async function getDefiObservation(limit = 100) {
 
   const tokenKeys = new Map<string, DefiAssetRef>();
   const pairKeys = new Map<string, DefiPairObservation>();
+  const poolTradeCounts = new Map<string, number>();
   for (const pool of pools.records) {
     for (const reserve of pool.reserves) {
       tokenKeys.set(assetKey(reserve.asset), reserve.asset);
     }
   }
   for (const trade of trades.records) {
+    for (const poolId of [trade.base.poolId, trade.counter.poolId]) {
+      if (poolId) poolTradeCounts.set(poolId, (poolTradeCounts.get(poolId) ?? 0) + 1);
+    }
     for (const asset of [trade.base.asset, trade.counter.asset]) {
       tokenKeys.set(assetKey(asset), asset);
     }
@@ -308,6 +314,10 @@ export async function getDefiObservation(limit = 100) {
       }
       pairKeys.set(key, pair);
     }
+  }
+
+  for (const pool of pools.records) {
+    pool.observedTrades = poolTradeCounts.get(pool.poolId) ?? 0;
   }
 
   const pairActivity = [...pairKeys.values()].sort((a, b) =>
