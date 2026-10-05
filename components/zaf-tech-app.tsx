@@ -13,6 +13,8 @@ import { ZafEcosystemNavigation, ZAF_SECTION_TABS, type ZafSection } from "@/com
 import { ZafNodeCompute } from "@/components/zaf-node-compute";
 import { ZafAppHealth } from "@/components/zaf-app-health";
 import { ZafEcosystemHealthTimeline } from "@/components/zaf-ecosystem-health-timeline";
+import { ZafEcosystemAppActivity } from "@/components/zaf-ecosystem-app-activity";
+import { ZafEcosystemStaking } from "@/components/zaf-ecosystem-staking";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
@@ -541,6 +543,8 @@ export function ZafTechApp() {
         ) : null}
 
         {!loading && section === "apps" && subtab === "App Health" ? <ZafAppHealth locale={locale} /> : null}
+        {!loading && section === "apps" && subtab === "App Activity" ? <ZafEcosystemAppActivity locale={locale} tr={tr} /> : null}
+        {!loading && section === "apps" && subtab === "Staking" ? <ZafEcosystemStaking locale={locale} tr={tr} /> : null}
 
         {!loading && section === "apps" && subtab === "App Directory" ? <AppDirectoryView apps={apps} sourceOnline={sourceOnline} generatedAt={ecosystem?.generatedAt} note={ecosystem?.apps.note} locale={locale} tr={tr} /> : null}
 
