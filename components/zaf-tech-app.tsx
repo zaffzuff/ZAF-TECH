@@ -937,6 +937,20 @@ type ObservationTimelinePayload = {
   }>;
 };
 
+type HistoryRange = "24h" | "7d" | "30d";
+
+function historyLimit(range: HistoryRange) {
+  return range === "24h" ? 288 : range === "7d" ? 2016 : 8640;
+}
+
+function sampleHistoryPoints(points: ObservationHistoryPayload["points"], maxPoints = 48) {
+  if (points.length <= maxPoints) return points;
+  return Array.from({ length: maxPoints }, (_, index) => {
+    const position = Math.round((index * (points.length - 1)) / (maxPoints - 1));
+    return points[position];
+  });
+}
+
 function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Locale; tr: (en: string, trText: string) => string; refreshNonce: number }) {
   const [data, setData] = useState<EcosystemStatisticsPayload | null>(null);
   const [changes, setChanges] = useState<EcosystemChangePayload | null>(null);
@@ -944,6 +958,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
   const [history, setHistory] = useState<ObservationHistoryPayload | null>(null);
   const [observationChanges, setObservationChanges] = useState<ObservationChangePayload | null>(null);
   const [timeline, setTimeline] = useState<ObservationTimelinePayload | null>(null);
+  const [historyRange, setHistoryRange] = useState<HistoryRange>("24h");
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -952,7 +967,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
       fetch("/api/zaf/ecosystem/statistics", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/ecosystem/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/ecosystem/trends", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/history?limit=24", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
+      fetch("/api/zaf/observations/history?limit=" + historyLimit(historyRange), { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/observations/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
       fetch("/api/zaf/observations/timeline", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
     ])
@@ -972,7 +987,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
       })
       .finally(() => { if (active) setLoadingStats(false); });
     return () => { active = false; };
-  }, [refreshNonce]);
+  }, [refreshNonce, historyRange]);
 
   if (loadingStats) return <div className="py-10 text-center text-xs text-muted-foreground">{tr("Loading Statistics…", "İstatistikler Yükleniyor…")}</div>;
 
@@ -1000,7 +1015,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
       </div>
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="text-xs font-semibold text-foreground">{tr("Historical Data", "Tarihsel Veri")}</div>
             <p className="mt-1 text-[10px] text-muted-foreground">
@@ -1009,16 +1024,54 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
                 : tr("Historical storage is not configured. Live observations remain available.", "Tarihsel depolama yapılandırılmamış. Canlı gözlemler kullanılmaya devam eder.")}
             </p>
           </div>
-          <span className="rounded-full border border-border px-2 py-1 text-[10px] font-medium text-muted-foreground">
-            {number(history?.count, 0, locale)} {tr("points", "nokta")}
-          </span>
+          <div className="flex shrink-0 gap-1 rounded-lg border border-border p-1">
+            {(["24h", "7d", "30d"] as HistoryRange[]).map(range => (
+              <button
+                key={range}
+                type="button"
+                onClick={() => setHistoryRange(range)}
+                className={`rounded-md px-2.5 py-1 text-[10px] font-medium ${historyRange === range ? "bg-foreground text-background" : "text-muted-foreground"}`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Card title={tr("Latest Transactions", "Son İşlemler")} value={number(history?.points[0]?.dailyTransactions, 0, locale)} detail={tr("Observed / Day", "Gözlemlenen / Gün")} />
-          <Card title={tr("Latest Operations", "Son Operasyonlar")} value={number(history?.points[0]?.dailyOperations, 0, locale)} detail={tr("Observed / Day", "Gözlemlenen / Gün")} />
-          <Card title={tr("Latest Apps", "Son Uygulamalar")} value={number(history?.points[0]?.observedApps, 0, locale)} detail={tr("Observed", "Gözlemlenen")} />
-          <Card title={tr("Confidence", "Güven")} value={history?.points[0]?.confidenceScore == null ? "—" : number(history.points[0].confidenceScore, 0, locale) + "%"} detail={tr("Latest Stored Point", "Son Kayıtlı Nokta")} />
+          <Card title={tr("Current Transactions", "Mevcut İşlemler")} value={number(history?.points[0]?.dailyTransactions, 0, locale)} detail={tr("Observed / Day", "Gözlemlenen / Gün")} />
+          <Card title={tr("Peak Transactions", "Zirve İşlemler")} value={number(history?.points.reduce((max, point) => point.dailyTransactions != null ? Math.max(max, point.dailyTransactions) : max, 0) || null, 0, locale)} detail={tr("Selected Range", "Seçilen Aralık")} />
+          <Card title={tr("Current Operations", "Mevcut Operasyonlar")} value={number(history?.points[0]?.dailyOperations, 0, locale)} detail={tr("Observed / Day", "Gözlemlenen / Gün")} />
+          <Card title={tr("Stored Points", "Kayıtlı Noktalar")} value={number(history?.count, 0, locale)} detail={historyRange} />
         </div>
+        {history?.points.length ? (
+          <div className="mt-3 rounded-lg border border-border p-3">
+            <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+              <span>{tr("Observed Transaction Pace", "Gözlemlenen İşlem Temposu")}</span>
+              <span>{tr("Representative stored points", "Temsilci kayıtlı noktalar")}: {sampleHistoryPoints(history.points).length}</span>
+            </div>
+            <div className="mt-3 flex h-24 items-end gap-1 overflow-x-auto">
+              {sampleHistoryPoints([...history.points].reverse()).map((point, index, points) => {
+                const maxTx = Math.max(...points.map(item => item.dailyTransactions ?? 0), 1);
+                const height = point.dailyTransactions == null ? 8 : Math.max(8, (point.dailyTransactions / maxTx) * 100);
+                return (
+                  <div
+                    key={point.generatedAt + index}
+                    title={`${number(point.dailyTransactions, 0, locale)} tx/day · ${new Date(point.generatedAt).toLocaleString(intlLocale(locale))}`}
+                    className="min-w-[7px] flex-1 rounded-t-sm bg-foreground/70"
+                    style={{ height: height + "%" }}
+                  />
+                );
+              })}
+            </div>
+            <div className="mt-2 flex justify-between gap-2 text-[9px] text-muted-foreground">
+              <span>{age(history.points.at(-1)?.generatedAt, locale)}</span>
+              <span>{age(history.points[0]?.generatedAt, locale)}</span>
+            </div>
+            <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground">
+              {tr("The chart uses sampled persisted observations from the selected range. It does not fill gaps or estimate missing points.", "Grafik, seçilen aralıktaki örneklenmiş kayıtlı gözlemleri kullanır. Eksik noktaları doldurmaz veya tahmin etmez.")}
+            </p>
+          </div>
+        ) : null}
         <div className="mt-3 space-y-1.5">
           {(history?.points ?? []).slice(0, 12).map((point) => (
             <div key={point.generatedAt} className="grid grid-cols-[1fr_auto_auto] items-center gap-2 text-[10px]">
