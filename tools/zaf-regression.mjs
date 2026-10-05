@@ -98,6 +98,16 @@ for (const token of ["calculateAppHealthScore", "healthStatus", "score: score.sc
   if (!appHealthHistory.includes(token)) throw new Error("App Health trend score regression: " + token);
 }
 
+const appHealthTrendModel = fs.readFileSync(path.join(root, "lib/zaf/app-health-trend.ts"), "utf8");
+for (const token of ["classifyHealthTrend", "assessHealthData", "freshness", "dataConfidence", "improving", "declining"]) {
+  if (!appHealthTrendModel.includes(token)) throw new Error("App Health trend model regression: " + token);
+}
+
+const appHealthRunner = fs.readFileSync(path.join(root, "lib/zaf/app-health-runner.ts"), "utf8");
+for (const token of ["getAppHealthTrend", "assessHealthTrend", "declining", "improving", "attention"]) {
+  if (!appHealthRunner.includes(token)) throw new Error("App Health overview regression: " + token);
+}
+
 const appHealthTrendRoute = fs.readFileSync(path.join(root, "app/api/apps/health/trend/route.ts"), "utf8");
 for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthScore", "firstHealthScore", "latestHealthScore", "firstHealthStatus", "latestHealthStatus", "healthScoreDelta", "healthStatusTransitions", "trendDirection", "dataConfidence", "freshness"]) {
   if (!appHealthTrendRoute.includes(token)) throw new Error("App Health trend summary regression: " + token);
@@ -106,6 +116,11 @@ for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthS
 const appDetails = fs.readFileSync(path.join(root, "components/zaf-app-details.tsx"), "utf8");
 for (const token of ["Avg Health", "Health Score Trend", "Trend Direction", "Data Confidence", "Freshness", "Latest Age", "First → Latest Status", "Observed Window", "Status Transition Timeline", "toLocaleString", "healthStatus"]) {
   if (!appDetails.includes(token)) throw new Error("App Health trend visualization regression: " + token);
+}
+
+const appHealthOverview = fs.readFileSync(path.join(root, "components/zaf-app-health.tsx"), "utf8");
+for (const token of ["Health Overview", "Health Change Radar", "attention", "Declining", "Improving", "Stale History"]) {
+  if (!appHealthOverview.includes(token)) throw new Error("App Health overview UI regression: " + token);
 }
 
 for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", "historyLimit", "Period Trend Analysis", "periodPercentChange", "averageHistoryValue", "Measurement Evidence", "Synthetic data"]) {
