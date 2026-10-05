@@ -8,6 +8,9 @@ const required = [
   "lib/zaf/network-scope.ts",
   "lib/zaf/observation-scope.ts",
   "lib/zaf/testnet-assets.ts",
+  "lib/zaf/defi-observation.ts",
+  "app/api/zaf/defi/route.ts",
+  "components/zaf-defi-observatory.tsx",
   "app/api/zaf/assets/route.ts",
   "components/zaf-testnet-assets.tsx",
   "lib/zaf/ecosystem-history.ts",
@@ -204,6 +207,25 @@ for (const token of ["getTestnetAssets", "api.testnet.minepi.com", 'networkScope
 const testnetAssetsRoute = fs.readFileSync(path.join(root, "app/api/zaf/assets/route.ts"), "utf8");
 for (const token of ["getTestnetAssets", "Only Testnet asset observations", "networkScope"]) {
   if (!testnetAssetsRoute.includes(token)) throw new Error("Testnet asset API regression: " + token);
+}
+
+const defiObservation = fs.readFileSync(path.join(root, "lib/zaf/defi-observation.ts"), "utf8");
+for (const token of ["getDefiObservation", "liquidity_pools", "/trades?", "networkScope: "testnet"", "distinctAssets"]) {
+  if (!defiObservation.includes(token)) throw new Error("DeFi observation model regression: " + token);
+}
+
+const defiRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/route.ts"), "utf8");
+for (const token of ["getDefiObservation", "Only Testnet DeFi observations", "networkScope"]) {
+  if (!defiRoute.includes(token)) throw new Error("DeFi API regression: " + token);
+}
+
+const defiUI = fs.readFileSync(path.join(root, "components/zaf-defi-observatory.tsx"), "utf8");
+for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Coming Soon target", "Mainnet Readiness"]) {
+  if (!defiUI.includes(token)) throw new Error("DeFi UI regression: " + token);
+}
+
+for (const token of ["DeFi", "DEX", "AMM & Pools", "Tokens"]) {
+  if (!app.includes(token)) throw new Error("DeFi navigation regression: " + token);
 }
 
 const testnetAssetsUI = fs.readFileSync(path.join(root, "components/zaf-testnet-assets.tsx"), "utf8");
