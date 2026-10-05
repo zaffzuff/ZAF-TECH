@@ -116,6 +116,15 @@ export interface ZafSnapshot {
 }
 
 
+export interface ZafWalletAsset {
+  networkScope: ZafNetworkScope;
+  assetType: string;
+  assetCode: string | null;
+  assetIssuer: string | null;
+  balance: number | null;
+  isNative: boolean;
+}
+
 export interface ZafWalletTransaction {
   hash: string;
   ledger: string | null;
@@ -154,6 +163,7 @@ export interface ZafWalletSnapshot {
     lastModifiedLedger: string | null;
   } | null;
   lastActivity: string | null;
+  assets: ZafWalletAsset[];
   transactions: ZafWalletTransaction[];
   operations: ZafWalletOperation[];
   source: string;
