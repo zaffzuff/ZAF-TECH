@@ -15,6 +15,8 @@ export async function GET(request: Request) {
   const online = points.filter((p) => p.reachable && p.status != null && p.status >= 200 && p.status < 400).length;
   const responseTimes = points.map((p) => p.responseTimeMs).filter((n) => Number.isFinite(n) && n >= 0);
   const averageResponseTimeMs = responseTimes.length ? Math.round(responseTimes.reduce((sum, n) => sum + n, 0) / responseTimes.length) : null;
+  const healthScores = points.map((p) => p.score).filter((n) => Number.isFinite(n));
+  const averageHealthScore = healthScores.length ? Math.round(healthScores.reduce((sum, n) => sum + n, 0) / healthScores.length) : null;
   let transitions = 0;
   for (let i = 1; i < points.length; i += 1) if (points[i].reachable !== points[i - 1].reachable) transitions += 1;
   return NextResponse.json({
@@ -29,6 +31,7 @@ export async function GET(request: Request) {
       online,
       onlineRate: checks ? Math.round((online / checks) * 100) : null,
       averageResponseTimeMs,
+      averageHealthScore,
       transitions,
       firstCheckedAt: points[0]?.checkedAt ?? null,
       lastCheckedAt: points.at(-1)?.checkedAt ?? null,
