@@ -41,6 +41,7 @@ type AppTrendSummary = {
   online: number;
   onlineRate: number | null;
   averageResponseTimeMs: number | null;
+  averageHealthScore: number | null;
   transitions: number;
   firstCheckedAt: string | null;
   lastCheckedAt: string | null;
@@ -147,7 +148,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                 <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Checks", "Kontroller")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.checks}</div></div>
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Online Rate", "Çevrimiçi Oranı")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.onlineRate == null ? "—" : trendSummary.onlineRate + "%"}</div></div>
-                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Reachability", "Erişilebilirlik")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.reachabilityRate == null ? "—" : trendSummary.reachabilityRate + "%"}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Avg Health", "Ort. Sağlık")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.averageHealthScore == null ? "—" : trendSummary.averageHealthScore + "/100"}</div></div>
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Avg Response", "Ort. Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.averageResponseTimeMs == null ? "—" : trendSummary.averageResponseTimeMs + " ms"}</div></div>
                 </div>
               </div>
