@@ -1,3 +1,5 @@
+import type { ZafNetworkScope } from "@/lib/zaf/network-scope";
+
 export const APP_CATEGORIES = [
   "AI",
   "Business",
@@ -23,7 +25,7 @@ export type DirectoryApp = {
   piAuthentication: AppVerification;
   piPayments: AppVerification;
   piNet: AppVerification;
-  network: "mainnet" | "testnet" | "unknown";
+  networkScope: ZafNetworkScope;
   status: "online" | "offline" | "unknown";
   lastChecked: string;
 };
@@ -64,7 +66,7 @@ export function toDirectoryApp(app: { name: string; url: string }, checkedAt: st
     piAuthentication: "unknown",
     piPayments: "unknown",
     piNet: "unknown",
-    network: "unknown",
+    networkScope: "unknown",
     status: "unknown",
     lastChecked: checkedAt,
   };
