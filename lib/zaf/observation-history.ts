@@ -190,7 +190,8 @@ export async function getRollingObservationBaseline(beforeGeneratedAt: string, w
     if (!Number.isFinite(generatedAtMs)) return null;
 
     const cutoff = new Date(generatedAtMs - (minAgeSeconds * 1000)).toISOString();
-    const windowStart = new Date(generatedAtMs - (windowMinutes * 60 * 1000)).toISOString();
+    const eligibleWindowMs = (windowMinutes * 60 * 1000) + (minAgeSeconds * 1000);
+    const windowStart = new Date(generatedAtMs - eligibleWindowMs).toISOString();
     const safeMinPoints = Math.max(1, Math.floor(minPoints));
     const rows = await sql`
       SELECT
