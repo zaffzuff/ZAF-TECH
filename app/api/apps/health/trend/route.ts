@@ -10,7 +10,15 @@ export async function GET(request: Request) {
   if (!isHistoryStorageConfigured()) {
     return NextResponse.json({ configured: false, url, points: [], summary: null }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   }
-  const points = await getAppHealthTrend(url, 48);
+  let points;
+  try {
+    points = await getAppHealthTrend(url, 48);
+  } catch {
+    return NextResponse.json(
+      { configured: true, url, points: [], summary: null, error: "Stored App Health history is temporarily unavailable." },
+      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
+  }
   const checks = points.length;
   const reachable = points.filter((p) => p.reachable).length;
   const online = points.filter((p) => p.reachable && p.status != null && p.status >= 200 && p.status < 400).length;
