@@ -87,7 +87,7 @@ export async function getEcosystemAppObservations(limit = 100) {
   }
 
   const apps = [...byUrl.values()].sort((a, b) => a.name.localeCompare(b.name)).slice(0, Math.max(1, Math.min(limit, 200)));
-  const newApps = apps.filter(app => !app.seenInPreviousSnapshot);
+  const newApps = previousSnapshot ? apps.filter(app => !app.seenInPreviousSnapshot) : [];
   const notPresentInLatest = [...notPresent.values()].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 100);
 
   return {
