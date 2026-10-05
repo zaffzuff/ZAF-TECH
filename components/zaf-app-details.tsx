@@ -228,6 +228,32 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                       <span>{tr("Limited", "Sınırlı")}: 0–54</span>
                       <span>{tr("Offline", "Çevrimdışı")}: 0</span>
                     </div>
+                    {trendPoints.some((point, index) => index > 0 && point.healthStatus !== trendPoints[index - 1].healthStatus) ? (
+                      <div className="mt-3 rounded-lg border border-border p-3">
+                        <div className="text-[9px] font-semibold text-foreground">{tr("Status Transition Timeline", "Durum Geçiş Zaman Çizelgesi")}</div>
+                        <div className="mt-1 text-[9px] text-muted-foreground">
+                          {tr("Observed changes in the calculated health state across stored checks.", "Kayıtlı kontroller boyunca hesaplanan sağlık durumundaki gözlemlenen değişimler.")}
+                        </div>
+                        <div className="mt-2 space-y-1.5">
+                          {trendPoints.map((point, index) => {
+                            if (index === 0 || point.healthStatus === trendPoints[index - 1].healthStatus) return null;
+                            const previous = trendPoints[index - 1];
+                            return (
+                              <div key={"transition-" + point.checkedAt + "-" + index} className="flex items-center justify-between gap-3 rounded-md border border-border/70 px-2.5 py-2 text-[9px]">
+                                <span className="text-muted-foreground">
+                                  {new Date(point.checkedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                                <span className="font-medium text-foreground">
+                                  {displayStatus(previous.healthStatus, locale)} → {displayStatus(point.healthStatus, locale)}
+                                </span>
+                                <span className="text-muted-foreground">{previous.score} → {point.score}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+
                     <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div className="rounded-lg border border-border p-2.5">
                         <div className="text-[9px] text-muted-foreground">{tr("First → Latest Status", "İlk → Son Durum")}</div>
