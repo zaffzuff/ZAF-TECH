@@ -1,4 +1,4 @@
-import type { ZafWalletOperation, ZafWalletSnapshot, ZafWalletTransaction } from "./types";
+import type { ZafWalletAsset, ZafWalletOperation, ZafWalletSnapshot, ZafWalletTransaction } from "./types";
 import type { ZafNetworkScope } from "@/lib/zaf/network-scope";
 
 const NETWORKS = {
@@ -66,6 +66,24 @@ function decimalPi(value: unknown): number | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function mapAssets(account: HorizonResponse, networkScope: "mainnet" | "testnet"): ZafWalletAsset[] {
+  const balances = account.balances;
+  if (!Array.isArray(balances)) return [];
+  return balances
+    .filter((item): item is HorizonRecord => Boolean(item) && typeof item === "object")
+    .map((item) => {
+      const isNative = item.asset_type === "native";
+      return {
+        networkScope,
+        assetType: String(item.asset_type ?? "unknown"),
+        assetCode: isNative ? null : stringOrNull(item.asset_code),
+        assetIssuer: isNative ? null : stringOrNull(item.asset_issuer),
+        balance: decimalPi(item.balance),
+        isNative,
+      };
+    });
 }
 
 function nativeBalance(account: HorizonResponse): number | null {
@@ -155,6 +173,7 @@ export async function getZafWallet(
           address: normalized,
           network: selected.label,
           networkScope,
+          assets: [],
           exists: false,
           accountBalancePi: null,
           observableClaimablePi: null,
@@ -201,6 +220,7 @@ export async function getZafWallet(
         };
       });
 
+    const assets = mapAssets(account, networkScope);
     const totalBalancePi = nativeBalance(account);
     const observableClaimablePi = lockups.reduce((sum, item) => sum + item.amountPi, 0);
     const timestamps = [
@@ -215,6 +235,7 @@ export async function getZafWallet(
       address: normalized,
       network: selected.label,
       networkScope,
+      assets,
       exists: true,
       accountBalancePi: totalBalancePi,
       observableClaimablePi,
@@ -244,6 +265,7 @@ export async function getZafWallet(
       address: normalized,
       network: selected.label,
       networkScope,
+      assets: [],
       exists: status !== 404 ? null : false,
       accountBalancePi: null,
       observableClaimablePi: null,
