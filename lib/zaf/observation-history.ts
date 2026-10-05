@@ -25,6 +25,8 @@ export type RollingObservationBaseline = {
   windowMinutes: number;
 };
 
+let observationSchemaReady = false;
+
 function getClient() {
   const url = process.env.DATABASE_URL;
   return url ? postgres(url, { max: 2, prepare: false }) : null;
@@ -35,6 +37,7 @@ export function isObservationHistoryConfigured() {
 }
 
 async function ensureTable(sql: ReturnType<typeof postgres>) {
+  if (observationSchemaReady) return true;
   await sql`
     CREATE TABLE IF NOT EXISTS zaf_observation_snapshots (
       id BIGSERIAL PRIMARY KEY,
@@ -62,6 +65,7 @@ async function ensureTable(sql: ReturnType<typeof postgres>) {
     "ALTER COLUMN daily_transactions TYPE DOUBLE PRECISION USING daily_transactions::double precision, " +
     "ALTER COLUMN daily_operations TYPE DOUBLE PRECISION USING daily_operations::double precision"
   );
+  observationSchemaReady = true;
 }
 
 function bucketStart(value: string) {
