@@ -37,7 +37,7 @@ export async function GET() {
   const improving = enriched.filter(item => item.trend.direction === "improving").length;
   const stale = enriched.filter(item => item.trend.freshness.state === "stale" || item.trend.freshness.state === "old").length;
   const attention = enriched.filter(item => item.healthStatus !== "healthy" || item.trend.direction === "declining").length;
-  const latestCheckedAt = enriched.map(item => Date.parse(String(item.checkedAt))).filter(Number.isFinite).reduce((max, value) => Math.max(max, value), 0);
+  const latestCheckedAt = records.map(item => Date.parse(String(item.checkedAt))).filter(Number.isFinite).reduce((max, value) => Math.max(max, value), 0);
 
   return NextResponse.json({
     configured: true,
