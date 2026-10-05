@@ -229,6 +229,7 @@ export async function getZafSnapshot(): Promise<ZafSnapshot> {
 
     return {
       network: "Pi Network",
+      networkScope: "mainnet",
       source: "Pi Mainnet Horizon",
       generatedAt,
       latestLedger: recentLedgers[0] ?? null,
@@ -280,7 +281,7 @@ export async function getZafSnapshot(): Promise<ZafSnapshot> {
     };
   } catch (error) {
     return {
-      network: "Pi Network", source: "Pi Mainnet Horizon", generatedAt,
+      network: "Pi Network", networkScope: "mainnet", source: "Pi Mainnet Horizon", generatedAt,
       latestLedger: null, recentLedgers: [], transactions: [], operations: [],
       intelligence: {
         activityState: "insufficient-data",
