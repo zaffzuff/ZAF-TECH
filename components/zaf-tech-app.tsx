@@ -951,6 +951,17 @@ function sampleHistoryPoints(points: ObservationHistoryPayload["points"], maxPoi
   });
 }
 
+function periodPercentChange(current: number | null | undefined, start: number | null | undefined) {
+  if (current == null || start == null || start === 0) return null;
+  return ((current - start) / Math.abs(start)) * 100;
+}
+
+function averageHistoryValue(points: ObservationHistoryPayload["points"], key: "dailyTransactions" | "dailyOperations") {
+  const values = points.map(point => point[key]).filter((value): value is number => value != null && Number.isFinite(value));
+  if (!values.length) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
 function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Locale; tr: (en: string, trText: string) => string; refreshNonce: number }) {
   const [data, setData] = useState<EcosystemStatisticsPayload | null>(null);
   const [changes, setChanges] = useState<EcosystemChangePayload | null>(null);
@@ -1083,6 +1094,44 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce }: { locale: Local
           {!history?.points.length ? <div className="text-[10px] text-muted-foreground">{tr("No persisted observation points are available yet.", "Henüz kayıtlı gözlem noktası bulunmuyor.")}</div> : null}
         </div>
       </div>
+
+      {history?.points.length ? (() => {
+        const latest = history.points[0];
+        const start = history.points[history.points.length - 1];
+        const txChange = periodPercentChange(latest.dailyTransactions, start.dailyTransactions);
+        const opChange = periodPercentChange(latest.dailyOperations, start.dailyOperations);
+        const avgTx = averageHistoryValue(history.points, "dailyTransactions");
+        const avgOp = averageHistoryValue(history.points, "dailyOperations");
+        const startCoverage = start.totalSources > 0 ? start.availableSources / start.totalSources : null;
+        const latestCoverage = latest.totalSources > 0 ? latest.availableSources / latest.totalSources : null;
+        const coverageDelta = startCoverage != null && latestCoverage != null ? (latestCoverage - startCoverage) * 100 : null;
+        const trendLabel = txChange == null && opChange == null
+          ? tr("Insufficient data for a period direction.", "Dönem yönü için yeterli veri yok.")
+          : txChange != null && opChange != null
+            ? txChange > 3 && opChange > 3
+              ? tr("Both observed activity rates increased across the selected range.", "Seçilen aralıkta her iki gözlemlenen aktivite temposu da arttı.")
+              : txChange < -3 && opChange < -3
+                ? tr("Both observed activity rates decreased across the selected range.", "Seçilen aralıkta her iki gözlemlenen aktivite temposu da azaldı.")
+                : tr("Observed activity rates moved in different or smaller directions across the selected range.", "Seçilen aralıkta gözlemlenen aktivite tempoları farklı veya daha sınırlı yönlerde hareket etti.")
+            : tr("Only one activity rate is available for period comparison.", "Dönem karşılaştırması için yalnızca bir aktivite temposu kullanılabilir.");
+        return (
+          <div className="mt-3 rounded-xl border border-border bg-card p-4">
+            <div className="text-xs font-semibold text-foreground">{tr("Period Trend Analysis", "Dönem Trend Analizi")}</div>
+            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Compares the earliest and latest persisted observations in the selected range. This is a measured period comparison, not a forecast.", "Seçilen aralıktaki en eski ve en yeni kayıtlı gözlemleri karşılaştırır. Bu ölçülmüş bir dönem karşılaştırmasıdır; tahmin değildir.")}</p>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Card title={tr("Transactions Change", "İşlem Değişimi")} value={txChange == null ? "—" : (txChange >= 0 ? "+" : "") + txChange.toFixed(1) + "%"} detail={tr("Start → Latest", "Başlangıç → Son")} />
+              <Card title={tr("Operations Change", "Operasyon Değişimi")} value={opChange == null ? "—" : (opChange >= 0 ? "+" : "") + opChange.toFixed(1) + "%"} detail={tr("Start → Latest", "Başlangıç → Son")} />
+              <Card title={tr("Source Coverage", "Kaynak Kapsamı")} value={coverageDelta == null ? "—" : (coverageDelta >= 0 ? "+" : "") + coverageDelta.toFixed(0) + " pp"} detail={(start.availableSources + "/" + start.totalSources) + " → " + (latest.availableSources + "/" + latest.totalSources)} />
+              <Card title={tr("Average Pace", "Ortalama Tempo")} value={avgTx == null ? "—" : number(avgTx, 0, locale)} detail={avgOp == null ? tr("Transactions / day", "İşlem / gün") : number(avgOp, 0, locale) + " " + tr("ops/day", "op/gün")} />
+            </div>
+            <div className="mt-3 rounded-lg border border-border bg-background p-3">
+              <div className="text-[10px] font-medium text-foreground">{tr("Measured Direction", "Ölçülen Yön")}</div>
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{trendLabel}</p>
+              <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground">{tr("The displayed changes compare persisted observations only. They do not represent total network usage or a completed calendar-day count.", "Gösterilen değişimler yalnızca kayıtlı gözlemleri karşılaştırır. Toplam ağ kullanımını veya tamamlanmış bir takvim günü toplamını temsil etmez.")}</p>
+            </div>
+          </div>
+        );
+      })() : null}
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Observation Timeline", "Gözlem Zaman Çizelgesi")}</div>
