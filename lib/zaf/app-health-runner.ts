@@ -3,6 +3,8 @@ import { checkAppHealth, type AppHealthCheck } from "@/lib/zaf/app-health";
 import { saveAppChecks } from "@/lib/zaf/app-check-history";
 import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
 import { calculateAppHealthScore, type AppHealthScore } from "@/lib/zaf/app-health-score";
+import { assessHealthTrend } from "@/lib/zaf/app-health-trend";
+import { getAppHealthTrend } from "@/lib/zaf/app-check-history";
 
 export const MAX_APPS = 20;
 
@@ -19,12 +21,17 @@ export type EcosystemHealthRun = {
     healthy: number;
     degraded: number;
     limited: number;
+    declining: number;
+    improving: number;
+    stale: number;
+    attention: number;
   };
   results: Array<{
     name: string;
     url: string;
     check: AppHealthCheck;
     score: AppHealthScore;
+    trend: ReturnType<typeof assessHealthTrend>;
   }>;
 };
 
@@ -61,12 +68,29 @@ export async function runEcosystemHealthChecks(): Promise<EcosystemHealthRun> {
     // Snapshot persistence is best-effort.
   }
 
-  const reachable = results.filter((item) => item.check.reachable).length;
-  const online = results.filter((item) => item.check.ok).length;
-  const averageScore = results.length ? Math.round(results.reduce((sum, item) => sum + item.score.score, 0) / results.length) : null;
-  const healthy = results.filter((item) => item.score.status === "healthy").length;
-  const degraded = results.filter((item) => item.score.status === "degraded").length;
-  const limited = results.filter((item) => item.score.status === "limited").length;
+  const enrichedResults = await Promise.all(results.map(async (item) => {
+    try {
+      const points = await getAppHealthTrend(item.url, 48);
+      const trend = assessHealthTrend(points.map(point => ({ checkedAt: point.checkedAt, score: point.score, healthStatus: point.healthStatus })));
+      return { ...item, trend };
+    } catch {
+      return {
+        ...item,
+        trend: assessHealthTrend([]),
+      };
+    }
+  }));
+
+  const reachable = enrichedResults.filter((item) => item.check.reachable).length;
+  const online = enrichedResults.filter((item) => item.check.ok).length;
+  const averageScore = enrichedResults.length ? Math.round(enrichedResults.reduce((sum, item) => sum + item.score.score, 0) / enrichedResults.length) : null;
+  const healthy = enrichedResults.filter((item) => item.score.status === "healthy").length;
+  const degraded = enrichedResults.filter((item) => item.score.status === "degraded").length;
+  const limited = enrichedResults.filter((item) => item.score.status === "limited").length;
+  const declining = enrichedResults.filter((item) => item.trend.direction === "declining").length;
+  const improving = enrichedResults.filter((item) => item.trend.direction === "improving").length;
+  const stale = enrichedResults.filter((item) => item.trend.freshness.state === "stale" || item.trend.freshness.state === "old").length;
+  const attention = enrichedResults.filter((item) => item.score.status !== "healthy" || item.trend.direction === "declining").length;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -81,7 +105,11 @@ export async function runEcosystemHealthChecks(): Promise<EcosystemHealthRun> {
       healthy,
       degraded,
       limited,
+      declining,
+      improving,
+      stale,
+      attention,
     },
-    results,
+    results: enrichedResults,
   };
 }
