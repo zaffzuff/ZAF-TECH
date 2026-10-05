@@ -1,7 +1,10 @@
+import type { ZafNetworkScope } from "@/lib/zaf/network-scope";
+
 import postgres from "postgres";
 
 export type ObservationHistoryRecord = {
   generatedAt: string;
+  networkScope: ZafNetworkScope;
   freshnessState: "fresh" | "aging" | "stale" | "unknown";
   confidenceScore: number | null;
   networkLedger: string | null;
@@ -43,6 +46,7 @@ async function ensureTable(sql: ReturnType<typeof postgres>) {
       id BIGSERIAL PRIMARY KEY,
       bucket_start TIMESTAMPTZ NOT NULL UNIQUE,
       generated_at TIMESTAMPTZ NOT NULL,
+      network_scope TEXT NOT NULL DEFAULT 'mainnet' CHECK (network_scope IN ('mainnet', 'testnet', 'unknown')),
       freshness_state TEXT NOT NULL,
       confidence_score NUMERIC NULL,
       network_ledger TEXT NULL,
@@ -55,6 +59,10 @@ async function ensureTable(sql: ReturnType<typeof postgres>) {
       available_sources INTEGER NOT NULL,
       total_sources INTEGER NOT NULL
     )
+  `;
+  await sql`
+    ALTER TABLE zaf_observation_snapshots
+    ADD COLUMN IF NOT EXISTS network_scope TEXT NOT NULL DEFAULT 'mainnet'
   `;
   await sql`
     CREATE INDEX IF NOT EXISTS zaf_observation_snapshots_generated_at_idx
@@ -89,9 +97,9 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
     await ensureTable(sql);
     await sql`
       INSERT INTO zaf_observation_snapshots
-        (bucket_start, generated_at, freshness_state, confidence_score, network_ledger, protocol_version, observed_transactions, observed_operations, daily_transactions, daily_operations, observed_apps, available_sources, total_sources)
+        (bucket_start, generated_at, network_scope, freshness_state, confidence_score, network_ledger, protocol_version, observed_transactions, observed_operations, daily_transactions, daily_operations, observed_apps, available_sources, total_sources)
       VALUES
-        (${bucketStart(record.generatedAt)}, ${record.generatedAt}, ${record.freshnessState}, ${record.confidenceScore}, ${record.networkLedger}, ${record.protocolVersion}, ${record.observedTransactions}, ${record.observedOperations}, ${record.dailyTransactions}, ${record.dailyOperations}, ${record.observedApps}, ${record.availableSources}, ${record.totalSources})
+        (${bucketStart(record.generatedAt)}, ${record.generatedAt}, ${record.networkScope}, ${record.freshnessState}, ${record.confidenceScore}, ${record.networkLedger}, ${record.protocolVersion}, ${record.observedTransactions}, ${record.observedOperations}, ${record.dailyTransactions}, ${record.dailyOperations}, ${record.observedApps}, ${record.availableSources}, ${record.totalSources})
       ON CONFLICT (bucket_start) DO UPDATE SET
         generated_at = EXCLUDED.generated_at,
         freshness_state = EXCLUDED.freshness_state,
@@ -125,6 +133,7 @@ export async function getObservationHistory(limit = 336) {
       SELECT
         bucket_start AS "bucketStart",
         generated_at AS "generatedAt",
+        network_scope AS "networkScope",
         freshness_state AS "freshnessState",
         confidence_score AS "confidenceScore",
         network_ledger AS "networkLedger",
