@@ -20,6 +20,9 @@ const required = [
   "lib/zaf/wallet-analytics.ts",
   "components/zaf-app-details.tsx",
   "components/zaf-ecosystem-health-timeline.tsx",
+  "components/zaf-protocol-observation.tsx",
+  "lib/zaf/protocol-history.ts",
+  "app/api/zaf/protocol-history/route.ts",
   "lib/zaf/app-health-score.ts",
   "components/zaf-node-intelligence.tsx",
   "components/zaf-node-history.tsx",
@@ -146,6 +149,22 @@ if (!observationHistorySchema.includes("observationSchemaReady")) throw new Erro
 
 const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
 if (!observationHistoryRoute.includes("10000")) throw new Error("Historical observation route limit regression");
+
+
+const protocolHistory = fs.readFileSync(path.join(root, "lib/zaf/protocol-history.ts"), "utf8");
+for (const token of ["buildProtocolHistory", "ProtocolTransition", "previousStoredProtocol", "latestStoredProtocol"]) {
+  if (!protocolHistory.includes(token)) throw new Error("Protocol history model regression: " + token);
+}
+
+const protocolObservation = fs.readFileSync(path.join(root, "components/zaf-protocol-observation.tsx"), "utf8");
+for (const token of ["Protocol Observation", "Current Observed", "Previous Stored", "Recorded Transitions", "Latest Recorded Change", "does not inspect your local Docker node"]) {
+  if (!protocolObservation.includes(token)) throw new Error("Protocol observation UI regression: " + token);
+}
+
+const protocolHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/protocol-history/route.ts"), "utf8");
+for (const token of ["getProtocolHistory", "no-store", "120"]) {
+  if (!protocolHistoryRoute.includes(token)) throw new Error("Protocol history API regression: " + token);
+}
 
 
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
