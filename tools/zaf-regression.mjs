@@ -210,7 +210,7 @@ for (const token of ["getTestnetAssets", "Only Testnet asset observations", "net
 }
 
 const defiObservation = fs.readFileSync(path.join(root, "lib/zaf/defi-observation.ts"), "utf8");
-for (const token of ["getDefiObservation", "liquidity_pools", "/trades?", 'networkScope: "testnet"', "distinctAssets"]) {
+for (const token of ["getDefiObservation", "liquidity_pools", "/trades?", 'networkScope: "testnet"', "distinctAssets", "pairActivity", "pairKeyFor"]) {
   if (!defiObservation.includes(token)) throw new Error("DeFi observation model regression: " + token);
 }
 
@@ -220,7 +220,7 @@ for (const token of ["getDefiObservation", "Only Testnet DeFi observations", "ne
 }
 
 const defiUI = fs.readFileSync(path.join(root, "components/zaf-defi-observatory.tsx"), "utf8");
-for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Coming Soon target", "Mainnet Readiness"]) {
+for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Observed Pair Activity", "Coming Soon target", "Mainnet Readiness"]) {
   if (!defiUI.includes(token)) throw new Error("DeFi UI regression: " + token);
 }
 
