@@ -99,12 +99,12 @@ for (const token of ["calculateAppHealthScore", "healthStatus", "score: score.sc
 }
 
 const appHealthTrendRoute = fs.readFileSync(path.join(root, "app/api/apps/health/trend/route.ts"), "utf8");
-for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthScore", "latestHealthScore", "healthScoreDelta", "healthStatusTransitions"]) {
+for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthScore", "firstHealthScore", "latestHealthScore", "firstHealthStatus", "latestHealthStatus", "healthScoreDelta", "healthStatusTransitions"]) {
   if (!appHealthTrendRoute.includes(token)) throw new Error("App Health trend summary regression: " + token);
 }
 
 const appDetails = fs.readFileSync(path.join(root, "components/zaf-app-details.tsx"), "utf8");
-for (const token of ["Avg Health", "Health Score Trend", "Latest Health", "Score Δ", "Status Changes", "healthStatus"]) {
+for (const token of ["Avg Health", "Health Score Trend", "Latest Health", "Score Δ", "Status Changes", "First → Latest Status", "Observed Window", "toLocaleString", "healthStatus"]) {
   if (!appDetails.includes(token)) throw new Error("App Health trend visualization regression: " + token);
 }
 
