@@ -63,6 +63,7 @@ function historyRecord(value: UnifiedObservation): ObservationHistoryRecord {
   const ecosystem = value.ecosystem;
   return {
     generatedAt: value.generatedAt,
+    networkScope: "mainnet",
     freshnessState: value.freshness.state,
     confidenceScore: value.confidence.score,
     networkLedger: network?.latestLedger?.sequence ?? null,
