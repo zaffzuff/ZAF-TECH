@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAppHealthTrend, isHistoryStorageConfigured } from "@/lib/zaf/app-check-history";
+import { assessHealthTrend } from "@/lib/zaf/app-health-trend";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
     if (points[i].reachable !== points[i - 1].reachable) transitions += 1;
     if (points[i].healthStatus !== points[i - 1].healthStatus) healthStatusTransitions += 1;
   }
+  const assessment = assessHealthTrend(points.map(point => ({ checkedAt: point.checkedAt, score: point.score, healthStatus: point.healthStatus })));
   return NextResponse.json({
     configured: true,
     url,
@@ -52,6 +54,10 @@ export async function GET(request: Request) {
       healthScoreDelta,
       transitions,
       healthStatusTransitions,
+      trendDirection: assessment.direction,
+      trendDelta: assessment.delta,
+      freshness: assessment.freshness,
+      dataConfidence: assessment.confidence,
       firstCheckedAt: points[0]?.checkedAt ?? null,
       lastCheckedAt: points.at(-1)?.checkedAt ?? null,
     },
