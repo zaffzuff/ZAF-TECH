@@ -49,6 +49,10 @@ type AppTrendSummary = {
   firstHealthStatus: "healthy" | "degraded" | "limited" | "offline" | null;
   latestHealthStatus: "healthy" | "degraded" | "limited" | "offline" | null;
   healthScoreDelta: number | null;
+  trendDirection: "improving" | "stable" | "declining" | "insufficient";
+  trendDelta: number | null;
+  freshness: { state: "fresh" | "aging" | "stale" | "old" | "unknown"; ageSeconds: number | null };
+  dataConfidence: { score: number; level: "high" | "medium" | "low" | "insufficient"; checks: number; observedWindowMinutes: number | null; cadenceStabilityScore: number };
   transitions: number;
   healthStatusTransitions: number;
   firstCheckedAt: string | null;
@@ -178,6 +182,12 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Avg Response", "Ort. Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.averageResponseTimeMs == null ? "—" : trendSummary.averageResponseTimeMs + " ms"}</div></div>
                 </div>
 
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Trend Direction", "Trend Yönü")}</div><div className="mt-1 text-xs font-semibold text-foreground">{displayStatus(trendSummary.trendDirection, locale)}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Data Confidence", "Veri Güveni")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.dataConfidence.score}/100</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Freshness", "Tazelik")}</div><div className="mt-1 text-xs font-semibold text-foreground">{displayStatus(trendSummary.freshness.state, locale)}</div></div>
+                  <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Latest Age", "Son Veri Yaşı")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.freshness.ageSeconds == null ? "—" : Math.round(trendSummary.freshness.ageSeconds / 60) + " min"}</div></div>
+                </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Latest Health", "Son Sağlık")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.latestHealthScore == null ? "—" : trendSummary.latestHealthScore + "/100"}</div></div>
                   <div className="rounded-lg border border-border p-2.5"><div className="text-[9px] text-muted-foreground">{tr("Score Δ", "Skor Δ")}</div><div className="mt-1 text-xs font-semibold text-foreground">{trendSummary.healthScoreDelta == null ? "—" : (trendSummary.healthScoreDelta > 0 ? "+" : "") + trendSummary.healthScoreDelta}</div></div>
