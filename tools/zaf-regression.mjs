@@ -88,6 +88,11 @@ for (const token of ["calculateAppHealthScore", "healthy", "degraded", "offline"
   if (!score.includes(token)) throw new Error("App health score regression: " + token);
 }
 
+const appHealthComponent = fs.readFileSync(path.join(root, "components/zaf-app-health.tsx"), "utf8");
+for (const token of ["Observable Health Factors", "scoreFactors", "security audit", "ownership verification"]) {
+  if (!appHealthComponent.includes(token)) throw new Error("App health UI regression: " + token);
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
 
