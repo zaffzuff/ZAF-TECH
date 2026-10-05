@@ -17,6 +17,14 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
     offline: { en: "Offline", es: "Fuera De Línea", tr: "Çevrimdışı", zh: "离线", it: "Offline", fr: "Hors Ligne", de: "Offline", pt: "Offline", ru: "Офлайн" },
     available: { en: "Available", es: "Disponible", tr: "Kullanılabilir", zh: "可用", it: "Disponibile", fr: "Disponible", de: "Verfügbar", pt: "Disponível", ru: "Доступно" },
     unavailable: { en: "Unavailable", es: "No Disponible", tr: "Kullanılamıyor", zh: "不可用", it: "Non Disponibile", fr: "Indisponible", de: "Nicht Verfügbar", pt: "Indisponível", ru: "Недоступно" },
+    improving: { en: "Improving", es: "Mejorando", tr: "İyileşiyor", zh: "改善中", it: "In Miglioramento", fr: "En Amélioration", de: "Verbesserung", pt: "Melhorando", ru: "Улучшается" },
+    declining: { en: "Declining", es: "Empeorando", tr: "Geriliyor", zh: "Düşüyor", it: "In Peggioramento", fr: "En Dégradation", de: "Rückläufig", pt: "Em Queda", ru: "Снижается" },
+    stable: { en: "Stable", es: "Estable", tr: "Sabit", zh: "稳定", it: "Stabile", fr: "Stable", de: "Stabil", pt: "Estável", ru: "Стабильно" },
+    insufficient: { en: "Insufficient Data", es: "Datos Insuficientes", tr: "Yetersiz Veri", zh: "数据不足", it: "Dati Insufficienti", fr: "Données Insuffisantes", de: "Daten Unzureichend", pt: "Dados Insuficientes", ru: "Недостаточно Данных" },
+    fresh: { en: "Fresh", es: "Reciente", tr: "Taze", zh: "新鲜", it: "Recente", fr: "Récent", de: "Frisch", pt: "Recente", ru: "Свежие" },
+    aging: { en: "Aging", es: "Envejeciendo", tr: "Yaşlanıyor", zh: "正在变旧", it: "Invecchiando", fr: "Alterando", de: "Alternd", pt: "Envelhecendo", ru: "Устаревает" },
+    stale: { en: "Stale", es: "Eski", tr: "Bayat", zh: "陈旧", it: "Obsoleto", fr: "Stale", de: "Veraltet", pt: "Desatualizado", ru: "Устаревшие" },
+    old: { en: "Old", es: "Antiguo", tr: "Eski", zh: "很旧", it: "Vecchio", fr: "Ancien", de: "Alt", pt: "Antigo", ru: "Старые" },
   };
   return labels[normalized]?.[locale] ?? normalized.replace(/^./, char => char.toUpperCase());
 }
