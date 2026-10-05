@@ -15,6 +15,7 @@ export type AppCheckRecord = {
 };
 
 let sqlClient: ReturnType<typeof postgres> | null = null;
+let appChecksSchemaReady = false;
 
 function getClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -33,6 +34,7 @@ export function isHistoryStorageConfigured() {
 }
 
 export async function ensureAppChecksTable() {
+  if (appChecksSchemaReady) return true;
   const sql = getClient();
   if (!sql) return false;
 
@@ -55,6 +57,7 @@ export async function ensureAppChecksTable() {
     CREATE INDEX IF NOT EXISTS zaf_app_checks_url_checked_at_idx
     ON zaf_app_checks (url, checked_at DESC)
   `;
+  appChecksSchemaReady = true;
   return true;
 }
 
