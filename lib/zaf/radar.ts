@@ -1,4 +1,4 @@
-import { getPreviousObservation } from "@/lib/zaf/observation-history";
+import { getRollingObservationBaseline } from "@/lib/zaf/observation-history";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 
@@ -25,6 +25,8 @@ export type RadarObservation = {
   confidence: { score: number; level: RadarConfidenceLevel; reasons: string[] };
   health: { score: number; status: "healthy" | "degraded" | "limited" };
   baselineAt: string | null;
+  baselineSampleCount: number;
+  baselineWindowMinutes: number;
   signals: RadarSignal[];
 };
 
@@ -36,9 +38,9 @@ function clamp(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function percentChange(current: number | null, previous: number | null) {
-  if (current == null || previous == null || previous === 0) return null;
-  return ((current - previous) / Math.abs(previous)) * 100;
+function percentChange(current: number | null, baseline: number | null) {
+  if (current == null || baseline == null || baseline === 0) return null;
+  return ((current - baseline) / Math.abs(baseline)) * 100;
 }
 
 function direction(change: number | null): RadarSignalState {
@@ -56,8 +58,8 @@ function sampleConfidence(label: string, metricAvailable: boolean, sampleSize: n
   if (sampleSize >= 50) { score += 25; reasons.push("A substantial ledger sample is available."); }
   else if (sampleSize >= 10) { score += 15; reasons.push("A partial ledger sample is available."); }
   else if (sampleSize > 0) { score += 5; reasons.push("Only a small ledger sample is available."); }
-  if (baselineAvailable) { score += 20; reasons.push("A stored historical baseline is available for comparison."); }
-  else reasons.push("No stored historical baseline is available for comparison.");
+  if (baselineAvailable) { score += 20; reasons.push("A 30-minute rolling historical baseline is available from stored observations."); }
+  else reasons.push("At least three stored observations are required for the rolling baseline.");
   if (fresh) { score += 20; reasons.push("The underlying observation is inside the preferred freshness window."); }
   else reasons.push("The underlying observation is outside the preferred freshness window.");
   const bounded = clamp(score);
@@ -81,7 +83,7 @@ function currentConfidence(label: string, available: boolean, evidence: number, 
 
 export async function getRadarObservation(): Promise<RadarObservation> {
   const observation = await getUnifiedObservation();
-  const baseline = await getPreviousObservation(observation.generatedAt, 300);
+  const baseline = await getRollingObservationBaseline(observation.generatedAt, 30, 300, 3);
 
   const current = observation.network;
   const fresh = observation.freshness.state === "fresh";
@@ -92,21 +94,22 @@ export async function getRadarObservation(): Promise<RadarObservation> {
   const opCurrent = current?.metrics.observedOperationsPerDay ?? null;
   const txChange = percentChange(txCurrent, baseline?.dailyTransactions ?? null);
   const opChange = percentChange(opCurrent, baseline?.dailyOperations ?? null);
+  const baselineAvailable = Boolean(baseline);
 
   const signals: RadarSignal[] = [
     {
       id: "transaction-pace", title: "Observed Transaction Pace",
-      detail: txChange == null ? "Current daily transaction pace is observable, but no historical comparison is available." : "Observed daily transactions changed by " + (txChange >= 0 ? "+" : "") + txChange.toFixed(1) + "% versus the stored baseline.",
-      detailTr: txChange == null ? "Mevcut günlük işlem temposu gözlemlenebiliyor, ancak tarihsel karşılaştırma mevcut değil." : "Gözlemlenen günlük işlemler kayıtlı temel değere göre " + (txChange >= 0 ? "+" : "") + txChange.toFixed(1) + "% değişti.",
+      detail: txChange == null ? "Current daily transaction pace is observable, but at least three stored observations are needed for a rolling comparison." : "Observed daily transactions changed by " + (txChange >= 0 ? "+" : "") + txChange.toFixed(1) + "% versus the 30-minute rolling median of stored observations.",
+      detailTr: txChange == null ? "Mevcut günlük işlem temposu gözlemlenebiliyor, ancak hareketli karşılaştırma için en az üç kayıtlı gözlem gerekiyor." : "Gözlemlenen günlük işlemler, kayıtlı gözlemlerin 30 dakikalık hareketli medyanına göre " + (txChange >= 0 ? "+" : "") + txChange.toFixed(1) + "% değişti.",
       state: direction(txChange), value: txCurrent, changePercent: txChange,
-      confidence: sampleConfidence("Transaction pace", txCurrent != null, ledgers, Boolean(baseline), fresh),
+      confidence: sampleConfidence("Transaction pace", txCurrent != null, ledgers, baselineAvailable && baseline?.dailyTransactions != null, fresh),
     },
     {
       id: "operation-pace", title: "Observed Operation Pace",
-      detail: opChange == null ? "Current daily operation pace is observable, but no historical comparison is available." : "Observed daily operations changed by " + (opChange >= 0 ? "+" : "") + opChange.toFixed(1) + "% versus the stored baseline.",
-      detailTr: opChange == null ? "Mevcut günlük operasyon temposu gözlemlenebiliyor, ancak tarihsel karşılaştırma mevcut değil." : "Gözlemlenen günlük operasyonlar kayıtlı temel değere göre " + (opChange >= 0 ? "+" : "") + opChange.toFixed(1) + "% değişti.",
+      detail: opChange == null ? "Current daily operation pace is observable, but at least three stored observations are needed for a rolling comparison." : "Observed daily operations changed by " + (opChange >= 0 ? "+" : "") + opChange.toFixed(1) + "% versus the 30-minute rolling median of stored observations.",
+      detailTr: opChange == null ? "Mevcut günlük operasyon temposu gözlemlenebiliyor, ancak hareketli karşılaştırma için en az üç kayıtlı gözlem gerekiyor." : "Gözlemlenen günlük operasyonlar, kayıtlı gözlemlerin 30 dakikalık hareketli medyanına göre " + (opChange >= 0 ? "+" : "") + opChange.toFixed(1) + "% değişti.",
       state: direction(opChange), value: opCurrent, changePercent: opChange,
-      confidence: sampleConfidence("Operation pace", opCurrent != null, ledgers, Boolean(baseline), fresh),
+      confidence: sampleConfidence("Operation pace", opCurrent != null, ledgers, baselineAvailable && baseline?.dailyOperations != null, fresh),
     },
     {
       id: "transaction-success", title: "Transaction Success Rate",
@@ -145,7 +148,9 @@ export async function getRadarObservation(): Promise<RadarObservation> {
     sourceCoverage: { available: availableSources, total: sourceCount },
     confidence: observation.confidence,
     health: { score: observation.health.score, status: observation.health.status },
-    baselineAt: baseline?.generatedAt ?? null,
+    baselineAt: baseline?.newestGeneratedAt ?? null,
+    baselineSampleCount: baseline?.sampleCount ?? 0,
+    baselineWindowMinutes: baseline?.windowMinutes ?? 30,
     signals,
   };
 }
