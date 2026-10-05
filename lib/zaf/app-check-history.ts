@@ -83,6 +83,30 @@ export async function saveAppChecks(records: AppCheckRecord[]) {
   return true;
 }
 
+export async function getLatestAppChecks(limit = 20) {
+  const sql = getClient();
+  if (!sql) return null;
+
+  await ensureAppChecksTable();
+
+  return sql`
+    SELECT DISTINCT ON (url)
+      app_name AS "appName",
+      url,
+      status,
+      ok,
+      reachable,
+      response_time_ms AS "responseTimeMs",
+      https,
+      redirect,
+      checked_at AS "checkedAt",
+      error
+    FROM zaf_app_checks
+    ORDER BY url, checked_at DESC
+    LIMIT ${Math.min(Math.max(limit, 1), 100)}
+  `;
+}
+
 export async function getAppCheckHistory(url: string, limit = 50) {
   const sql = getClient();
   if (!sql) return null;
