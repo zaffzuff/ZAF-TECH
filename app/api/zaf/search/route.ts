@@ -1,5 +1,7 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
+import { rateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -8,8 +10,20 @@ function cleanQuery(value: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const rate = rateLimit(request, { prefix: "zaf-search", limit: 60, windowMs: 60_000 });
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded. Please try again later." },
+      { status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(rate.retryAfterSeconds) } },
+    );
+  }
+
   const q = cleanQuery(request.nextUrl.searchParams.get("q") ?? "");
-  if (q.length < 2) return NextResponse.json({ query: q, results: [] }, { headers: { "Cache-Control": "no-store" } });
+  if (q.length < 2) {
+    return NextResponse.json({ query: q, results: [] }, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
 
   const observation = await getUnifiedObservation();
   const needle = q.toLowerCase();
@@ -48,6 +62,10 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(
     { query: q, results: results.slice(0, 40), generatedAt: observation.generatedAt },
-    { headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60" } },
+    { headers: {
+      "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
+      "X-RateLimit-Limit": "60",
+      "X-RateLimit-Remaining": String(rate.remaining),
+    } },
   );
 }
