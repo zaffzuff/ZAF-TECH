@@ -203,10 +203,10 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         {results.slice(0, 8).map(result => (
           <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
-              <span className="truncate text-[11px] font-medium text-foreground">{result.title}</span>
-              <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
+              <span className="min-w-0 break-words text-[11px] font-medium text-foreground">{result.title}</span>
+              <span className="shrink-0 max-w-[32%] break-words text-right text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
             </div>
-            <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{result.detail}</div>
+            <div className="mt-0.5 min-w-0 break-words text-[9px] text-muted-foreground">{result.detail}</div>
           </button>
         ))}
       </div>
