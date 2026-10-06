@@ -273,3 +273,65 @@
   .ty-fade-in, .ty-fade-up, .ty-slide-up, .ty-spin, .ty-bar { animation: none; }
   .ty-press:active { transform: none; }
 }
+
+
+/* ZAF TECH responsive presentation split.
+   Mobile keeps the compact touch-first layout; desktop gets a wider,
+   more readable information surface without duplicating the data layer. */
+@media (min-width: 1024px) {
+  .zaf-main-shell {
+    width: 100%;
+    max-width: 1440px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .zaf-main-shell .text-\[9px\] {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+
+  .zaf-main-shell .text-\[10px\] {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .zaf-main-shell .text-\[11px\] {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .zaf-main-shell .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  .zaf-main-shell .text-sm {
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+
+  .zaf-main-shell .text-base {
+    font-size: 1.05rem;
+  }
+
+  .zaf-main-shell .rounded-xl {
+    border-radius: 1rem;
+  }
+
+  .zaf-main-shell .p-3 {
+    padding: 1rem;
+  }
+
+  .zaf-main-shell .p-4 {
+    padding: 1.125rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .zaf-main-shell {
+    max-width: 1520px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
