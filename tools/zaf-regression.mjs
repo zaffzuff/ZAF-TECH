@@ -12,6 +12,8 @@ const required = [
   "app/api/zaf/defi/route.ts",
   "components/zaf-defi-observatory.tsx",
   "lib/zaf/launchpad-observation.ts",
+  "lib/zaf/defi-history.ts",
+  "app/api/zaf/defi/history/route.ts",
   "app/api/zaf/launchpad/route.ts",
   "components/zaf-launchpad-observatory.tsx",
   "lib/zaf/ecosystem-graph.ts",
@@ -297,4 +299,15 @@ for (const token of ["Ecosystem Graph", "Observed relationships", "Network Filte
 
 for (const token of ["Graph", "ZafEcosystemGraph"]) {
   if (!app.includes(token)) throw new Error("Ecosystem graph navigation/mount regression: " + token);
+}
+
+
+const defiHistory = fs.readFileSync(path.join(root, "lib/zaf/defi-history.ts"), "utf8");
+for (const token of ["toDefiHistorySnapshot", "saveDefiSnapshot", "getDefiSnapshotHistory", "compareDefiSnapshots", "new-pool", "new-pair"]) {
+  if (!defiHistory.includes(token)) throw new Error("DeFi history/alert regression: " + token);
+}
+
+const defiHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/history/route.ts"), "utf8");
+for (const token of ["getDefiSnapshotHistory", "isDefiHistoryConfigured", "no-store"]) {
+  if (!defiHistoryRoute.includes(token)) throw new Error("DeFi history API regression: " + token);
 }

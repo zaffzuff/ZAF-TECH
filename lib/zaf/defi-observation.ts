@@ -45,6 +45,8 @@ export type DefiPairObservation = {
   latestCloseTime: string | null;
 };
 
+export type DefiObservation = Awaited<ReturnType<typeof getDefiObservation>>;
+
 type EndpointResult<T> = {
   state: DefiSourceState;
   source: string;

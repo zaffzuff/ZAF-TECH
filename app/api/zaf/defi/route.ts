@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDefiObservation } from "@/lib/zaf/defi-observation";
+import {
+  compareDefiSnapshots,
+  getDefiSnapshotHistory,
+  getLatestDefiSnapshot,
+  isDefiHistoryConfigured,
+  saveDefiSnapshot,
+  toDefiHistorySnapshot,
+} from "@/lib/zaf/defi-history";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

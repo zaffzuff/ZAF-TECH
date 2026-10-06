@@ -8,6 +8,8 @@ type AssetRef = { assetType:string|null; assetCode:string|null; issuer:string|nu
 type Pool = { networkScope:"testnet"; poolId:string; feeBp:number|null; totalShares:number|null; reserves:Array<{asset:AssetRef;amount:number|null}>; observedTrades:number; lastModifiedLedger:string|null };
 type Trade = { networkScope:"testnet"; id:string; ledgerCloseTime:string|null; tradeType:string|null; base:{asset:AssetRef;amount:number|null;poolId:string|null;offerId:string|null}; counter:{asset:AssetRef;amount:number|null;poolId:string|null;offerId:string|null}; price:number|null };
 type PairActivity = { networkScope:"testnet"; pairKey:string; base:AssetRef; counter:AssetRef; trades:number; baseAmount:number; counterAmount:number; liquidityPoolTrades:number; orderbookTrades:number; latestCloseTime:string|null };
+type Alert = { id:string; severity:"info"|"attention"; type:string; title:string; detail:string; detailTr:string; current:number|string|null; previous:number|string|null };
+type HistorySnapshot = { generatedAt:string; pools:number; trades:number; pairs:number; distinctAssets:number; poolIds:string[]; pairKeys:string[] };
 type Payload = {
   generatedAt:string;
   networkScope:"testnet";
@@ -17,6 +19,7 @@ type Payload = {
   pairActivity:PairActivity[];
   notes:string[];
   errors:string[];
+  history:{configured:boolean;previousObservedAt:string|null;alerts:Alert[]};
 };
 
 function num(value:number|null, locale:Locale, digits=7){
@@ -31,6 +34,7 @@ function stateLabel(state:string, tr:(en:string,trText:string)=>string){
 export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string,trText:string)=>string;view:"Overview"|"DEX"|"AMM & Pools"|"Tokens"}){
   const [data,setData]=useState<Payload|null>(null);
   const [loading,setLoading]=useState(true);
+  const [history,setHistory]=useState<{configured:boolean;count:number;snapshots:HistorySnapshot[]}>({configured:false,count:0,snapshots:[]});
 
   useEffect(()=>{
     let active=true;
@@ -39,6 +43,13 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
         const response=await fetch("/api/zaf/defi?network=testnet&limit=100",{cache:"no-store"});
         const body=await response.json();
         if(active) setData(response.ok?body:null);
+        const historyResponse=await fetch("/api/zaf/defi/history?limit=24",{cache:"no-store"});
+        const historyBody=await historyResponse.json().catch(()=>({}));
+        if(active && historyResponse.ok) setHistory({
+          configured:Boolean(historyBody?.configured),
+          count:Number(historyBody?.count??0),
+          snapshots:Array.isArray(historyBody?.snapshots)?historyBody.snapshots:[],
+        });
       }catch{
         if(active) setData(null);
       }finally{
@@ -119,6 +130,30 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
       <div className="text-xs font-semibold text-foreground">{tr("DeFi-Observed Tokens","DeFi Gözlemlerinde Bulunan Tokenlar")}</div>
       <div className="mt-3 space-y-2">{(data?.assets??[]).map((asset,index)=><div key={asset.label+"-"+index} className="min-w-0 rounded-lg border border-border p-3"><div className="flex min-w-0 items-center justify-between gap-3"><span className="min-w-0 break-words text-[10px] font-semibold text-foreground" style={{overflowWrap:"anywhere"}}>{asset.label}</span><span className="text-[9px] text-muted-foreground">Testnet</span></div><div className="mt-1 break-all text-[9px] text-muted-foreground">{asset.issuer??tr("Issuer not exposed","Issuer açığa çıkmadı")}</div></div>)}{!data?.assets.length?<div className="text-[10px] text-muted-foreground">{tr("No DeFi-linked asset records are currently observable.","Şu anda DeFi bağlantılı gözlemlenebilir varlık kaydı yok.")}</div>:null}</div>
     </div>:null}
+
+    <div className="mt-3 rounded-xl border border-border bg-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-xs font-semibold text-foreground">{tr("Historical Tracking & Change Alerts","Tarihsel Takip ve Değişim Uyarıları")}</div>
+          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Stored DeFi snapshots are compared only when historical storage is configured. Alerts are change candidates from observed data, not predictions.","Tarihsel depolama yapılandırıldığında kayıtlı DeFi snapshot'ları karşılaştırılır. Uyarılar gözlemlenen veriden üretilen değişim adaylarıdır; tahmin değildir.")}</p>
+        </div>
+        <span className="shrink-0 rounded-full border border-border px-2 py-1 text-[9px] text-muted-foreground">{history.configured?tr("Configured","Yapılandırıldı"):tr("Not Configured","Yapılandırılmadı")}</span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded-lg border border-border bg-background p-3"><div className="text-lg font-bold ty-nums text-foreground">{history.count}</div><div className="mt-1 text-[9px] text-foreground">{tr("Stored Snapshots","Kayıtlı Snapshot")}</div></div>
+        <div className="rounded-lg border border-border bg-background p-3"><div className="text-lg font-bold ty-nums text-foreground">{data?.history.alerts.length??0}</div><div className="mt-1 text-[9px] text-foreground">{tr("Current Alerts","Mevcut Uyarılar")}</div></div>
+        <div className="rounded-lg border border-border bg-background p-3"><div className="text-[10px] font-medium text-foreground">{history.snapshots[0]?new Date(history.snapshots[0].generatedAt).toLocaleString(intlLocale(locale)):"—"}</div><div className="mt-1 text-[9px] text-muted-foreground">{tr("Latest Snapshot","Son Snapshot")}</div></div>
+        <div className="rounded-lg border border-border bg-background p-3"><div className="text-[10px] font-medium text-foreground">{data?.history.previousObservedAt?new Date(data.history.previousObservedAt).toLocaleString(intlLocale(locale)):"—"}</div><div className="mt-1 text-[9px] text-muted-foreground">{tr("Compared With","Karşılaştırılan")}</div></div>
+      </div>
+      {data?.history.alerts.length ? <div className="mt-3 space-y-2">
+        {data.history.alerts.slice(0,6).map(alert=><div key={alert.id} className="rounded-lg border border-border p-3">
+          <div className="flex items-start justify-between gap-2"><div className="text-[10px] font-semibold text-foreground">{locale==="tr"?alert.detailTr:alert.title}</div><span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{alert.severity}</span></div>
+          <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{locale==="tr"?alert.detailTr:alert.detail}</p>
+          {(alert.previous!=null||alert.current!=null)?<div className="mt-1 text-[9px] text-muted-foreground">{String(alert.previous??"—")} → {String(alert.current??"—")}</div>:null}
+        </div>)}
+      </div> : <div className="mt-3 rounded-lg border border-border p-3 text-[9px] leading-relaxed text-muted-foreground">{history.configured?tr("No measurable DeFi changes were detected against the latest stored snapshot.","Son kayıtlı snapshot'a göre ölçülebilir DeFi değişikliği tespit edilmedi."):tr("Historical storage is optional. Set DATABASE_URL to enable persistent DeFi history and change alerts.","Tarihsel depolama isteğe bağlıdır. Kalıcı DeFi geçmişi ve değişim uyarılarını etkinleştirmek için DATABASE_URL yapılandırın.")}</div>}
+      <div className="mt-3 text-[9px] leading-relaxed text-muted-foreground">{tr("Boundary: alerts are generated from observable sample changes only. They do not prove network-wide activity, intent, ownership, or economic significance.","Sınır: uyarılar yalnızca gözlemlenen örnek değişimlerinden üretilir. Ağ geneli aktiviteyi, niyeti, sahipliği veya ekonomik önemi kanıtlamaz.")}</div>
+    </div>
 
     <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[9px] leading-relaxed text-muted-foreground">{tr("Boundary: Pi DEX/AMM features are currently described by Pi as Testnet functionality. ZAF TECH reports only public observations returned by the selected source and never treats unavailable data as proof that the underlying feature is absent.","Sınır: Pi, DEX/AMM özelliklerini şu anda Testnet işlevleri olarak tanımlıyor. ZAF TECH yalnızca seçilen kaynaktan dönen herkese açık gözlemleri raporlar ve kullanılamayan veriyi ilgili özelliğin yokluğunun kanıtı olarak kabul etmez.")}</div>
   </section>;
