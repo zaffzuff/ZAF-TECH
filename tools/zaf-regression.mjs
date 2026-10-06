@@ -315,7 +315,8 @@ for (const cron of vercelConfig.crons ?? []) {
 }
 
 const piTypes = fs.readFileSync(path.join(root, "lib/pi/types.ts"), "utf8");
-if (/accessToken\s*:\s*string/.test(piTypes.match(/interface PiUser[\\s\\S]*?\\n}\\n/)?.[0] ?? "")) {
+const piUserBlock = piTypes.match(/interface PiUser[\\s\\S]*?\\n}/)?.[0] ?? "";
+if (/accessToken\s*:\s*string/.test(piUserBlock)) {
   throw new Error("Pi user model must not expose accessToken");
 }
 const piService = fs.readFileSync(path.join(root, "lib/pi/pi-service.ts"), "utf8");
