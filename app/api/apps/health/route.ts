@@ -6,7 +6,15 @@ import { getAppHealthTrend, getLatestAppChecks } from "@/lib/zaf/app-check-histo
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const checks = await getLatestAppChecks(20);
+  let checks;
+  try {
+    checks = await getLatestAppChecks(20);
+  } catch {
+    return NextResponse.json(
+      { error: "Stored App Health history is temporarily unavailable." },
+      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
+  }
 
   if (!checks) {
     return NextResponse.json(
