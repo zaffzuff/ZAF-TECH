@@ -479,7 +479,7 @@ export function ZafTechApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
+      <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-24 lg:pb-10">
         <header className="border-b border-border pb-5 pt-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
