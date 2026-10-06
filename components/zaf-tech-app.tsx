@@ -102,15 +102,16 @@ function radarSignalTitle(id: string, locale: Locale) {
   return labels[id]?.[index] ?? id;
 }
 function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number]["category"], locale: Locale) {
-  const labels = {
-    app_count: locale === "tr" ? "Uygulama sayısı değişti" : "App count changed",
-    source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
-    signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
-    signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
-    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
-    official_update: locale === "tr" ? "Resmi Pi duyurusu" : "Official Pi update",
-  } as const;
-  return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
+  const labels: Record<NonNullable<EcosystemChangePayload["changes"][number]["category"]>, [string, string, string, string, string, string, string, string, string]> = {
+    app_count: ["App count changed", "Uygulama sayısı değişti", "Cambió el número de apps", "应用数量发生变化", "Numero di app cambiato", "Nombre d'apps modifié", "App-Anzahl geändert", "Número de apps alterado", "Изменилось число приложений"],
+    source_status: ["Source status changed", "Kaynak durumu değişti", "Cambió el estado de la fuente", "来源状态发生变化", "Stato della fonte cambiato", "État de la source modifié", "Quellenstatus geändert", "Estado da fonte alterado", "Изменился статус источника"],
+    signal_added: ["Newly observed", "Yeni gözlemlendi", "Observado recientemente", "新观察到", "Nuova osservazione", "Nouvellement observé", "Neu beobachtet", "Recentemente observado", "Новое наблюдение"],
+    signal_removed: ["No longer observed", "Artık gözlemlenmiyor", "Ya no se observa", "不再观察到", "Non più osservato", "N'est plus observé", "Nicht mehr beobachtet", "Deixou de ser observado", "Больше не наблюдается"],
+    defi_status: ["DeFi status changed", "DeFi durumu değişti", "Cambió el estado de DeFi", "DeFi 状态发生变化", "Stato DeFi cambiato", "État DeFi modifié", "DeFi-Status geändert", "Estado DeFi alterado", "Изменился статус DeFi"],
+    official_update: ["Official Pi update", "Resmi Pi duyurusu", "Actualización oficial de Pi", "Pi 官方更新", "Aggiornamento ufficiale Pi", "Mise à jour officielle de Pi", "Offizielles Pi-Update", "Atualização oficial da Pi", "Официальное обновление Pi"],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[category ?? "signal_added"]?.[index] ?? (locale === "tr" ? "Değişiklik" : "Change");
 }
 
 function radarSignalValue(id: string, value: number | string | null, locale: Locale) {
@@ -146,13 +147,14 @@ function External({ href, children }: { href: string; children: React.ReactNode 
   return <a href={href} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">{children}</a>;
 }
 function searchTypeLabel(type: SearchResult["type"], locale: Locale) {
-  const labels: Record<SearchResult["type"], [string, string]> = {
-    app: ["App", "Uygulama"],
-    source: ["Source", "Kaynak"],
-    signal: ["Signal", "Sinyal"],
-    ledger: ["Ledger", "Ledger"],
+  const labels: Record<SearchResult["type"], [string, string, string, string, string, string, string, string, string]> = {
+    app: ["App", "Uygulama", "Aplicación", "应用", "App", "Application", "App", "Aplicativo", "Приложение"],
+    source: ["Source", "Kaynak", "Fuente", "来源", "Fonte", "Source", "Quelle", "Fonte", "Источник"],
+    signal: ["Signal", "Sinyal", "Señal", "信号", "Segnale", "Signal", "Signal", "Sinal", "Сигнал"],
+    ledger: ["Ledger", "Ledger", "Ledger", "账本", "Ledger", "Ledger", "Ledger", "Ledger", "Ledger"],
   };
-  return labels[type][locale === "tr" ? 1 : 0];
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[type][index];
 }
 
 function SearchIcon({ size = 16 }: { size?: number }) {
@@ -1425,9 +1427,9 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
       <TrendView points={trends?.points ?? []} locale={locale} tr={tr} />
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title="Launchpad" value={displayStatus(data?.current.defi.launchpad, locale)} />
-        <Card title="DEX" value={displayStatus(data?.current.defi.dex, locale)} />
-        <Card title="AMM" value={displayStatus(data?.current.defi.amm, locale)} />
+        <Card title={tr("Launchpad", "Launchpad")} value={displayStatus(data?.current.defi.launchpad, locale)} />
+        <Card title={tr("DEX", "DEX")} value={displayStatus(data?.current.defi.dex, locale)} />
+        <Card title={tr("AMM", "AMM")} value={displayStatus(data?.current.defi.amm, locale)} />
         <Card title={tr("Mainnet Trading", "Mainnet İşlemleri")} value={displayStatus(data?.current.defi.mainnetTrading, locale)} />
       </div>
 
