@@ -154,10 +154,18 @@ function searchTypeLabel(type: SearchResult["type"], locale: Locale) {
   return labels[type][locale === "tr" ? 1 : 0];
 }
 
-function SearchPanel({ locale, tr, onNavigate }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void }) {
+function SearchIcon({ size = 16 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m16 16 4.5 4.5" />
+  </svg>;
+}
+
+function SearchPanel({ locale, tr, onNavigate, mobile = false }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void; mobile?: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   async function submit() {
     const q = query.trim();
@@ -172,6 +180,59 @@ function SearchPanel({ locale, tr, onNavigate }: { locale: Locale; tr: (en: stri
     } finally {
       setLoading(false);
     }
+  }
+
+  const resultsView = query.trim().length >= 2 && (results.length || (!loading && !results.length)) ? (
+    results.length ? (
+      <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
+        {results.slice(0, 8).map(result => (
+          <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-[11px] font-medium text-foreground">{result.title}</span>
+              <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
+            </div>
+            <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{result.detail}</div>
+          </button>
+        ))}
+      </div>
+    ) : (
+      <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">
+        {tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
+      </div>
+    )
+  ) : null;
+
+  if (mobile) {
+    return (
+      <div className="relative zaf-mobile-search">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          aria-label={tr("Open search", "Aramayı aç")}
+          title={tr("Search", "Ara")}
+          className="zaf-mobile-header-icon rounded-lg border border-border bg-card p-2 text-foreground"
+        >
+          <SearchIcon size={16} />
+        </button>
+        {mobileOpen ? (
+          <div className="zaf-mobile-search-panel absolute right-0 top-full z-50 mt-2 w-[min(86vw,360px)] rounded-xl border border-border bg-card p-2 shadow-xl">
+            <div className="flex items-center gap-1.5">
+              <input
+                autoFocus
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") void submit(); if (e.key === "Escape") setMobileOpen(false); }}
+                placeholder={tr("Search ecosystem…", "Ekosistemde ara…")}
+                aria-label={tr("Global Search", "Genel Arama")}
+                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-lg border border-border px-2.5 py-2 text-xs text-muted-foreground" aria-label={tr("Close search", "Aramayı kapat")}>×</button>
+            </div>
+            {resultsView}
+          </div>
+        ) : null}
+      </div>
+    );
   }
 
   return (
@@ -189,22 +250,7 @@ function SearchPanel({ locale, tr, onNavigate }: { locale: Locale; tr: (en: stri
           {loading ? "…" : tr("Search", "Ara")}
         </button>
       </div>
-      {query.trim().length >= 2 && results.length ? (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
-          {results.slice(0, 8).map(result => (
-            <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
-              <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-[11px] font-medium text-foreground">{result.title}</span>
-                <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
-              </div>
-              <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{result.detail}</div>
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {query.trim().length >= 2 && !loading && !results.length ? (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">{tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}</div>
-      ) : null}
+      {resultsView}
     </div>
   );
 }
@@ -481,7 +527,7 @@ export function ZafTechApp() {
     <div className="min-h-screen bg-background">
       <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
         <header className="border-b border-border pb-5 pt-7">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="zaf-desktop-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={44} height={44} className="h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
@@ -495,7 +541,21 @@ export function ZafTechApp() {
               <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
             </div>
           </div>
-          <div className="mt-3"><SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} /></div>
+          <div className="zaf-mobile-header flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" priority />
+              <div className="min-w-0">
+                <div className="text-xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
+                <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
+              <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
+              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card p-2 text-xs text-foreground">{theme === "light" ? "☾" : "☀"}</button>
+              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card p-2 text-xs text-foreground disabled:opacity-50">{refreshing ? "…" : "↻"}</button>
+            </div>
+          </div>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Pi Network", "Pi Network")}</span>
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
