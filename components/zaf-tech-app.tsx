@@ -161,6 +161,21 @@ function SearchIcon({ size = 16 }: { size?: number }) {
   </svg>;
 }
 
+function searchPlaceholder(locale: Locale) {
+  const values: Record<Locale, string> = {
+    en: "Search",
+    tr: "Ara",
+    es: "Buscar",
+    zh: "搜索",
+    it: "Cerca",
+    fr: "Rechercher",
+    de: "Suchen",
+    pt: "Pesquisar",
+    ru: "Поиск",
+  };
+  return values[locale] ?? values.en;
+}
+
 function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void; mobile?: boolean; compact?: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -242,7 +257,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") void submit(); }}
-          placeholder={tr("Search ecosystem, apps, signals, or ledgers…", "Ekosistem, uygulama, sinyal veya ledger ara…")}
+          placeholder={searchPlaceholder(locale)}
           aria-label={tr("Global Search", "Genel Arama")}
           className="w-full rounded-lg border border-border bg-card px-3 py-2 pr-9 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
         />
