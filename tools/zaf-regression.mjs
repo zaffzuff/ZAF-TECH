@@ -68,6 +68,17 @@ if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
 }
 
 const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+const globalCss = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+for (const token of ["overflow-wrap: anywhere", ".zaf-main-shell :where(.flex > *, .grid > *)", ".zaf-desktop-search"]) {
+  if (!globalCss.includes(token)) throw new Error("Locale-safe UI containment regression: " + token);
+}
+for (const file of ["app/error.tsx", "app/global-error.tsx", "app/not-found.tsx", "app/loading.tsx"]) {
+  if (!fs.existsSync(path.join(root, file))) throw new Error("Missing global runtime boundary: " + file);
+}
+const aboutPage = fs.readFileSync(path.join(root, "app/about/page.tsx"), "utf8");
+for (const token of ["English, Turkish, Spanish, Chinese, Italian, French, German, Portuguese and Russian", "Pi authentication, payments", "Sonraki Aşama"]) {
+  if (!aboutPage.includes(token)) throw new Error("About page scope regression: " + token);
+}
 const forbiddenVisibleTerms = [
   "Pi Ecosystem Intelligence",
   "Pi Ekosistem İstihbaratı",
