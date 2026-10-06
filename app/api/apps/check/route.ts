@@ -19,6 +19,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ ...result, score: score.score, healthStatus: score.status, scoreFactors: score.factors }, {
     status: result.error === "A public HTTP(S) URL is required." ? 400 : 200,
-    headers: { "Cache-Control": "no-store" },
+    headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" },
   });
 }
