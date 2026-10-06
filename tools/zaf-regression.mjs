@@ -269,6 +269,26 @@ if (!observationHistoryRoute.includes("1000")) throw new Error("Historical obser
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
 
+const appHealthSecurity = fs.readFileSync(path.join(root, "lib/zaf/app-health.ts"), "utf8");
+for (const token of ["lookup(", "isSafeHttpUrl", "resolvesToPublicAddress", "redirect: \"manual\"", "AbortController", "signal: controller.signal"]) {
+  if (!appHealthSecurity.includes(token)) throw new Error("App Health SSRF/timeout guard regression: " + token);
+}
+
+for (const file of [
+  "lib/zaf/horizon-client.ts",
+  "lib/zaf/wallet-client.ts",
+  "lib/zaf/testnet-assets.ts",
+  "lib/zaf/defi-observation.ts",
+  "lib/zaf/ecosystem.ts",
+  "lib/zaf/historical-engine.ts",
+  "lib/zaf/history-client.ts",
+]) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  for (const token of ["AbortController", "signal: controller.signal"]) {
+    if (!source.includes(token)) throw new Error("External fetch timeout guard regression in " + file + ": " + token);
+  }
+}
+
 const apiSecurityRoutes = {
   "app/api/apps/check/route.ts": ["rateLimit", "checkAppHealth", "Cache-Control"],
   "app/api/apps/health/route.ts": ["getLatestAppChecks", "Cache-Control"],
