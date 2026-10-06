@@ -73,7 +73,6 @@ export async function getEcosystemSnapshotHistory(limit = 50) {
   if (!sql) return [];
 
   try {
-    await ensureTable(sql);
     const safeLimit = Math.min(Math.max(limit, 1), 200);
     return await sql`
       SELECT id, generated_at AS "generatedAt",
