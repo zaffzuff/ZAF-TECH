@@ -15,21 +15,43 @@ export type AppHealthCheck = {
 function isPrivateIpv4(value: string) {
   const parts = value.split(".").map(Number);
   if (parts.length !== 4 || parts.some(part => !Number.isInteger(part) || part < 0 || part > 255)) return false;
-  const [a, b] = parts;
+
+  const [a, b, c] = parts;
   return (
     a === 0 ||
     a === 10 ||
+    a === 100 && b >= 64 && b <= 127 ||
     a === 127 ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168)
+    a === 169 && b === 254 ||
+    a === 172 && b >= 16 && b <= 31 ||
+    a === 192 && (b === 0 || b === 168) ||
+    a === 192 && b === 88 && c === 99 ||
+    a === 198 && b === 18 || a === 198 && b === 19 ||
+    a === 198 && b === 51 && c === 100 ||
+    a === 203 && b === 0 && c === 113 ||
+    a >= 224
   );
 }
 
 function isPrivateIpv6(value: string) {
   const host = value.toLowerCase().split("%")[0];
-  if (host === "::1" || host === "::") return true;
-  return host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe8") || host.startsWith("fe9") || host.startsWith("fea") || host.startsWith("feb");
+  if (host === "::" || host === "::1") return true;
+
+  const mapped = host.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  if (mapped) return isPrivateIpv4(mapped[1]);
+
+  const first = host.split(":").filter(Boolean)[0] ?? "";
+  const firstValue = Number.parseInt(first, 16);
+
+  return (
+    first.startsWith("fc") ||
+    first.startsWith("fd") ||
+    first.startsWith("fe8") ||
+    first.startsWith("fe9") ||
+    first.startsWith("fea") ||
+    first.startsWith("feb") ||
+    (Number.isFinite(firstValue) && firstValue >= 0x2001 && firstValue <= 0x2001 && /^2001:db8(?::|$)/i.test(host))
+  );
 }
 
 function isPrivateIp(value: string) {
@@ -66,6 +88,7 @@ export function isSafeHttpUrl(value: string) {
 
 async function resolvesToPublicAddress(hostname: string) {
   if (isPrivateHostname(hostname)) return false;
+
   try {
     const addresses = await lookup(hostname, { all: true, verbatim: true });
     return addresses.length > 0 && addresses.every(({ address }) => !isPrivateIp(address));
