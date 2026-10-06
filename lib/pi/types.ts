@@ -10,7 +10,14 @@ export type PiAuthStatus =
 export interface PiUser {
   uid: string;
   username: string | null;
-  accessToken: string | null;
+}
+
+/**
+ * Internal credential material. Must never be exposed to UI components or
+ * persisted as the ZAF application session.
+ */
+export interface PiCredential {
+  accessToken: string;
 }
 
 export interface PiAuthResult {
