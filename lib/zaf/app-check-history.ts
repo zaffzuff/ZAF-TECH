@@ -87,8 +87,6 @@ export async function getLatestAppChecks(limit = 20) {
   const sql = getClient();
   if (!sql) return null;
 
-  await ensureAppChecksTable();
-
   return sql`
     SELECT DISTINCT ON (url)
       app_name AS "appName",
@@ -110,8 +108,6 @@ export async function getLatestAppChecks(limit = 20) {
 export async function getAppCheckHistory(url: string, limit = 50) {
   const sql = getClient();
   if (!sql) return null;
-
-  await ensureAppChecksTable();
 
   return sql`
     SELECT
