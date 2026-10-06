@@ -3,7 +3,7 @@ import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib
 
 type StoredPayload = {
   apps?: { totalCount?: number | null };
-  sources?: Array<{ id: string; label: string; status: string }>;
+  sources?: Array<{ id: string; label: string; status: string }>;\n  news?: Array<{ title: string; url: string; publishedAt: string | null }>;
   signals?: Array<{
     id: string;
     title: string;
@@ -22,7 +22,7 @@ type StoredPayload = {
 };
 
 export type EcosystemChange = {
-  type: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+  type: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status" | "official_update";
   key: string;
   title: string;
   detail: string;
@@ -92,6 +92,24 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         category: "source_status",
         sourceUrl: source.url,
         observedAt: source.checkedAt,
+      });
+    }
+  }
+
+  const previousNews = new Map((previous.news ?? []).map(item => [item.url, item]));
+  for (const item of current.news ?? []) {
+    if (!previousNews.has(item.url)) {
+      changes.push({
+        type: "official_update",
+        key: item.url,
+        title: item.title,
+        detail: "A new publication was observed on the official Pi Network blog.",
+        detailTr: "Pi Network resmi blogunda yeni bir yayın gözlemlendi.",
+        previous: null,
+        current: item.title,
+        category: "official_update",
+        sourceUrl: item.url,
+        observedAt: item.publishedAt ?? current.generatedAt,
       });
     }
   }
