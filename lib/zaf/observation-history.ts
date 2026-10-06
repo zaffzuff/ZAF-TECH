@@ -127,7 +127,6 @@ export async function getObservationHistory(limit = 336) {
   const sql = getClient();
   if (!sql) return [];
   try {
-    await ensureTable(sql);
     const safeLimit = Math.min(Math.max(limit, 1), 1000);
     return await sql`
       SELECT
@@ -161,7 +160,6 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
   const sql = getClient();
   if (!sql) return null;
   try {
-    await ensureTable(sql);
     const cutoffMs = Date.parse(beforeGeneratedAt) - (minAgeSeconds * 1000);
     if (!Number.isFinite(cutoffMs)) return null;
     const cutoff = new Date(cutoffMs).toISOString();
@@ -199,7 +197,6 @@ export async function getRollingObservationBaseline(beforeGeneratedAt: string, w
   const sql = getClient();
   if (!sql) return null;
   try {
-    await ensureTable(sql);
     const generatedAtMs = Date.parse(beforeGeneratedAt);
     if (!Number.isFinite(generatedAtMs)) return null;
 
