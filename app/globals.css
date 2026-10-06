@@ -375,11 +375,17 @@
   .zaf-main-shell .zaf-secondary-tabs {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   }
 
   .zaf-main-shell .zaf-secondary-tab {
     width: 100%;
+    min-height: 30px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 0.6875rem;
     text-align: center;
   }
 
@@ -399,5 +405,15 @@
 @media (min-width: 1440px) {
   .zaf-main-shell .zaf-graph-layout {
     grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}
+
+/* Keep navigation fully contained on mobile: no horizontal scrolling. */
+@media (max-width: 1023px) {
+  .zaf-main-shell .zaf-primary-tab,
+  .zaf-main-shell .zaf-secondary-tab {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
   }
 }
