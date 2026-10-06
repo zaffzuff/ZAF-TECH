@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!isHistoryStorageConfigured()) {
-    return NextResponse.json({ configured: false, records: [], summary: null }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    return NextResponse.json({ configured: false, records: [], summary: null }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } });
   }
 
   try {
@@ -46,11 +46,11 @@ export async function GET() {
       latestCheckedAt: latestCheckedAt ? new Date(latestCheckedAt).toISOString() : null,
       records: enriched,
       summary: { checked: enriched.length, averageScore, healthy, degraded, limited, offline, declining, improving, stale, attention },
-    }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } });
   } catch {
     return NextResponse.json(
       { configured: true, records: [], summary: null, error: "Stored App Health history is temporarily unavailable." },
-      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+      { status: 503, headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },
     );
   }
 }
