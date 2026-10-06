@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDefiObservation } from "@/lib/zaf/defi-observation";
 import {
   compareDefiSnapshots,
-  getDefiSnapshotHistory,
   getLatestDefiSnapshot,
   isDefiHistoryConfigured,
-  saveDefiSnapshot,
   toDefiHistorySnapshot,
 } from "@/lib/zaf/defi-history";
 
@@ -26,8 +24,6 @@ export async function GET(request: NextRequest) {
   const currentSnapshot = toDefiHistorySnapshot(observation);
   const previousSnapshot = isDefiHistoryConfigured() ? await getLatestDefiSnapshot() : null;
   const alerts = compareDefiSnapshots(currentSnapshot, previousSnapshot);
-  if (observation.summary.state !== "unavailable") await saveDefiSnapshot(currentSnapshot);
-
   return NextResponse.json({
     ...observation,
     history: {
@@ -36,6 +32,6 @@ export async function GET(request: NextRequest) {
       alerts,
     },
   }, {
-    headers: { "Cache-Control": "no-store, max-age=0" },
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
   });
 }
