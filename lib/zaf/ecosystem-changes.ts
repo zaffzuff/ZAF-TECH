@@ -30,7 +30,7 @@ export type EcosystemChange = {
   detailTr: string;
   previous: string | number | null;
   current: string | number | null;
-  category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+  category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status" | "official_update";
   sourceUrl?: string | null;
   observedAt?: string | null;
 };
