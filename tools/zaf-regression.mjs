@@ -333,6 +333,9 @@ if (publicDefiRoute.includes("saveDefiSnapshot")) {
 }
 
 const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+if (vercelConfig.git?.deploymentEnabled !== false) {
+  throw new Error("Automatic Vercel Git deployments must remain disabled");
+}
 for (const cron of vercelConfig.crons ?? []) {
   if (!/^0 3 \* \* \*$/.test(cron.schedule)) {
     throw new Error("Vercel Hobby-safe cron regression: " + cron.schedule);
