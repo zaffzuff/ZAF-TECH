@@ -314,6 +314,19 @@ for (const cron of vercelConfig.crons ?? []) {
   }
 }
 
+const piTypes = fs.readFileSync(path.join(root, "lib/pi/types.ts"), "utf8");
+if (/accessToken\s*:\s*string/.test(piTypes.match(/interface PiUser[\\s\\S]*?\\n}\\n/)?.[0] ?? "")) {
+  throw new Error("Pi user model must not expose accessToken");
+}
+const piService = fs.readFileSync(path.join(root, "lib/pi/pi-service.ts"), "utf8");
+if (piService.includes("window.Pi") || piService.includes("Pi.init") || piService.includes("createPayment")) {
+  throw new Error("Pi service boundary must remain SDK-free before integration enablement");
+}
+const piConfig = fs.readFileSync(path.join(root, "lib/pi/pi-config.ts"), "utf8");
+if (!piConfig.includes("PI_FEATURES_ENABLED = false")) {
+  throw new Error("Pi features must remain disabled during foundation freeze");
+}
+
 console.log("ZAF TECH v1.1 regression checks passed.");
 
 
