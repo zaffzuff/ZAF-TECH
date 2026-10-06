@@ -10,7 +10,7 @@ export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
   testnet: ["Assets"],
   defi: ["Overview", "DEX", "AMM & Pools", "Tokens", "Launchpad"],
   node: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
-  intelligence: ["Radar", "Activity Signals", "Explorer"],
+  intelligence: ["Radar", "Activity Signals", "Graph", "Explorer"],
   wallet: [],
 };
 
@@ -40,6 +40,7 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Observatory: ["Observatory", "Gözlem Merkezi", "Observatorio", "观测中心", "Osservatorio", "Observatoire", "Beobachtungszentrum", "Observatório", "Наблюдательный Центр"],
   Radar: ["Radar", "Radar", "Radar", "雷达", "Radar", "Radar", "Radar", "Radar", "Радар"],
   "Activity Signals": ["Activity Signals", "Aktivite Sinyalleri", "Señales De Actividad", "活动信号", "Segnali Di Attività", "Signaux D’activité", "Aktivitätssignale", "Sinais De Atividade", "Сигналы Активности"],
+  Graph: ["Graph", "Graf", "Gráfico", "图谱", "Grafo", "Graphe", "Graph", "Grafo", "Граф"],
   Explorer: ["Explorer", "Explorer", "Explorador", "浏览器", "Esplora", "Explorateur", "Explorer", "Explorador", "Обозреватель"],
   Wallet: ["Wallet", "Cüzdan", "Billetera", "钱包", "Wallet", "Portefeuille", "Wallet", "Carteira", "Кошелёк"],
   Search: ["Search", "Ara", "Buscar", "搜索", "Cerca", "Rechercher", "Suche", "Pesquisar", "Поиск"],

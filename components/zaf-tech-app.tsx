@@ -18,6 +18,7 @@ import { ZafEcosystemStaking } from "@/components/zaf-ecosystem-staking";
 import { ZafTestnetAssets } from "@/components/zaf-testnet-assets";
 import { ZafDefiObservatory } from "@/components/zaf-defi-observatory";
 import { ZafLaunchpadObservatory } from "@/components/zaf-launchpad-observatory";
+import { ZafEcosystemGraph } from "@/components/zaf-ecosystem-graph";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { APP_CATEGORIES, toDirectoryApp, type AppCategory } from "@/lib/zaf/app-directory";
@@ -679,6 +680,7 @@ export function ZafTechApp() {
         {!loading && section === "wallet" ? <ZafWalletIntelligence locale={locale} /> : null}
 
         {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ObservatoryStatisticsView locale={locale} tr={tr} refreshNonce={refreshNonce} currentProtocol={snapshot?.metrics.latestProtocolVersion ?? null} currentObservedAt={snapshot?.generatedAt ?? null} /> : null}
+        {!loading && section === "intelligence" && subtab === "Graph" ? <ZafEcosystemGraph locale={locale} tr={tr} /> : null}
 
         {!loading && section === "intelligence" && subtab === "Explorer" ? <ObservatoryExplorerView apps={apps} sources={ecosystem?.sources ?? []} snapshot={snapshot} locale={locale} tr={tr} /> : null}
 

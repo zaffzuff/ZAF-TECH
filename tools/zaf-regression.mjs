@@ -14,6 +14,9 @@ const required = [
   "lib/zaf/launchpad-observation.ts",
   "app/api/zaf/launchpad/route.ts",
   "components/zaf-launchpad-observatory.tsx",
+  "lib/zaf/ecosystem-graph.ts",
+  "app/api/zaf/ecosystem/graph/route.ts",
+  "components/zaf-ecosystem-graph.tsx",
   "app/api/zaf/assets/route.ts",
   "components/zaf-testnet-assets.tsx",
   "lib/zaf/ecosystem-history.ts",
@@ -274,4 +277,24 @@ for (const token of ["Launchpad Observatory", "Published Launch Evidence", "IRRA
 
 for (const token of ["Launchpad", "ZafLaunchpadObservatory"]) {
   if (!app.includes(token)) throw new Error("Launchpad navigation/mount regression: " + token);
+}
+
+
+const ecosystemGraph = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-graph.ts"), "utf8");
+for (const token of ["getEcosystemGraph", "networkScope", "published-staking-evidence", "observed-pair", "launch-token", "Promise.allSettled"]) {
+  if (!ecosystemGraph.includes(token)) throw new Error("Ecosystem graph model regression: " + token);
+}
+
+const ecosystemGraphRoute = fs.readFileSync(path.join(root, "app/api/zaf/ecosystem/graph/route.ts"), "utf8");
+for (const token of ["getEcosystemGraph", "network", "maxNodes", "Cache-Control"]) {
+  if (!ecosystemGraphRoute.includes(token)) throw new Error("Ecosystem graph API regression: " + token);
+}
+
+const ecosystemGraphUI = fs.readFileSync(path.join(root, "components/zaf-ecosystem-graph.tsx"), "utf8");
+for (const token of ["Ecosystem Graph", "Observed relationships", "Network Filter", "Node Type", "selectedNode", "read-only"]) {
+  if (!ecosystemGraphUI.includes(token)) throw new Error("Ecosystem graph UI regression: " + token);
+}
+
+for (const token of ["Graph", "ZafEcosystemGraph"]) {
+  if (!app.includes(token)) throw new Error("Ecosystem graph navigation/mount regression: " + token);
 }
