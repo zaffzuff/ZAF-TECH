@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ...snapshot, analytics }, {
       status,
-      headers: { "Cache-Control": "no-store, max-age=0" },
+      headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60" },
     });
   } catch (error) {
     return NextResponse.json(
