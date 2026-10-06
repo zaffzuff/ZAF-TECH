@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDefiSnapshotHistory, isDefiHistoryConfigured } from "@/lib/zaf/defi-history";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 export async function GET(request: NextRequest) {
   const rawLimit = Number(request.nextUrl.searchParams.get("limit") ?? "50");
