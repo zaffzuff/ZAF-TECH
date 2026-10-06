@@ -9,6 +9,27 @@ import { calculateNodeHealth } from "@/lib/zaf/node-health";
 const NODE_KEY_STORAGE = "zaf-tech-node-public-key-v1";
 const MIN_CONNECTOR_VERSION = "1.6.0";
 
+function nodeLabel(locale: Locale, value: "Offline" | "Connected" | "Available" | "Unavailable" | "Checking…" | "Copied" | "Copy Key" | "Synced" | "Catching Up" | "Error" | "Not Detected" | "Healthy" | "Degraded" | "Limited") {
+  const labels: Record<typeof value, [string, string, string, string, string, string, string, string, string]> = {
+    Offline: ["Offline", "Çevrimdışı", "Fuera de línea", "离线", "Offline", "Hors ligne", "Offline", "Offline", "Офлайн"],
+    Connected: ["Connected", "Bağlı", "Conectado", "已连接", "Connesso", "Connecté", "Verbunden", "Conectado", "Подключено"],
+    Available: ["Available", "Hazır", "Disponible", "可用", "Disponibile", "Disponible", "Verfügbar", "Disponível", "Доступно"],
+    Unavailable: ["Unavailable", "Kullanılamıyor", "No disponible", "不可用", "Non disponibile", "Indisponible", "Nicht verfügbar", "Indisponível", "Недоступно"],
+    "Checking…": ["Checking…", "Kontrol ediliyor…", "Comprobando…", "检查中…", "Controllo…", "Vérification…", "Wird geprüft…", "Verificando…", "Проверка…"],
+    Copied: ["Copied", "Kopyalandı", "Copiado", "已复制", "Copiato", "Copié", "Kopiert", "Copiado", "Скопировано"],
+    "Copy Key": ["Copy Key", "Anahtarı Kopyala", "Copiar clave", "复制密钥", "Copia chiave", "Copier la clé", "Schlüssel kopieren", "Copiar chave", "Копировать ключ"],
+    Synced: ["Synced", "Senkronize", "Sincronizado", "已同步", "Sincronizzato", "Synchronisé", "Synchronisiert", "Sincronizado", "Синхронизирован"],
+    "Catching Up": ["Catching Up", "Yetişiyor", "Poniéndose al día", "追赶中", "Recupero", "Rattrapage", "Aufholend", "Recuperando", "Синхронизация"],
+    Error: ["Error", "Hata", "Error", "错误", "Errore", "Erreur", "Fehler", "Erro", "Ошибка"],
+    "Not Detected": ["Not Detected", "Bulunamadı", "No detectado", "未检测到", "Non rilevato", "Non détecté", "Nicht erkannt", "Não detectado", "Не обнаружено"],
+    Healthy: ["Healthy", "Sağlıklı", "Saludable", "健康", "Sano", "Sain", "Gesund", "Saudável", "Здоровый"],
+    Degraded: ["Degraded", "Düşük", "Degradado", "降级", "Degradato", "Dégradé", "Beeinträchtigt", "Degradado", "Ухудшено"],
+    Limited: ["Limited", "Sınırlı", "Limitado", "有限", "Limitato", "Limité", "Begrenzt", "Limitado", "Ограничено"],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[value][index];
+}
+
 function formatNumber(value: number | null, locale: Locale, digits = 0) {
   if (value == null || !Number.isFinite(value)) return "—";
   return value.toLocaleString(intlLocale(locale), {
@@ -218,7 +239,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
-        <NodeMetric label={tr("Connector Status", "Connector Durumu")} value={localNodeLoading ? "…" : localNodeError ? tr("Offline", "Çevrimdışı") : tr("Connected", "Bağlı")} detail={tr("Live localhost diagnostic connection", "Canlı localhost teşhis bağlantısı")} />
+        <NodeMetric label={tr("Connector Status", "Connector Durumu")} value={localNodeLoading ? "…" : localNodeError ? nodeLabel(locale, "Offline") : nodeLabel(locale, "Connected")} detail={tr("Live localhost diagnostic connection", "Canlı localhost teşhis bağlantısı")} />
         <NodeMetric label={tr("Observed Protocol", "Gözlemlenen Protokol")} value={localNode?.node?.protocol != null ? `v${localNode.node.protocol}` : "—"} detail={tr("Reported by the local Pi Node when available", "Yerel Pi Node tarafından bildirildiğinde gösterilir")} />
         <NodeMetric label={tr("Local Listeners", "Yerel Dinleyiciler")} value={localNode?.ports ? `${localNode.ports.filter((item) => item.listeningLocally).length}/10` : "—"} detail={tr("Local port listeners only; not an Internet reachability test", "Yalnızca Yerel port dinleyicileri; Internet erişilebilirlik testi değildir")} />
         <NodeMetric label={tr("Ledger Age", "Ledger Yaşı")} value={localNode?.node?.ledger?.age != null ? `${localNode.node.ledger.age}s` : "—"} detail={tr("Age reported by local Stellar Core", "Yerel Stellar Core tarafından bildirilen yaş")} />
@@ -330,7 +351,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
                 {tr("Stored Locally", "Yerel Olarak Saklandı")}: <span className="font-mono">{shortenKey(publicKey)}</span>
               </span>
               <button type="button" onClick={copyIdentity} className="text-foreground underline underline-offset-2">
-                {copied ? tr("Copied", "Kopyalandı") : tr("Copy Key", "Anahtarı Kopyala")}
+                {copied ? nodeLabel(locale, "Copied") : nodeLabel(locale, "Copy Key")}
               </button>
             </>
           ) : null}
@@ -445,7 +466,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             disabled={localNodeLoading}
             className="w-full shrink-0 rounded-lg border border-border px-3 py-2 text-center text-xs font-medium text-foreground hover:bg-muted disabled:opacity-50 sm:w-auto"
           >
-            {localNodeLoading ? tr("Checking…", "Kontrol ediliyor…") : tr("Refresh Local Node", "Yerel Node'u Yenile")}
+            {localNodeLoading ? nodeLabel(locale, "Checking…") : tr("Refresh Local Node", "Yerel Node'u Yenile")}
           </button>
         </div>
 
@@ -454,14 +475,14 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             [
               tr("Local Connector", "Yerel Bağlantı"),
               localNodeLoading
-                ? tr("Checking…", "Kontrol ediliyor…")
+                ? nodeLabel(locale, "Checking…")
                 : localNodeError
-                  ? tr("Not Detected", "Bulunamadı")
-                  : tr("Connected", "Bağlı"),
+                  ? nodeLabel(locale, "Not Detected")
+                  : nodeLabel(locale, "Connected"),
             ],
             [
               tr("Docker", "Docker"),
-              localNode?.connector?.docker ? tr("Available", "Hazır") : tr("Unavailable", "Kullanılamıyor"),
+              localNode?.connector?.docker ? nodeLabel(locale, "Available") : nodeLabel(locale, "Unavailable"),
             ],
             [
               tr("Node Container", "Node Container"),
@@ -470,13 +491,13 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             [
               tr("Sync", "Senkronizasyon"),
               ["synced", "synced!"].includes(String(localNode?.node?.sync || "").toLowerCase())
-                ? tr("Synced", "Senkronize")
+                ? nodeLabel(locale, "Synced")
                 : localNode?.node?.sync === "catching_up"
-                  ? tr("Catching Up", "Yetişiyor")
+                  ? nodeLabel(locale, "Catching Up")
                   : localNode?.node?.sync === "joining_scp"
                     ? "Joining SCP"
                     : localNode?.node?.sync === "error"
-                      ? tr("Error", "Hata")
+                      ? nodeLabel(locale, "Error")
                       : "—",
             ],
           ].map(([label, value]) => (
@@ -613,7 +634,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             <div className="rounded-lg border border-border px-3 py-3">
               <div className="text-[10px] text-muted-foreground">{tr("Docker Network", "Docker Ağı")}</div>
               <div className="mt-1 text-sm font-semibold text-foreground">↓ {formatBytes(localResources?.docker?.network?.receivedBytes)} · ↑ {formatBytes(localResources?.docker?.network?.sentBytes)}</div>
-              <div className="mt-1 text-[10px] text-muted-foreground">{tr("WSL", "WSL")}: {localResources?.wsl?.available ? tr("Available", "Hazır") : tr("Unavailable", "Kullanılamıyor")}</div>
+              <div className="mt-1 text-[10px] text-muted-foreground">{tr("WSL", "WSL")}: {localResources?.wsl?.available ? nodeLabel(locale, "Available") : nodeLabel(locale, "Unavailable")}</div>
             </div>
           </div>
           <div className="mt-2 text-[10px] text-muted-foreground">{tr("Host Network", "Host Ağı")}: ↓ {formatBytes(localResources?.host?.network?.receivedBytes)} · ↑ {formatBytes(localResources?.host?.network?.sentBytes)} · {tr("Docker Block I/O", "Docker Block I/O")}: R {formatBytes(localResources?.docker?.blockIO?.readBytes)} / W {formatBytes(localResources?.docker?.blockIO?.writeBytes)}</div>
