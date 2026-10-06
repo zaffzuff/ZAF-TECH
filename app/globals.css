@@ -522,3 +522,56 @@
     height: 20px;
   }
 }
+
+
+/* Locale-safe containment rules.
+   Translated labels and externally sourced identifiers must be allowed to
+   shrink/wrap instead of expanding cards, flex rows, or navigation. */
+.zaf-main-shell,
+.zaf-main-shell * {
+  box-sizing: border-box;
+}
+
+.zaf-main-shell :where(.flex, .grid) {
+  min-width: 0;
+}
+
+.zaf-main-shell :where(.flex > *, .grid > *) {
+  min-width: 0;
+}
+
+.zaf-main-shell :where(button, a, label, th, td, p, span, div) {
+  overflow-wrap: anywhere;
+}
+
+.zaf-main-shell :where(button, a) {
+  max-width: 100%;
+}
+
+.zaf-main-shell :where(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.zaf-main-shell :where(table) {
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .zaf-desktop-search {
+    width: 210px;
+    max-width: min(210px, 100%);
+    flex: 0 1 210px;
+  }
+
+  .zaf-desktop-search input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .zaf-main-shell :where(button, a) {
+    line-height: 1.35;
+  }
+}
