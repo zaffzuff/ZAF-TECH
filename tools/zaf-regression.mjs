@@ -272,7 +272,7 @@ if (!workflow.includes("npm run regression")) throw new Error("CI regression gat
 const apiSecurityRoutes = {
   "app/api/apps/check/route.ts": ["rateLimit", "checkAppHealth", "Cache-Control"],
   "app/api/apps/health/route.ts": ["getLatestAppChecks", "Cache-Control"],
-  "app/api/apps/health/cron/route.ts": ["CRON_SECRET", "Authorization", "no-store"],
+  "app/api/apps/health/cron/route.ts": ["CRON_SECRET", "authorization", "no-store"],
   "app/api/zaf/observations/route.ts": ["getUnifiedObservation", "Cache-Control"],
   "app/api/zaf/observations/cron/route.ts": ["CRON_SECRET", "saveObservationSnapshot", "no-store"],
   "app/api/zaf/defi/route.ts": ["getDefiObservation", "Cache-Control"],
