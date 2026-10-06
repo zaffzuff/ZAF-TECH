@@ -417,3 +417,25 @@
     text-align: center;
   }
 }
+
+
+/* Navigation redesign: desktop hierarchy + mobile bottom navigation */
+.zaf-desktop-primary-nav { box-shadow: 0 10px 28px oklch(0.05 0.01 265 / 0.10); }
+.zaf-desktop-primary-item { min-height: 58px; }
+.zaf-desktop-secondary-nav { min-height: 30px; }
+.zaf-desktop-secondary-item { line-height: 1.2; }
+.zaf-mobile-context { backdrop-filter: blur(14px); }
+.zaf-mobile-bottom-nav { display: block; }
+.zaf-mobile-bottom-nav button { min-height: 44px; }
+.zaf-mobile-more-menu { animation: ty-fade-up 0.18s ease both; }
+
+@media (max-width: 1023px) {
+  .zaf-main-shell { padding-bottom: 6.5rem !important; }
+  .zaf-navigation { margin-top: 12px; padding-top: 12px; }
+  .zaf-mobile-subtabs { width: 100%; }
+  .zaf-mobile-subtab { min-height: 38px; white-space: normal; overflow-wrap: anywhere; }
+}
+
+@media (min-width: 1024px) {
+  .zaf-mobile-bottom-nav { display: none; }
+}
