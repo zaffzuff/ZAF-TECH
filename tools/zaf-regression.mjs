@@ -323,6 +323,11 @@ const piService = fs.readFileSync(path.join(root, "lib/pi/pi-service.ts"), "utf8
 if (piService.includes("window.Pi") || piService.includes("Pi.init") || piService.includes("createPayment")) {
   throw new Error("Pi service boundary must remain SDK-free before integration enablement");
 }
+const ecosystemChanges = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-changes.ts"), "utf8");
+for (const token of ["official_update", "current.news", "official Pi Network blog"]) {
+  if (!ecosystemChanges.includes(token)) throw new Error("Official Pi update sync regression: " + token);
+}
+
 const piConfig = fs.readFileSync(path.join(root, "lib/pi/pi-config.ts"), "utf8");
 if (!piConfig.includes("PI_FEATURES_ENABLED = false")) {
   throw new Error("Pi features must remain disabled during foundation freeze");
