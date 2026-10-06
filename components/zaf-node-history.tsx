@@ -71,7 +71,7 @@ function formatBytes(value: number | null | undefined) {
   return (n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)) + " " + units[i];
 }
 
-function label(locale: Locale, value: "Healthy" | "Available" | "Available With Warnings" | "Unavailable" | "Average" | "Maximum" | "Incoming" | "Outgoing" | "Time" | "Status" | "Pending" | "Incoming / outgoing peer history") {
+function label(locale: Locale, value: "Healthy" | "Available" | "Available With Warnings" | "Unavailable" | "Average" | "Maximum" | "Incoming" | "Outgoing" | "Time" | "Status" | "Pending" | "Restarts" | "Incoming / outgoing peer history") {
   const labels: Record<typeof value, [string, string, string, string, string, string, string, string, string]> = {
     Healthy: ["Healthy", "Sağlıklı", "Saludable", "健康", "Sano", "Sain", "Gesund", "Saudável", "Здоровый"],
     Available: ["Available", "Çalışıyor", "Disponible", "可用", "Disponibile", "Disponible", "Verfügbar", "Disponível", "Доступно"],
@@ -84,6 +84,7 @@ function label(locale: Locale, value: "Healthy" | "Available" | "Available With 
     Time: ["Time", "Zaman", "Hora", "时间", "Ora", "Heure", "Zeit", "Hora", "Время"],
     Status: ["Status", "Durum", "Estado", "状态", "Stato", "Statut", "Status", "Status", "Статус"],
     Pending: ["Pending", "Bekleyen", "Pendiente", "待处理", "In attesa", "En attente", "Ausstehend", "Pendente", "Ожидает"],
+    Restarts: ["Restarts", "Yeniden Başlatma", "Reinicios", "重启", "Riavvii", "Redémarrages", "Neustarts", "Reinícios", "Перезапуски"],
     "Incoming / outgoing peer history": ["Incoming / outgoing peer history", "Gelen / giden peer geçmişi", "Historial de peers entrantes / salientes", "传入 / 传出节点历史", "Cronologia peer in entrata / uscita", "Historique des pairs entrants / sortants", "Verlauf eingehender / ausgehender Peers", "Histórico de peers recebidos / enviados", "История входящих / исходящих пиров"],
   };
   const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
@@ -502,7 +503,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
                   <th className="px-3 py-2">{label(locale, "Pending")}</th>
                   <th className="px-3 py-2">{historyLabel(locale, "Ledger Age")}</th>
                   <th className="px-3 py-2">{historyLabel(locale, "Listeners")}</th>
-                  <th className="px-3 py-2">{tr("Restarts", "Yeniden Başlatma")}</th>
+                  <th className="px-3 py-2">{label(locale, "Restarts")}</th>
                   <th className="px-3 py-2">SCP</th>
                 </tr>
               </thead>
