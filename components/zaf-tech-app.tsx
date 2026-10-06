@@ -237,17 +237,24 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
 
   return (
     <div className={`relative w-full sm:max-w-sm lg:max-w-lg ${compact ? "zaf-desktop-search" : ""}`}>
-      <div className="flex gap-1.5">
+      <div className="relative">
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") void submit(); }}
           placeholder={tr("Search ecosystem, apps, signals, or ledgers…", "Ekosistem, uygulama, sinyal veya ledger ara…")}
           aria-label={tr("Global Search", "Genel Arama")}
-          className="min-w-0 flex-1 rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-lg border border-border bg-card px-3 py-2 pr-9 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
         />
-        <button type="button" onClick={() => void submit()} disabled={loading} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">
-          {loading ? "…" : tr("Search", "Ara")}
+        <button
+          type="button"
+          onClick={() => void submit()}
+          disabled={loading}
+          aria-label={tr("Search", "Ara")}
+          title={tr("Search", "Ara")}
+          className="absolute right-1 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+        >
+          <SearchIcon size={15} />
         </button>
       </div>
       {resultsView}
