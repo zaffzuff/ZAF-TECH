@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import { saveObservationSnapshot } from "@/lib/zaf/observation-history";
 import type { ObservationHistoryRecord } from "@/lib/zaf/observation-history";
+import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,17 @@ export async function GET(request: Request) {
   };
 
   const saved = await saveObservationSnapshot(record);
+  const ecosystemSaved = ecosystem
+    ? await saveEcosystemSnapshot({
+        generatedAt: observation.generatedAt,
+        sourceAvailable: ecosystem.apps.sourceAvailable,
+        observedAppCount: ecosystem.apps.totalCount,
+        payload: ecosystem as unknown as Record<string, unknown>,
+      })
+    : false;
 
   return NextResponse.json(
-    { ok: saved, generatedAt: observation.generatedAt },
+    { ok: saved, ecosystemSaved, generatedAt: observation.generatedAt },
     { headers: { "Cache-Control": "no-store, max-age=0" } },
   );
 }
