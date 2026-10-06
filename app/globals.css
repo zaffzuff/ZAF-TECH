@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* TEKYILDIZ — premium dark, gold + silver accents. Dark-only: tokens defined in
+/* ZAF TECH — premium dark, gold + silver accents. Dark-only: tokens defined in
    both :root and .dark so the palette holds regardless of class ordering. */
 :root {
   --background: oklch(0.16 0.008 265);
