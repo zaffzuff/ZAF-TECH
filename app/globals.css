@@ -471,9 +471,9 @@
 
 @media (min-width: 1024px) {
   .zaf-desktop-search {
-    width: 250px;
-    max-width: 250px;
-    flex: 0 0 250px;
+    width: 210px;
+    max-width: 210px;
+    flex: 0 0 210px;
   }
 
   .zaf-desktop-search input {
