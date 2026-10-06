@@ -338,6 +338,39 @@ if (!piConfig.includes("PI_FEATURES_ENABLED = false")) {
   throw new Error("Pi features must remain disabled during foundation freeze");
 }
 
+const piBoundaryRoots = ["app", "components", "lib"];
+function walkSourceFiles(directory) {
+  const files = [];
+  const absolute = path.join(root, directory);
+  if (!fs.existsSync(absolute)) return files;
+  for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
+    const full = path.join(absolute, entry.name);
+    if (entry.isDirectory()) files.push(...walkSourceFiles(path.join(directory, entry.name)));
+    else if (entry.isFile() && /\\.(ts|tsx|js|jsx)$/.test(entry.name)) files.push(full);
+  }
+  return files;
+}
+
+for (const directory of piBoundaryRoots) {
+  for (const file of walkSourceFiles(directory)) {
+    const relative = path.relative(root, file).replaceAll("\\\\", "/");
+    if (relative.startsWith("lib/pi/")) continue;
+    const source = fs.readFileSync(file, "utf8");
+    for (const token of ["window.Pi", "Pi.init", "createPayment", "Pi.authenticate", "NEXT_PUBLIC_PI_API_KEY"]) {
+      if (source.includes(token)) throw new Error("Pi SDK/API escaped integration boundary: " + relative + " -> " + token);
+    }
+  }
+}
+
+const piTypesSource = fs.readFileSync(path.join(root, "lib/pi/types.ts"), "utf8");
+const piUserMatch = piTypesSource.match(/interface PiUser[\\s\\S]*?\\n}/);
+if (piUserMatch && /\\baccessToken\\s*:/.test(piUserMatch[0])) {
+  throw new Error("PiUser must not expose accessToken to UI-facing identity data");
+}
+if (!/interface PiCredential[\\s\\S]*?accessToken\\s*:\\s*string/.test(piTypesSource)) {
+  throw new Error("PiCredential boundary type must retain server-side credential representation");
+}
+
 console.log("ZAF TECH v1.1 regression checks passed.");
 
 
