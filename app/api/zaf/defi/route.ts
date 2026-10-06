@@ -22,7 +22,20 @@ export async function GET(request: NextRequest) {
   }
 
   const limit = Number(request.nextUrl.searchParams.get("limit") ?? "100");
-  return NextResponse.json(await getDefiObservation(Number.isFinite(limit) ? limit : 100), {
+  const observation = await getDefiObservation(Number.isFinite(limit) ? limit : 100);
+  const currentSnapshot = toDefiHistorySnapshot(observation);
+  const previousSnapshot = isDefiHistoryConfigured() ? await getLatestDefiSnapshot() : null;
+  const alerts = compareDefiSnapshots(currentSnapshot, previousSnapshot);
+  if (observation.summary.state !== "unavailable") await saveDefiSnapshot(currentSnapshot);
+
+  return NextResponse.json({
+    ...observation,
+    history: {
+      configured: isDefiHistoryConfigured(),
+      previousObservedAt: previousSnapshot?.generatedAt ?? null,
+      alerts,
+    },
+  }, {
     headers: { "Cache-Control": "no-store, max-age=0" },
   });
 }
