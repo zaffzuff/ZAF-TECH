@@ -49,6 +49,22 @@ type WalletViewData = ZafWalletSnapshot & {
   };
 };
 
+function label(locale: Locale, value: "Checking…" | "Inspect" | "Copy" | "Explorer" | "Successful" | "Failed" | "Success" | "Enter a valid public Pi wallet address." | "Wallet lookup failed.") {
+  const labels: Record<typeof value, [string, string, string, string, string, string, string, string, string]> = {
+    "Checking…": ["Checking…", "Kontrol Ediliyor…", "Comprobando…", "检查中…", "Controllo…", "Vérification…", "Wird geprüft…", "Verificando…", "Проверка…"],
+    Inspect: ["Inspect", "İncele", "Inspeccionar", "检查", "Ispeziona", "Inspecter", "Prüfen", "Inspecionar", "Проверить"],
+    Copy: ["Copy", "Kopyala", "Copiar", "复制", "Copia", "Copier", "Kopieren", "Copiar", "Копировать"],
+    Explorer: ["Explorer", "Explorer", "Explorador", "浏览器", "Explorer", "Explorateur", "Explorer", "Explorador", "Обозреватель"],
+    Successful: ["Successful", "Başarılı", "Exitosas", "成功", "Riuscite", "Réussies", "Erfolgreich", "Bem-sucedidas", "Успешные"],
+    Failed: ["Failed", "Başarısız", "Fallidas", "失败", "Fallite", "Échouées", "Fehlgeschlagen", "Falhas", "Неуспешные"],
+    Success: ["Success", "Başarılı", "Éxito", "成功", "Successo", "Réussite", "Erfolg", "Sucesso", "Успех"],
+    "Enter a valid public Pi wallet address.": ["Enter a valid public Pi wallet address.", "Geçerli bir herkese açık Pi cüzdan adresi girin.", "Introduce una dirección pública válida de billetera Pi.", "请输入有效的公开 Pi 钱包地址。", "Inserisci un indirizzo pubblico valido del wallet Pi.", "Saisissez une adresse publique Pi valide.", "Geben Sie eine gültige öffentliche Pi-Wallet-Adresse ein.", "Insira um endereço público válido da carteira Pi.", "Введите корректный публичный адрес Pi-кошелька."],
+    "Wallet lookup failed.": ["Wallet lookup failed.", "Cüzdan sorgusu başarısız.", "No se pudo consultar la billetera.", "钱包查询失败。", "Ricerca del wallet non riuscita.", "Échec de la recherche du portefeuille.", "Wallet-Abfrage fehlgeschlagen.", "Falha na consulta da carteira.", "Не удалось проверить кошелёк."],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[value][index];
+}
+
 function Card({ title, value, detail }: { title: string; value: string; detail?: string }) {
   return <div className="rounded-xl border border-border bg-card p-3 sm:p-4"><div className="text-xl font-bold ty-nums text-foreground sm:text-2xl">{value}</div><div className="mt-1 text-xs font-medium text-foreground">{title}</div>{detail ? <div className="mt-1 text-[11px] text-muted-foreground">{detail}</div> : null}</div>;
 }
@@ -66,7 +82,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
   async function lookup() {
     const normalized = address.trim().toUpperCase();
     if (!/^G[A-Z2-7]{55}$/.test(normalized)) {
-      setError(tr("Enter a valid public Pi wallet address.", "Geçerli bir herkese açık Pi cüzdan adresi girin."));
+      setError(label(locale, "Enter a valid public Pi wallet address."));
       setData(null);
       return;
     }
@@ -75,12 +91,12 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
     try {
       const response = await fetch(`/api/zaf/wallet?address=${encodeURIComponent(normalized)}&network=${network}`, { cache: "no-store" });
       const body = await response.json();
-      if (!response.ok && body?.exists !== false) throw new Error(body?.error ?? tr("Wallet lookup failed.", "Cüzdan sorgusu başarısız."));
+      if (!response.ok && body?.exists !== false) throw new Error(body?.error ?? label(locale, "Wallet lookup failed."));
       setData(body);
       if (body?.exists === false) setError(tr("No account was found for this address on the selected network.", "Seçilen ağda bu adres için hesap bulunamadı."));
     } catch (err) {
       setData(null);
-      setError(err instanceof Error ? err.message : tr("Wallet lookup failed.", "Cüzdan sorgusu başarısız."));
+      setError(err instanceof Error ? err.message : label(locale, "Wallet lookup failed."));
     } finally {
       setLoading(false);
     }
@@ -99,7 +115,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
           <option value="mainnet">{tr("Pi Mainnet", "Pi Mainnet")}</option>
           <option value="testnet">{tr("Pi Testnet", "Pi Testnet")}</option>
         </select>
-        <button type="button" onClick={() => void lookup()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2.5 text-xs font-medium text-background disabled:opacity-50">{loading ? tr("Checking…", "Kontrol Ediliyor…") : tr("Inspect", "İncele")}</button>
+        <button type="button" onClick={() => void lookup()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2.5 text-xs font-medium text-background disabled:opacity-50">{loading ? label(locale, "Checking…") : label(locale, "Inspect")}</button>
       </div>
       {error ? <p className="mt-2 text-[11px] text-muted-foreground">{error}</p> : null}
     </div>
@@ -109,8 +125,8 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0"><div className="text-[10px] text-muted-foreground">{tr("Public Address", "Herkese Açık Adres")}</div><div className="mt-1 break-all font-mono text-[11px] text-foreground">{data.address}</div></div>
           <div className="flex shrink-0 gap-2">
-            <button type="button" onClick={() => void navigator.clipboard?.writeText(data.address)} className="rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground">{tr("Copy", "Kopyala")}</button>
-            <a href={data.network === "Pi Mainnet" ? `${explorerBase}/accounts/${data.address}` : `https://blockexplorer.minepi.com/testnet/accounts/${data.address}`} target="_blank" rel="noreferrer" className="rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground">{tr("Explorer", "Explorer")}</a>
+            <button type="button" onClick={() => void navigator.clipboard?.writeText(data.address)} className="rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground">{label(locale, "Copy")}</button>
+            <a href={data.network === "Pi Mainnet" ? `${explorerBase}/accounts/${data.address}` : `https://blockexplorer.minepi.com/testnet/accounts/${data.address}`} target="_blank" rel="noreferrer" className="rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground">{label(locale, "Explorer")}</a>
           </div>
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5"><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{data.network}</span><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{tr("Public Data Only", "Yalnızca Herkese Açık Veri")}</span></div>
@@ -151,8 +167,8 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
         <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(data.analytics?.activeLedgerCount ?? null, locale)} />
-        <Card title={tr("Successful", "Başarılı")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
-        <Card title={tr("Failed", "Başarısız")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
+        <Card title={label(locale, "Successful")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
+        <Card title={label(locale, "Failed")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
       </div>
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
@@ -184,8 +200,8 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Card title={tr("Observed Days", "Gözlemlenen Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} />
-          <Card title={tr("Successful", "Başarılı")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
-          <Card title={tr("Failed", "Başarısız")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
+          <Card title={label(locale, "Successful")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
+          <Card title={label(locale, "Failed")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
           <Card title={tr("Fees", "Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
         </div>
       </div>
@@ -202,7 +218,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{tr("Recent Transactions", "Son İşlemler")}</div><span className="text-[10px] text-muted-foreground">{data.transactions.length}</span></div>
         <div className="mt-2 grid gap-2 zaf-desktop-two-up">
-          {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? tr("Success", "Başarılı") : tx.successful === false ? tr("Failed", "Başarısız") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
+          {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? label(locale, "Success") : tx.successful === false ? label(locale, "Failed") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
           {!data.transactions.length ? <div className="text-[11px] text-muted-foreground">{tr("No Recent Transactions Returned.", "Son İşlemler Döndürülmedi.")}</div> : null}
         </div>
       </div>
