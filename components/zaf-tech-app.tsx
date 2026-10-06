@@ -161,7 +161,7 @@ function SearchIcon({ size = 16 }: { size?: number }) {
   </svg>;
 }
 
-function SearchPanel({ locale, tr, onNavigate, mobile = false }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void; mobile?: boolean }) {
+function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void; mobile?: boolean; compact?: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -236,7 +236,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false }: { locale: Local
   }
 
   return (
-    <div className="relative w-full sm:max-w-sm lg:max-w-lg">
+    <div className={`relative w-full sm:max-w-sm lg:max-w-lg ${compact ? "zaf-desktop-search" : ""}`}>
       <div className="flex gap-1.5">
         <input
           value={query}
@@ -536,6 +536,7 @@ export function ZafTechApp() {
               </div>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+              <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} compact />
               <LanguageSelector locale={locale} onChange={setLocale} />
               <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? `☾ ${tr("Dark", "Koyu")}` : `☀ ${tr("Light", "Açık")}`}</button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
