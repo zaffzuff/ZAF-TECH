@@ -269,6 +269,51 @@ if (!observationHistoryRoute.includes("1000")) throw new Error("Historical obser
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
 
+const apiSecurityRoutes = {
+  "app/api/apps/check/route.ts": ["rateLimit", "checkAppHealth", "Cache-Control"],
+  "app/api/apps/health/route.ts": ["getLatestAppChecks", "Cache-Control"],
+  "app/api/apps/health/cron/route.ts": ["CRON_SECRET", "Authorization", "no-store"],
+  "app/api/zaf/observations/route.ts": ["getUnifiedObservation", "Cache-Control"],
+  "app/api/zaf/observations/cron/route.ts": ["CRON_SECRET", "saveObservationSnapshot", "no-store"],
+  "app/api/zaf/defi/route.ts": ["getDefiObservation", "Cache-Control"],
+  "app/api/zaf/defi/cron/route.ts": ["CRON_SECRET", "saveDefiSnapshot", "no-store"],
+  "app/api/zaf/wallet/route.ts": ["rateLimit", "getZafWallet", "Cache-Control"],
+  "app/api/zaf/search/route.ts": ["rateLimit", "getUnifiedObservation", "Cache-Control"],
+  "app/api/tools/transaction/route.ts": ["rateLimit", "AbortController", "Cache-Control"],
+};
+
+for (const [file, tokens] of Object.entries(apiSecurityRoutes)) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  for (const token of tokens) {
+    if (!source.includes(token)) throw new Error("API security invariant regression in " + file + ": " + token);
+  }
+}
+
+const publicObservationRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/route.ts"), "utf8");
+if (/[?&]force|searchParams.*force|force\s*[:=]/.test(publicObservationRoute)) {
+  throw new Error("Public observation route must not expose a force-refresh switch");
+}
+if (publicObservationRoute.includes("saveObservationSnapshot")) {
+  throw new Error("Public observation route must remain read-only");
+}
+
+const publicHealthRoute = fs.readFileSync(path.join(root, "app/api/apps/health/route.ts"), "utf8");
+if (publicHealthRoute.includes("runEcosystemHealthChecks")) {
+  throw new Error("Public app health route must not trigger live ecosystem health checks");
+}
+
+const publicDefiRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/route.ts"), "utf8");
+if (publicDefiRoute.includes("saveDefiSnapshot")) {
+  throw new Error("Public DeFi route must remain read-only");
+}
+
+const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+for (const cron of vercelConfig.crons ?? []) {
+  if (!/^0 3 \* \* \*$/.test(cron.schedule)) {
+    throw new Error("Vercel Hobby-safe cron regression: " + cron.schedule);
+  }
+}
+
 console.log("ZAF TECH v1.1 regression checks passed.");
 
 
