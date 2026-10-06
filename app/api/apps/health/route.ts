@@ -17,7 +17,13 @@ export async function GET() {
 
   const results = await Promise.all(
     checks.map(async (check) => {
-      const score = calculateAppHealthScore({\n        reachable: Boolean(check.reachable),\n        ok: Boolean(check.ok),\n        responseTimeMs: Number(check.responseTimeMs) || 0,\n        https: Boolean(check.https),\n        redirect: Boolean(check.redirect),\n      });
+      const score = calculateAppHealthScore({
+        reachable: Boolean(check.reachable),
+        ok: Boolean(check.ok),
+        responseTimeMs: Number(check.responseTimeMs) || 0,
+        https: Boolean(check.https),
+        redirect: Boolean(check.redirect),
+      });
       let trend = assessHealthTrend([]);
 
       try {
