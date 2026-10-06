@@ -469,24 +469,6 @@
   .zaf-mobile-header { display: none; }
 }
 
-@media (min-width: 1024px) {
-  .zaf-desktop-search {
-    width: 210px;
-    max-width: 210px;
-    flex: 0 0 210px;
-  }
-
-  .zaf-desktop-search input {
-    min-width: 0;
-  }
-
-  .zaf-desktop-search button {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-}
-
-
 /* Refined primary navigation icon system.
    Accent colors describe the role of each section while preserving the
    restrained gold/silver ZAF TECH brand language. */
