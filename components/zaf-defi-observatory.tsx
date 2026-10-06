@@ -141,11 +141,11 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="rounded-lg border border-border bg-background p-3"><div className="text-lg font-bold ty-nums text-foreground">{history.count}</div><div className="mt-1 text-[9px] text-foreground">{tr("Stored Snapshots","Kayıtlı Snapshot")}</div></div>
-        <div className="rounded-lg border border-border bg-background p-3"><div className="text-lg font-bold ty-nums text-foreground">{data?.history.alerts.length??0}</div><div className="mt-1 text-[9px] text-foreground">{tr("Current Alerts","Mevcut Uyarılar")}</div></div>
+        <div className="rounded-lg border border-border bg-background p-3"><div className="text-lg font-bold ty-nums text-foreground">{data?.history?.alerts.length??0}</div><div className="mt-1 text-[9px] text-foreground">{tr("Current Alerts","Mevcut Uyarılar")}</div></div>
         <div className="rounded-lg border border-border bg-background p-3"><div className="text-[10px] font-medium text-foreground">{history.snapshots[0]?new Date(history.snapshots[0].generatedAt).toLocaleString(intlLocale(locale)):"—"}</div><div className="mt-1 text-[9px] text-muted-foreground">{tr("Latest Snapshot","Son Snapshot")}</div></div>
-        <div className="rounded-lg border border-border bg-background p-3"><div className="text-[10px] font-medium text-foreground">{data?.history.previousObservedAt?new Date(data.history.previousObservedAt).toLocaleString(intlLocale(locale)):"—"}</div><div className="mt-1 text-[9px] text-muted-foreground">{tr("Compared With","Karşılaştırılan")}</div></div>
+        <div className="rounded-lg border border-border bg-background p-3"><div className="text-[10px] font-medium text-foreground">{data?.history?.previousObservedAt?new Date(data.history.previousObservedAt).toLocaleString(intlLocale(locale)):"—"}</div><div className="mt-1 text-[9px] text-muted-foreground">{tr("Compared With","Karşılaştırılan")}</div></div>
       </div>
-      {data?.history.alerts.length ? <div className="mt-3 space-y-2">
+      {data?.history?.alerts.length ? <div className="mt-3 space-y-2">
         {data.history.alerts.slice(0,6).map(alert=><div key={alert.id} className="rounded-lg border border-border p-3">
           <div className="flex items-start justify-between gap-2"><div className="text-[10px] font-semibold text-foreground">{locale==="tr"?alert.detailTr:alert.title}</div><span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{alert.severity}</span></div>
           <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{locale==="tr"?alert.detailTr:alert.detail}</p>
