@@ -12,6 +12,6 @@ export async function GET(request: NextRequest) {
     count: history.length,
     snapshots: history,
   }, {
-    headers: { "Cache-Control": "no-store", "max-age=0" },
+    headers: { "Cache-Control": "no-store, max-age=0" },
   });
 }
