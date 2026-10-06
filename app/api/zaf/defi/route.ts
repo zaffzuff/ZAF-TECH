@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
   const limit = Number(request.nextUrl.searchParams.get("limit") ?? "100");
   const observation = await getDefiObservation(Number.isFinite(limit) ? limit : 100);
   const currentSnapshot = toDefiHistorySnapshot(observation);
-  const previousSnapshot = isDefiHistoryConfigured() ? await getLatestDefiSnapshot() : null;
+  let previousSnapshot = null;
+  if (isDefiHistoryConfigured()) {
+    try {
+      previousSnapshot = await getLatestDefiSnapshot();
+    } catch {
+      previousSnapshot = null;
+    }
+  }
   const alerts = compareDefiSnapshots(currentSnapshot, previousSnapshot);
   return NextResponse.json({
     ...observation,
