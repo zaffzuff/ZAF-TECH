@@ -11,6 +11,7 @@ The current foundation remains Pi-independent.
 - Pi SDK is not loaded.
 - No `window.Pi` calls exist in the application.
 - Pi authentication is disabled.
+- Pi access tokens are internal credential material and are not part of the shared UI user model.
 - Pi payments are disabled.
 - `NEXT_PUBLIC_PI_ENVIRONMENT` may describe the intended future environment, but the feature flag remains disabled.
 - The public ZAF TECH observatory must continue to work without Pi authentication.
@@ -19,7 +20,7 @@ The current foundation remains Pi-independent.
 
 1. Pi SDK loading must be isolated behind the Pi service boundary.
 2. UI components must not call `window.Pi` directly.
-3. Pi access tokens must never be treated as ZAF application sessions.
+3. Pi access tokens must remain inside the Pi integration boundary and must never be exposed as the ZAF application session.
 4. The backend must verify Pi identity server-side before trusting authenticated user data.
 5. Any Pi server API key must remain server-only.
 6. Payment approval and completion must be server-side operations.
@@ -27,6 +28,7 @@ The current foundation remains Pi-independent.
 8. Testnet and mainnet configuration must be explicit and must not be switched implicitly at runtime.
 9. Existing read-only observatory endpoints must remain usable without Pi authentication.
 10. Enabling Pi must be a deliberate release boundary, followed by testnet verification before any mainnet activation.
+11. A missing or invalid Pi environment configuration must fail closed when Pi features are enabled; the application must never silently switch networks.
 
 ## Intended future structure
 
