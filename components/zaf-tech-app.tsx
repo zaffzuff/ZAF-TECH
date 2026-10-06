@@ -511,10 +511,10 @@ export function ZafTechApp() {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const load = useCallback(async (force = false) => {
+  const load = useCallback(async (refreshViews = false) => {
     setRefreshing(true);
     try {
-      const response = await fetch(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" });
+      const response = await fetch("/api/zaf/observations", { cache: "no-store" });
       if (!response.ok) throw new Error("ZAF TECH observation request failed");
       const observation = await response.json();
       if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
@@ -527,7 +527,7 @@ export function ZafTechApp() {
         errors: Array.isArray(observation.errors) ? observation.errors : [],
       });
       setLoadError(null);
-      if (force) setRefreshNonce(value => value + 1);
+      if (refreshViews) setRefreshNonce(value => value + 1);
     } catch {
       setLoadError("DATA_REQUEST_FAILED");
     } finally {
