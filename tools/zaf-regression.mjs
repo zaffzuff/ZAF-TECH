@@ -297,6 +297,11 @@ if (publicObservationRoute.includes("saveObservationSnapshot")) {
   throw new Error("Public observation route must remain read-only");
 }
 
+const observatoryApp = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+if (/\/api\/zaf\/observations\?force=/.test(observatoryApp)) {
+  throw new Error("Observatory client must not send the removed observation force-refresh query");
+}
+
 const publicHealthRoute = fs.readFileSync(path.join(root, "app/api/apps/health/route.ts"), "utf8");
 if (publicHealthRoute.includes("runEcosystemHealthChecks")) {
   throw new Error("Public app health route must not trigger live ecosystem health checks");
