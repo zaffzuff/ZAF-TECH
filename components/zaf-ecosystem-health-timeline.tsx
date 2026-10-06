@@ -20,6 +20,18 @@ function fmtDate(value: string | null | undefined, locale: Locale) {
 export function ZafEcosystemHealthTimeline({ locale, snapshot, radar }: { locale: Locale; snapshot: ZafSnapshot | null; radar: RadarObservation | null }) {
   const [overview, setOverview] = useState<HealthOverview | null>(null);
   const tr = (en: string, trText: string) => translate(locale, en, trText);
+  const compactLabel = (value: "attention" | "healthy" | "declining" | "improving" | "stale" | "Current") => {
+    const labels: Record<typeof value, [string, string, string, string, string, string, string, string, string]> = {
+      attention: ["attention", "dikkat", "atención", "注意", "attenzione", "attention", "Aufmerksamkeit", "atenção", "внимание"],
+      healthy: ["healthy", "sağlıklı", "saludable", "健康", "sano", "sain", "gesund", "saudável", "здоровый"],
+      declining: ["declining", "gerileyen", "en descenso", "下降", "in calo", "en baisse", "rückläufig", "em declínio", "снижается"],
+      improving: ["improving", "iyileşen", "mejorando", "改善", "in miglioramento", "en amélioration", "verbessert", "melhorando", "улучшается"],
+      stale: ["stale", "eski", "obsoleto", "过期", "obsoleto", "obsolète", "veraltet", "desatualizado", "устарело"],
+      Current: ["Current", "Güncel", "Actual", "当前", "Attuale", "Actuel", "Aktuell", "Atual", "Текущее"],
+    };
+    const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+    return labels[value][index];
+  };
 
   useEffect(() => {
     let active = true;
@@ -35,8 +47,8 @@ export function ZafEcosystemHealthTimeline({ locale, snapshot, radar }: { locale
   const signals = [
     { label: tr("Network Activity", "Ağ Aktivitesi"), detail: snapshot ? (snapshot.metrics.observedTransactionsPerDay == null ? "—" : Math.round(snapshot.metrics.observedTransactionsPerDay).toLocaleString(intlLocale(locale)) + " tx/day · " + (snapshot.metrics.observedOperationsPerDay == null ? "—" : Math.round(snapshot.metrics.observedOperationsPerDay).toLocaleString(intlLocale(locale)) + " ops/day")) : "—", time: snapshot?.generatedAt ?? null, state: snapshot?.intelligence.activityState ?? "—" },
     { label: tr("Public Source Coverage", "Herkese Açık Kaynak Kapsamı"), detail: sourceCoverage, time: radar?.generatedAt ?? null, state: radar?.confidence.level ?? "—" },
-    { label: tr("Stored App Health", "Kayıtlı Uygulama Sağlığı"), detail: appSummary?.averageScore == null ? "—" : appSummary.averageScore + "/100 · " + appSummary.attention + " " + tr("attention", "dikkat"), time: overview?.latestCheckedAt ?? null, state: appSummary ? appSummary.healthy + " " + tr("healthy", "sağlıklı") : "—" },
-    { label: tr("Health Movement", "Sağlık Hareketi"), detail: appSummary ? appSummary.declining + " " + tr("declining", "gerileyen") + " · " + appSummary.improving + " " + tr("improving", "iyileşen") : "—", time: overview?.latestCheckedAt ?? null, state: appSummary?.stale ? appSummary.stale + " " + tr("stale", "eski") : tr("Current", "Güncel") },
+    { label: tr("Stored App Health", "Kayıtlı Uygulama Sağlığı"), detail: appSummary?.averageScore == null ? "—" : appSummary.averageScore + "/100 · " + appSummary.attention + " " + compactLabel("attention"), time: overview?.latestCheckedAt ?? null, state: appSummary ? appSummary.healthy + " " + compactLabel("healthy") : "—" },
+    { label: tr("Health Movement", "Sağlık Hareketi"), detail: appSummary ? appSummary.declining + " " + compactLabel("declining") + " · " + appSummary.improving + " " + compactLabel("improving") : "—", time: overview?.latestCheckedAt ?? null, state: appSummary?.stale ? appSummary.stale + " " + compactLabel("stale") : compactLabel("Current") },
   ];
 
   return <div className="mt-3 rounded-xl border border-border bg-card p-4">
