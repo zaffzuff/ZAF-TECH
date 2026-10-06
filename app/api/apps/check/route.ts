@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/zaf/rate-limit";
 import { checkAppHealth } from "@/lib/zaf/app-health";
 import { calculateAppHealthScore } from "@/lib/zaf/app-health-score";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const rate = rateLimit(request, { prefix: "apps-check", limit: 10, windowMs: 60_000 });
+  if (!rate.allowed) return NextResponse.json({ error: "Rate limit exceeded. Please try again later." }, {
+    status: 429,
+    headers: { "Cache-Control": "no-store", "Retry-After": String(rate.retryAfterSeconds) },
+  });
   const target = new URL(request.url).searchParams.get("url")?.trim();
 
   if (!target) {
@@ -19,6 +25,6 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ ...result, score: score.score, healthStatus: score.status, scoreFactors: score.factors }, {
     status: result.error === "A public HTTP(S) URL is required." ? 400 : 200,
-    headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" },
+    headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120", "X-RateLimit-Limit": "10", "X-RateLimit-Remaining": String(rate.remaining) },
   });
 }
