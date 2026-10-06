@@ -65,6 +65,49 @@ function label(locale: Locale, value: "Checking…" | "Inspect" | "Copy" | "Expl
   return labels[value][index];
 }
 
+function walletLabel(locale: Locale, value: "Wallet Observatory" | "Public Pi Wallet Address (G...)" | "Public Address" | "Public Data Only" | "Account Balance" | "Transactions" | "Observed Transactions" | "Operations" | "Observed Operations" | "Success Rate" | "Observed Transaction Results" | "Observed Assets" | "Native asset" | "Issuer unavailable" | "Observed Fees" | "Active Ledgers" | "Observed Operation Types" | "Observable Claimable" | "Native Claimable Balances" | "Last Activity" | "Transactions + Operations" | "Active Days" | "Within Observed Window" | "Wallet Activity Timeline" | "tx" | "ops" | "Observed Days" | "Fees" | "Account Metadata" | "Sequence" | "Subentries" | "Last Modified Ledger" | "Recent Transactions" | "Observable Claimable Balances" | "Unlock" | "Unlock Time Not Observable") {
+  const labels: Record<typeof value, [string,string,string,string,string,string,string,string,string]> = {
+    "Wallet Observatory":["Wallet Observatory","Cüzdan Gözlemleri","Observatorio de billeteras","钱包观测","Osservatorio wallet","Observatoire du portefeuille","Wallet-Observatorium","Observatório de carteira","Наблюдатель кошелька"],
+    "Public Pi Wallet Address (G...)":["Public Pi Wallet Address (G...)","Herkese Açık Pi Cüzdan Adresi (G...)","Dirección pública de billetera Pi (G...)","公开 Pi 钱包地址 (G...)","Indirizzo pubblico wallet Pi (G...)","Adresse publique du portefeuille Pi (G...)","Öffentliche Pi-Wallet-Adresse (G...)","Endereço público da carteira Pi (G...)","Публичный адрес Pi-кошелька (G...)"],
+    "Public Address":["Public Address","Herkese Açık Adres","Dirección pública","公开地址","Indirizzo pubblico","Adresse publique","Öffentliche Adresse","Endereço público","Публичный адрес"],
+    "Public Data Only":["Public Data Only","Yalnızca Herkese Açık Veri","Solo datos públicos","仅公开数据","Solo dati pubblici","Données publiques uniquement","Nur öffentliche Daten","Apenas dados públicos","Только публичные данные"],
+    "Account Balance":["Account Balance","Hesap Bakiyesi","Saldo de cuenta","账户余额","Saldo account","Solde du compte","Kontostand","Saldo da conta","Баланс аккаунта"],
+    "Transactions":["Transactions","İşlemler","Transacciones","交易","Transazioni","Transactions","Transaktionen","Transações","Транзакции"],
+    "Observed Transactions":["Observed Transactions","Gözlemlenen İşlemler","Transacciones observadas","已观测交易","Transazioni osservate","Transactions observées","Beobachtete Transaktionen","Transações observadas","Наблюдаемые транзакции"],
+    "Operations":["Operations","Operasyonlar","Operaciones","操作","Operazioni","Opérations","Operationen","Operações","Операции"],
+    "Observed Operations":["Observed Operations","Gözlemlenen Operasyonlar","Operaciones observadas","已观测操作","Operazioni osservate","Opérations observées","Beobachtete Operationen","Operações observadas","Наблюдаемые операции"],
+    "Success Rate":["Success Rate","Başarı Oranı","Tasa de éxito","成功率","Tasso di successo","Taux de réussite","Erfolgsrate","Taxa de sucesso","Процент успеха"],
+    "Observed Transaction Results":["Observed Transaction Results","Gözlemlenen İşlem Sonuçları","Resultados de transacciones observados","已观测交易结果","Risultati transazioni osservati","Résultats de transactions observés","Beobachtete Transaktionsergebnisse","Resultados de transações observados","Наблюдаемые результаты транзакций"],
+    "Observed Assets":["Observed Assets","Gözlemlenen Varlıklar","Activos observados","已观测资产","Asset osservati","Actifs observés","Beobachtete Vermögenswerte","Ativos observados","Наблюдаемые активები"],
+    "Native asset":["Native asset","Native varlık","Activo nativo","原生资产","Asset nativo","Actif natif","Natives Asset","Ativo nativo","Нативный актив"],
+    "Issuer unavailable":["Issuer unavailable","Issuer bilgisi yok","Emisor no disponible","发行方不可用","Emittente non disponibile","Émetteur indisponible","Emittent nicht verfügbar","Emissor indisponível","Эмитент недоступен"],
+    "Observed Fees":["Observed Fees","Gözlemlenen Ücretler","Comisiones observadas","已观测费用","Commissioni osservate","Frais observés","Beobachtete Gebühren","Taxas observadas","Наблюдаемые комиссии"],
+    "Active Ledgers":["Active Ledgers","Aktif Ledger'lar","Ledgers activos","活跃账本","Ledger attivi","Ledgers actifs","Aktive Ledger","Ledgers ativos","Активные леджеры"],
+    "Observed Operation Types":["Observed Operation Types","Gözlemlenen Operasyon Türleri","Tipos de operación observados","已观测操作类型","Tipi di operazione osservati","Types d’opérations observés","Beobachtete Operationstypen","Tipos de operação observados","Наблюдаемые типы операций"],
+    "Observable Claimable":["Observable Claimable","Gözlemlenebilir Talep Edilebilir","Reclamable observable","可观测可领取","Reclamabile osservabile","Récupérable observable","Beobachtbar beanspruchbar","Reclamável observável","Наблюдаемые клеймируемые"],
+    "Native Claimable Balances":["Native Claimable Balances","Native Claimable Bakiyeler","Saldos nativos reclamables","原生可领取余额","Saldi nativi reclamabili","Soldes natifs réclamables","Beanspruchbare native Salden","Saldos nativos reclamáveis","Нативные клеймируемые балансы"],
+    "Last Activity":["Last Activity","Son Aktivite","Última actividad","最近活动","Ultima attività","Dernière activité","Letzte Aktivität","Última atividade","Последняя активность"],
+    "Transactions + Operations":["Transactions + Operations","İşlemler + Operasyonlar","Transacciones + operaciones","交易 + 操作","Transazioni + operazioni","Transactions + opérations","Transaktionen + Operationen","Transações + operações","Транзакции + операции"],
+    "Active Days":["Active Days","Aktif Günler","Días activos","活跃天数","Giorni attivi","Jours actifs","Aktive Tage","Dias ativos","Активные дни"],
+    "Within Observed Window":["Within Observed Window","Gözlemlenen Pencere İçinde","Dentro de la ventana observada","在观测窗口内","Nella finestra osservata","Dans la fenêtre observée","Innerhalb des Beobachtungsfensters","Dentro da janela observada","В наблюдаемом окне"],
+    "Wallet Activity Timeline":["Wallet Activity Timeline","Cüzdan Aktivite Zaman Çizelgesi","Cronología de actividad de la billetera","钱包活动时间线","Cronologia attività wallet","Chronologie d’activité du portefeuille","Wallet-Aktivitätsverlauf","Linha do tempo da atividade","Шкала активности кошелька"],
+    "tx":["tx","işlem","tx","交易","tx","tx","tx","tx","транз."],
+    "ops":["ops","op","ops","操作","op","ops","Ops.","ops","операц."],
+    "Observed Days":["Observed Days","Gözlemlenen Günler","Días observados","观测天数","Giorni osservati","Jours observés","Beobachtete Tage","Dias observados","Наблюдаемые дни"],
+    "Fees":["Fees","Ücretler","Comisiones","费用","Commissioni","Frais","Gebühren","Taxas","Комиссии"],
+    "Account Metadata":["Account Metadata","Hesap Metadatası","Metadatos de cuenta","账户元数据","Metadati account","Métadonnées du compte","Kontometadaten","Metadados da conta","Метаданные аккаунта"],
+    "Sequence":["Sequence","Sequence","Secuencia","序列","Sequenza","Séquence","Sequenz","Sequência","Последовательность"],
+    "Subentries":["Subentries","Alt Kayıtlar","Subentradas","子条目","Sotto-voci","Sous-entrées","Untereinträge","Subentradas","Подзаписи"],
+    "Last Modified Ledger":["Last Modified Ledger","Son Değişiklik Ledger'ı","Último ledger modificado","最近修改账本","Ultimo ledger modificato","Dernier ledger modifié","Zuletzt geändertes Ledger","Último ledger modificado","Последний изменённый леджер"],
+    "Recent Transactions":["Recent Transactions","Son İşlemler","Transacciones recientes","最近交易","Transazioni recenti","Transactions récentes","Letzte Transaktionen","Transações recentes","Недавние транзакции"],
+    "Observable Claimable Balances":["Observable Claimable Balances","Gözlemlenebilir Claimable Bakiyeler","Saldos reclamables observables","可观测可领取余额","Saldi reclamabili osservabili","Soldes réclamables observables","Beobachtbare beanspruchbare Salden","Saldos reclamáveis observáveis","Наблюдаемые клеймируемые балансы"],
+    "Unlock":["Unlock","Açılma","Desbloqueo","解锁","Sblocco","Déverrouillage","Entsperren","Desbloqueio","Разблокировка"],
+    "Unlock Time Not Observable":["Unlock Time Not Observable","Açılma Zamanı Gözlemlenemiyor","Hora de desbloqueo no observable","解锁时间不可观测","Ora di sblocco non osservabile","Heure de déverrouillage non observable","Entsperrzeit nicht beobachtbar","Hora de desbloqueio não observável","Время разблокировки не наблюдается"],
+  };
+  const index=locale==="tr"?1:locale==="es"?2:locale==="zh"?3:locale==="it"?4:locale==="fr"?5:locale==="de"?6:locale==="pt"?7:locale==="ru"?8:0;
+  return labels[value][index];
+}
+
 function Card({ title, value, detail }: { title: string; value: string; detail?: string }) {
   return <div className="rounded-xl border border-border bg-card p-3 sm:p-4"><div className="text-xl font-bold ty-nums text-foreground sm:text-2xl">{value}</div><div className="mt-1 text-xs font-medium text-foreground">{title}</div>{detail ? <div className="mt-1 text-[11px] text-muted-foreground">{detail}</div> : null}</div>;
 }
@@ -104,13 +147,13 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
 
   return <section className="mt-5 sm:mt-7">
     <div className="mb-3">
-      <h2 className="text-sm font-semibold text-foreground">{tr("Wallet Observatory", "Cüzdan Gözlemleri")}</h2>
+      <h2 className="text-sm font-semibold text-foreground">{walletLabel(locale, "Wallet Observatory")}</h2>
       <p className="text-[11px] text-muted-foreground">{tr("Public, read-only wallet observations from Pi Horizon. No wallet connection or signing is required.", "Pi Horizon üzerinden herkese açık, salt-okunur cüzdan gözlemleri. Cüzdan bağlantısı veya imzalama gerekmez.")}</p>
     </div>
 
     <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-        <input value={address} onChange={e => setAddress(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void lookup(); }} placeholder={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
+        <input value={address} onChange={e => setAddress(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void lookup(); }} placeholder={walletLabel(locale, "Public Pi Wallet Address (G...)")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
         <select value={network} onChange={e => setNetwork(e.target.value as "mainnet" | "testnet")} className="rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground">
           <option value="mainnet">{tr("Pi Mainnet", "Pi Mainnet")}</option>
           <option value="testnet">{tr("Pi Testnet", "Pi Testnet")}</option>
@@ -123,26 +166,26 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
     {data?.exists ? <div className="mt-3 space-y-3">
       <div className="rounded-xl border border-border bg-card p-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0"><div className="text-[10px] text-muted-foreground">{tr("Public Address", "Herkese Açık Adres")}</div><div className="mt-1 break-all font-mono text-[11px] text-foreground">{data.address}</div></div>
+          <div className="min-w-0"><div className="text-[10px] text-muted-foreground">{walletLabel(locale, "Public Address")}</div><div className="mt-1 break-all font-mono text-[11px] text-foreground">{data.address}</div></div>
           <div className="flex shrink-0 gap-2">
             <button type="button" onClick={() => void navigator.clipboard?.writeText(data.address)} className="rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground">{label(locale, "Copy")}</button>
             <a href={data.network === "Pi Mainnet" ? `${explorerBase}/accounts/${data.address}` : `https://blockexplorer.minepi.com/testnet/accounts/${data.address}`} target="_blank" rel="noreferrer" className="rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground">{label(locale, "Explorer")}</a>
           </div>
         </div>
-        <div className="mt-2 flex flex-wrap gap-1.5"><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{data.network}</span><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{tr("Public Data Only", "Yalnızca Herkese Açık Veri")}</span></div>
+        <div className="mt-2 flex flex-wrap gap-1.5"><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{data.network}</span><span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{walletLabel(locale, "Public Data Only")}</span></div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title={tr("Account Balance", "Hesap Bakiyesi")} value={fmt(data.accountBalancePi, locale)} detail="Pi" />
-        <Card title={tr("Transactions", "İşlemler")} value={fmt(data.analytics?.transactionCount ?? null, locale)} detail={tr("Observed Transactions", "Gözlemlenen İşlemler")} />
-        <Card title={tr("Operations", "Operasyonlar")} value={fmt(data.analytics?.operationCount ?? null, locale)} detail={tr("Observed Operations", "Gözlemlenen Operasyonlar")} />
-        <Card title={tr("Success Rate", "Başarı Oranı")} value={data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={tr("Observed Transaction Results", "Gözlemlenen İşlem Sonuçları")} />
+        <Card title={walletLabel(locale, "Account Balance")} value={fmt(data.accountBalancePi, locale)} detail="Pi" />
+        <Card title={walletLabel(locale, "Transactions")} value={fmt(data.analytics?.transactionCount ?? null, locale)} detail={walletLabel(locale, "Observed Transactions")} />
+        <Card title={walletLabel(locale, "Operations")} value={fmt(data.analytics?.operationCount ?? null, locale)} detail={walletLabel(locale, "Observed Operations")} />
+        <Card title={walletLabel(locale, "Success Rate")} value={data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={walletLabel(locale, "Observed Transaction Results")} />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-xs font-semibold text-foreground">{tr("Observed Assets", "Gözlemlenen Varlıklar")}</div>
+            <div className="text-xs font-semibold text-foreground">{walletLabel(locale, "Observed Assets")}</div>
             <p className="mt-1 text-[10px] text-muted-foreground">{tr("Public asset balances returned by the selected Pi Horizon network. Custom assets are shown with issuer information when available.", "Seçilen Pi Horizon ağının döndürdüğü herkese açık varlık bakiyeleri. Özel varlıklar mevcut olduğunda issuer bilgisiyle gösterilir.")}</p>
           </div>
           <span className="rounded-full border border-border px-2 py-1 text-[9px] text-muted-foreground">{data.networkScope}</span>
@@ -153,7 +196,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold text-foreground">{asset.isNative ? "Pi" : (asset.assetCode ?? "—")}</div>
-                  <div className="mt-1 break-all text-[9px] text-muted-foreground">{asset.isNative ? tr("Native asset", "Native varlık") : (asset.assetIssuer ?? tr("Issuer unavailable", "Issuer bilgisi yok"))}</div>
+                  <div className="mt-1 break-all text-[9px] text-muted-foreground">{asset.isNative ? walletLabel(locale, "Native asset") : (asset.assetIssuer ?? walletLabel(locale, "Issuer unavailable"))}</div>
                 </div>
                 <span className="shrink-0 text-[10px] font-medium text-foreground">{fmt(asset.balance, locale)}</span>
               </div>
@@ -165,14 +208,14 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
-        <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(data.analytics?.activeLedgerCount ?? null, locale)} />
+        <Card title={walletLabel(locale, "Observed Fees")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
+        <Card title={walletLabel(locale, "Active Ledgers")} value={fmt(data.analytics?.activeLedgerCount ?? null, locale)} />
         <Card title={label(locale, "Successful")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
         <Card title={label(locale, "Failed")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
       </div>
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Observed Operation Types", "Gözlemlenen Operasyon Türleri")}</div>
+        <div className="text-xs font-semibold text-foreground">{walletLabel(locale, "Observed Operation Types")}</div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(data.analytics?.operationTypeCounts ?? []).map(item => <div key={item.type} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="truncate text-muted-foreground">{item.type}</div><div className="mt-1 text-sm font-semibold text-foreground">{item.count}</div></div>)}
           {!data.analytics?.operationTypeCounts?.length ? <div className="text-[10px] text-muted-foreground">{tr("No operation type data returned.", "Operasyon türü verisi döndürülmedi.")}</div> : null}
@@ -180,43 +223,43 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Card title={tr("Observable Claimable", "Gözlemlenebilir Talep Edilebilir")} value={fmt(data.observableClaimablePi, locale)} detail={tr("Native Claimable Balances", "Native Claimable Bakiyeler")} />
-        <Card title={tr("Last Activity", "Son Aktivite")} value={age(data.lastActivity, locale)} detail={tr("Transactions + Operations", "İşlemler + Operasyonlar")} />
-        <Card title={tr("Active Days", "Aktif Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} detail={tr("Within Observed Window", "Gözlemlenen Pencere İçinde")} />
+        <Card title={walletLabel(locale, "Observable Claimable")} value={fmt(data.observableClaimablePi, locale)} detail={walletLabel(locale, "Native Claimable Balances")} />
+        <Card title={walletLabel(locale, "Last Activity")} value={age(data.lastActivity, locale)} detail={walletLabel(locale, "Transactions + Operations")} />
+        <Card title={walletLabel(locale, "Active Days")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} detail={walletLabel(locale, "Within Observed Window")} />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Wallet Activity Timeline", "Cüzdan Aktivite Zaman Çizelgesi")}</div>
+        <div className="text-xs font-semibold text-foreground">{walletLabel(locale, "Wallet Activity Timeline")}</div>
         <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Daily buckets from the public transactions and operations returned by Horizon. This is an observed window, not a full wallet history.", "Horizon tarafından döndürülen herkese açık işlemler ve operasyonlardan günlük dilimler. Bu gözlemlenen bir penceredir; tam cüzdan geçmişi değildir.")}</p>
         <div className="mt-3 space-y-2">
           {(data.analytics?.activityByDay ?? []).slice(-7).reverse().map((day) => (
             <div key={day.day} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-[10px]">
               <span className="text-muted-foreground">{new Date(day.day + "T00:00:00Z").toLocaleDateString(intlLocale(locale), { year: "numeric", month: "short", day: "2-digit" })}</span>
-              <span className="text-foreground">{day.transactions} {tr("tx", "işlem")} · {day.operations} {tr("ops", "op")}</span>
+              <span className="text-foreground">{day.transactions} {walletLabel(locale, "tx")} · {day.operations} {walletLabel(locale, "ops")}</span>
               <span className="text-muted-foreground">{day.successfulTransactions}/{day.failedTransactions}</span>
             </div>
           ))}
           {!data.analytics?.activityByDay?.length ? <div className="text-[10px] text-muted-foreground">{tr("No dated activity points are available in the observed window.", "Gözlemlenen pencerede tarihli aktivite noktası bulunmuyor.")}</div> : null}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Card title={tr("Observed Days", "Gözlemlenen Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} />
+          <Card title={walletLabel(locale, "Observed Days")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} />
           <Card title={label(locale, "Successful")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
           <Card title={label(locale, "Failed")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
-          <Card title={tr("Fees", "Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
+          <Card title={walletLabel(locale, "Fees")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
         </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Account Metadata", "Hesap Metadatası")}</div>
+        <div className="text-xs font-semibold text-foreground">{walletLabel(locale, "Account Metadata")}</div>
         <div className="mt-3 grid grid-cols-2 gap-3 text-[11px] sm:grid-cols-3 lg:grid-cols-4">
-          <div><div className="text-muted-foreground">{tr("Sequence", "Sequence")}</div><div className="mt-1 break-all text-foreground">{data.account?.sequence ?? "—"}</div></div>
-          <div><div className="text-muted-foreground">{tr("Subentries", "Alt Kayıtlar")}</div><div className="mt-1 text-foreground">{data.account?.subentryCount ?? "—"}</div></div>
-          <div><div className="text-muted-foreground">{tr("Last Modified Ledger", "Son Değişiklik Ledger'ı")}</div><div className="mt-1 text-foreground">{data.account?.lastModifiedLedger ?? "—"}</div></div>
+          <div><div className="text-muted-foreground">{walletLabel(locale, "Sequence")}</div><div className="mt-1 break-all text-foreground">{data.account?.sequence ?? "—"}</div></div>
+          <div><div className="text-muted-foreground">{walletLabel(locale, "Subentries")}</div><div className="mt-1 text-foreground">{data.account?.subentryCount ?? "—"}</div></div>
+          <div><div className="text-muted-foreground">{walletLabel(locale, "Last Modified Ledger")}</div><div className="mt-1 text-foreground">{data.account?.lastModifiedLedger ?? "—"}</div></div>
         </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{tr("Recent Transactions", "Son İşlemler")}</div><span className="text-[10px] text-muted-foreground">{data.transactions.length}</span></div>
+        <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{walletLabel(locale, "Recent Transactions")}</div><span className="text-[10px] text-muted-foreground">{data.transactions.length}</span></div>
         <div className="mt-2 grid gap-2 zaf-desktop-two-up">
           {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? label(locale, "Success") : tx.successful === false ? label(locale, "Failed") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
           {!data.transactions.length ? <div className="text-[11px] text-muted-foreground">{tr("No Recent Transactions Returned.", "Son İşlemler Döndürülmedi.")}</div> : null}
@@ -224,10 +267,10 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Observable Claimable Balances", "Gözlemlenebilir Claimable Bakiyeler")}</div>
+        <div className="text-xs font-semibold text-foreground">{walletLabel(locale, "Observable Claimable Balances")}</div>
         <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("This section reports public native claimable balances returned by Horizon. It does not infer private Pi lockup commitments.", "Bu bölüm Horizon'un döndürdüğü herkese açık native claimable bakiyeleri raporlar. Özel Pi lockup taahhütlerini çıkarımsamaz.")}</p>
         <div className="mt-2 space-y-2">
-          {Array.isArray(data.lockup?.items) && data.lockup.items.length ? data.lockup.items.map((item: any) => <div key={String(item.id)} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="flex justify-between gap-2"><span className="font-mono text-foreground">{String(item.id)}</span><span className="text-foreground">{fmt(Number(item.amountPi), locale)} Pi</span></div><div className="mt-1 text-muted-foreground">{item.unlockAt ? `${tr("Unlock", "Açılma")}: ${new Date(String(item.unlockAt)).toLocaleString(intlLocale(locale))}` : tr("Unlock Time Not Observable", "Açılma Zamanı Gözlemlenemiyor")}</div></div>) : <div className="text-[11px] text-muted-foreground">{tr("No publicly observable native claimable balances were returned.", "Herkese açık gözlemlenebilir native claimable bakiye döndürülmedi.")}</div>}
+          {Array.isArray(data.lockup?.items) && data.lockup.items.length ? data.lockup.items.map((item: any) => <div key={String(item.id)} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="flex justify-between gap-2"><span className="font-mono text-foreground">{String(item.id)}</span><span className="text-foreground">{fmt(Number(item.amountPi), locale)} Pi</span></div><div className="mt-1 text-muted-foreground">{item.unlockAt ? `${walletLabel(locale, "Unlock")}: ${new Date(String(item.unlockAt)).toLocaleString(intlLocale(locale))}` : walletLabel(locale, "Unlock Time Not Observable")}</div></div>) : <div className="text-[11px] text-muted-foreground">{tr("No publicly observable native claimable balances were returned.", "Herkese açık gözlemlenebilir native claimable bakiye döndürülmedi.")}</div>}
         </div>
       </div>
 
