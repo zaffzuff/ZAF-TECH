@@ -53,7 +53,6 @@ export async function getLatestDefiSnapshot(): Promise<DefiHistorySnapshot | nul
   const sql = getClient();
   if (!sql) return null;
   try {
-    await ensureTable(sql);
     const rows = await sql.unsafe('SELECT generated_at AS "generatedAt", pools, trades, pairs, distinct_assets AS "distinctAssets", pool_ids AS "poolIds", pair_keys AS "pairKeys" FROM zaf_defi_snapshots ORDER BY generated_at DESC LIMIT 1');
     const row = rows[0] as Record<string, unknown> | undefined;
     if (!row) return null;
@@ -91,7 +90,6 @@ export async function getDefiSnapshotHistory(limit = 50): Promise<DefiHistorySna
   const sql = getClient();
   if (!sql) return [];
   try {
-    await ensureTable(sql);
     const safeLimit = Math.min(Math.max(Math.floor(limit), 1), 200);
     const rows = await sql.unsafe('SELECT generated_at AS "generatedAt", pools, trades, pairs, distinct_assets AS "distinctAssets", pool_ids AS "poolIds", pair_keys AS "pairKeys" FROM zaf_defi_snapshots ORDER BY generated_at DESC LIMIT $1', [safeLimit]);
     return rows.map(row => ({
