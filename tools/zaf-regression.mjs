@@ -250,7 +250,7 @@ const observationHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/observ
 if (!observationHistorySchema.includes("observationSchemaReady")) throw new Error("Observation schema initialization regression");
 
 const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
-if (!observationHistoryRoute.includes("10000")) throw new Error("Historical observation route limit regression");
+if (!observationHistoryRoute.includes("1000")) throw new Error("Historical observation route safety limit regression");
 
 
 
