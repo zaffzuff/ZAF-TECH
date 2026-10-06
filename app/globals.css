@@ -335,3 +335,69 @@
     padding-right: 32px;
   }
 }
+
+@media (min-width: 1024px) {
+  .zaf-main-shell > header {
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+
+  .zaf-main-shell h2,
+  .zaf-main-shell h3 {
+    text-wrap: balance;
+  }
+
+  .zaf-main-shell p {
+    text-wrap: pretty;
+  }
+
+  .zaf-main-shell input,
+  .zaf-main-shell select,
+  .zaf-main-shell textarea {
+    font-size: 0.8125rem;
+  }
+
+  .zaf-main-shell button {
+    min-height: 34px;
+  }
+
+  .zaf-main-shell .zaf-primary-tabs {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .zaf-main-shell .zaf-primary-tab {
+    width: 100%;
+    text-align: center;
+  }
+
+  .zaf-main-shell .zaf-secondary-tabs {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+
+  .zaf-main-shell .zaf-secondary-tab {
+    width: 100%;
+    text-align: center;
+  }
+
+  .zaf-main-shell .zaf-graph-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+
+  .zaf-main-shell .zaf-graph-canvas {
+    aspect-ratio: 5 / 3;
+  }
+
+  .zaf-main-shell .zaf-desktop-two-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .zaf-main-shell .zaf-graph-layout {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}

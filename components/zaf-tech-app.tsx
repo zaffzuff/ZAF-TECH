@@ -175,7 +175,7 @@ function SearchPanel({ locale, tr, onNavigate }: { locale: Locale; tr: (en: stri
   }
 
   return (
-    <div className="relative w-full sm:max-w-sm">
+    <div className="relative w-full sm:max-w-sm lg:max-w-lg">
       <div className="flex gap-1.5">
         <input
           value={query}

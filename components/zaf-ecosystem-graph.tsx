@@ -158,9 +158,9 @@ export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trTex
       </div>
     </div>
 
-    <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="mt-3 grid gap-3 zaf-graph-layout lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-2">
-        <svg viewBox="0 0 900 540" className="h-auto w-full" role="img" aria-label={tr("Ecosystem relationship graph","Ekosistem ilişki grafiği")}>
+        <svg viewBox="0 0 900 540" className="zaf-graph-canvas h-auto w-full" role="img" aria-label={tr("Ecosystem relationship graph","Ekosistem ilişki grafiği")}>
           <rect x="0" y="0" width="900" height="540" fill="transparent" />
           {graphEdges.map(edge=>{
             const from=positionMap.get(edge.from); const to=positionMap.get(edge.to);
