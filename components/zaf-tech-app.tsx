@@ -107,7 +107,8 @@ function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number
     source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
     signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
     signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
-    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",\n    official_update: locale === "tr" ? "Resmi Pi duyurusu" : "Official Pi update",
+    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
+    official_update: locale === "tr" ? "Resmi Pi duyurusu" : "Official Pi update",
   } as const;
   return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
 }
@@ -537,7 +538,9 @@ export function ZafTechApp() {
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => {\n      void load().then(() => setRefreshNonce(value => value + 1));\n    }, 60000);
+    const id = window.setInterval(() => {
+      void load().then(() => setRefreshNonce(value => value + 1));
+    }, 60000);
     return () => window.clearInterval(id);
   }, [load]);
 
@@ -867,7 +870,8 @@ export function ZafTechApp() {
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH reads public Mainnet Horizon data and reports the observed sample. Daily values are normalized from the observed ledger window; they are not a complete calendar-day count.", "ZAF TECH herkese açık Mainnet Horizon verisini okur ve gözlemlenen örneği raporlar. Günlük değerler gözlemlenen ledger penceresinden normalize edilir; tam bir takvim günü toplamı değildir.")}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[11px]">
                 <External href="https://api.mainnet.minepi.com">{tr("Pi Mainnet Horizon", "Pi Mainnet Horizon")}</External>
-                <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>\n                {snapshot?.latestLedger?.sequence ? <a className="underline underline-offset-2" href={"/api/zaf/ledger/" + snapshot.latestLedger.sequence} target="_blank" rel="noreferrer">{tr("Ledger JSON", "Ledger JSON")}</a> : null}
+                <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
+                {snapshot?.latestLedger?.sequence ? <a className="underline underline-offset-2" href={"/api/zaf/ledger/" + snapshot.latestLedger.sequence} target="_blank" rel="noreferrer">{tr("Ledger JSON", "Ledger JSON")}</a> : null}
               </div>
             </div>
           </section>
