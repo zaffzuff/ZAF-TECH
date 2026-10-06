@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getEcosystemGraph } from "@/lib/zaf/ecosystem-graph";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 export async function GET(request: NextRequest) {
   const maxNodes = Number(request.nextUrl.searchParams.get("maxNodes") ?? "120");
