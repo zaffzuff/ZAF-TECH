@@ -346,7 +346,7 @@ function walkSourceFiles(directory) {
   for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
     const full = path.join(absolute, entry.name);
     if (entry.isDirectory()) files.push(...walkSourceFiles(path.join(directory, entry.name)));
-    else if (entry.isFile() && /\\.(ts|tsx|js|jsx)$/.test(entry.name)) files.push(full);
+    else if (entry.isFile() && /\.(ts|tsx|js|jsx)$/.test(entry.name)) files.push(full);
   }
   return files;
 }
@@ -363,11 +363,11 @@ for (const directory of piBoundaryRoots) {
 }
 
 const piTypesSource = fs.readFileSync(path.join(root, "lib/pi/types.ts"), "utf8");
-const piUserMatch = piTypesSource.match(/interface PiUser[\\s\\S]*?\\n}/);
-if (piUserMatch && /\\baccessToken\\s*:/.test(piUserMatch[0])) {
+const piUserMatch = piTypesSource.match(/interface PiUser[\s\S]*?\n}/);
+if (piUserMatch && /\baccessToken\s*:/.test(piUserMatch[0])) {
   throw new Error("PiUser must not expose accessToken to UI-facing identity data");
 }
-if (!/interface PiCredential[\\s\\S]*?accessToken\\s*:\\s*string/.test(piTypesSource)) {
+if (!/interface PiCredential[\s\S]*?accessToken\s*:\s*string/.test(piTypesSource)) {
   throw new Error("PiCredential boundary type must retain server-side credential representation");
 }
 
