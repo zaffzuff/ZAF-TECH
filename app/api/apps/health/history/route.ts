@@ -19,7 +19,15 @@ export async function GET(request: Request) {
     });
   }
 
-  const records = await getAppCheckHistory(url);
+  let records;
+  try {
+    records = await getAppCheckHistory(url);
+  } catch {
+    return NextResponse.json(
+      { configured: true, url, records: [], error: "Stored App Health history is temporarily unavailable." },
+      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
+  }
 
   return NextResponse.json({
     configured: true,
