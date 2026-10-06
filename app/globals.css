@@ -485,3 +485,40 @@
     padding-right: 10px;
   }
 }
+
+
+/* Refined primary navigation icon system.
+   Accent colors describe the role of each section while preserving the
+   restrained gold/silver ZAF TECH brand language. */
+.zaf-nav-icon {
+  display: block;
+  flex: none;
+  transition: transform .18s ease, filter .18s ease, opacity .18s ease;
+  filter: drop-shadow(0 2px 5px oklch(0.02 0 0 / 0.24));
+}
+
+.zaf-desktop-primary-item:hover .zaf-nav-icon,
+.zaf-mobile-primary-item:hover .zaf-nav-icon {
+  transform: translateY(-1px) scale(1.04);
+}
+
+.zaf-desktop-primary-item[aria-pressed="true"] .zaf-nav-icon,
+.zaf-mobile-primary-item[aria-pressed="true"] .zaf-nav-icon {
+  filter:
+    drop-shadow(0 0 6px oklch(0.88 0.08 86 / 0.26))
+    drop-shadow(0 2px 6px oklch(0.02 0 0 / 0.2));
+}
+
+@media (max-width: 1023px) {
+  .zaf-mobile-primary-item .zaf-nav-icon {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .zaf-desktop-primary-item .zaf-nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
