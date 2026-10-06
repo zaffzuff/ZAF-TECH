@@ -30,6 +30,35 @@ function nodeLabel(locale: Locale, value: "Offline" | "Connected" | "Available" 
   return labels[value][index];
 }
 
+function nodeStaticLabel(locale: Locale, value: "No Pi Container Detected" | "Protocol Support" | "Supported" | "Newer / unsupported" | "Local Ports" | "Started" | "Restarts" | "Ledger" | "Peers" | "Authenticated" | "Direction Data Unavailable" | "Pending" | "SCP Quorum" | "Joining SCP" | "Host & Docker Resources" | "Host CPU" | "C: Disk" | "PIDs" | "Docker Network" | "Host Network" | "Docker Block I/O" | "Protocol") {
+  const labels: Record<typeof value, [string, string, string, string, string, string, string, string, string]> = {
+    "No Pi Container Detected": ["No Pi Container Detected", "Pi Container Bulunamadı", "No se detectó el contenedor Pi", "未检测到 Pi 容器", "Nessun container Pi rilevato", "Conteneur Pi non détecté", "Kein Pi-Container erkannt", "Nenhum contêiner Pi detectado", "Контейнер Pi не обнаружен"],
+    "Protocol Support": ["Protocol Support", "Protokol Desteği", "Compatibilidad de protocolo", "协议支持", "Supporto protocollo", "Prise en charge du protocole", "Protokollunterstützung", "Suporte ao protocolo", "Поддержка протокола"],
+    Supported: ["Supported", "Destekleniyor", "Compatible", "支持", "Supportato", "Pris en charge", "Unterstützt", "Compatível", "Поддерживается"],
+    "Newer / unsupported": ["Newer / unsupported", "Yeni / desteklenmiyor", "Más nuevo / no compatible", "更新 / 不支持", "Più recente / non supportato", "Plus récent / non pris en charge", "Neuer / nicht unterstützt", "Mais recente / não compatível", "Новая / не поддерживается"],
+    "Local Ports": ["Local Ports", "Yerel Portlar", "Puertos locales", "本地端口", "Porte locali", "Ports locaux", "Lokale Ports", "Portas locais", "Локальные порты"],
+    Started: ["Started", "Başlangıç", "Iniciado", "启动时间", "Avviato", "Démarré", "Gestartet", "Iniciado", "Запущен"],
+    Restarts: ["Restarts", "Yeniden Başlatma", "Reinicios", "重启次数", "Riavvii", "Redémarrages", "Neustarts", "Reinícios", "Перезапуски"],
+    Ledger: ["Ledger", "Ledger", "Ledger", "账本", "Ledger", "Ledger", "Ledger", "Ledger", "Леджер"],
+    Peers: ["Peers", "Peerler", "Peers", "节点", "Peer", "Pairs", "Peers", "Peers", "Пиры"],
+    Authenticated: ["Authenticated", "Doğrulanmış", "Autenticados", "已认证", "Autenticati", "Authentifiés", "Authentifiziert", "Autenticados", "Аутентифицированные"],
+    "Direction Data Unavailable": ["Direction Data Unavailable", "Yön verisi kullanılamıyor", "Datos de dirección no disponibles", "方向数据不可用", "Dati direzionali non disponibili", "Données de direction indisponibles", "Richtungsdaten nicht verfügbar", "Dados de direção indisponíveis", "Данные направления недоступны"],
+    Pending: ["Pending", "Beklemede", "Pendiente", "待处理", "In attesa", "En attente", "Ausstehend", "Pendente", "Ожидает"],
+    "SCP Quorum": ["SCP Quorum", "SCP Quorum", "Quórum SCP", "SCP 仲裁", "Quorum SCP", "Quorum SCP", "SCP-Quorum", "Quórum SCP", "Кворум SCP"],
+    "Joining SCP": ["Joining SCP", "SCP'ye Katılıyor", "Uniéndose a SCP", "正在加入 SCP", "Ingresso in SCP", "Rejoindre SCP", "SCP wird beigetreten", "Entrando no SCP", "Подключение к SCP"],
+    "Host & Docker Resources": ["Host & Docker Resources", "Host ve Docker Kaynakları", "Recursos del host y Docker", "主机和 Docker 资源", "Risorse host e Docker", "Ressources hôte et Docker", "Host- und Docker-Ressourcen", "Recursos do host e Docker", "Ресурсы хоста и Docker"],
+    "Host CPU": ["Host CPU", "Host CPU", "CPU del host", "主机 CPU", "CPU host", "CPU hôte", "Host-CPU", "CPU do host", "CPU хоста"],
+    "C: Disk": ["C: Disk", "C: Disk", "Disco C:", "C: 磁盘", "Disco C:", "Disque C:", "C:-Laufwerk", "Disco C:", "Диск C:"],
+    PIDs: ["PIDs", "PID'ler", "PID", "PID", "PID", "PID", "PIDs", "PIDs", "PID"],
+    "Docker Network": ["Docker Network", "Docker Ağı", "Red Docker", "Docker 网络", "Rete Docker", "Réseau Docker", "Docker-Netzwerk", "Rede Docker", "Сеть Docker"],
+    "Host Network": ["Host Network", "Host Ağı", "Red del host", "主机网络", "Rete host", "Réseau hôte", "Host-Netzwerk", "Rede do host", "Сеть хоста"],
+    "Docker Block I/O": ["Docker Block I/O", "Docker Blok I/O", "E/S de bloques de Docker", "Docker 块 I/O", "I/O a blocchi Docker", "E/S de blocs Docker", "Docker-Block-I/O", "E/S de bloco Docker", "Блочный I/O Docker"],
+    Protocol: ["Protocol", "Protokol", "Protocolo", "协议", "Protocollo", "Protocole", "Protokoll", "Protocolo", "Протокол"],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[value][index];
+}
+
 function formatNumber(value: number | null, locale: Locale, digits = 0) {
   if (value == null || !Number.isFinite(value)) return "—";
   return value.toLocaleString(intlLocale(locale), {
@@ -510,17 +539,17 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
 
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Protocol", "Protokol")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Protocol")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{localNode?.node?.protocol || "—"}</div>
-            <div className="mt-1 min-w-0 break-words text-[10px] text-muted-foreground">{localNode?.node?.image || tr("No Pi Container Detected", "Pi Container Bulunamadı")}</div>
+            <div className="mt-1 min-w-0 break-words text-[10px] text-muted-foreground">{localNode?.node?.image || nodeStaticLabel(locale, "No Pi Container Detected")}</div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Protocol Support", "Protokol Desteği")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Protocol Support")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">
               {localNode?.node?.protocolSupport === "supported"
-                ? tr("Supported", "Destekleniyor")
+                ? nodeStaticLabel(locale, "Supported")
                 : localNode?.node?.protocolSupport === "newer_or_unsupported"
-                  ? tr("Newer / unsupported", "Yeni / desteklenmiyor")
+                  ? nodeStaticLabel(locale, "Newer / unsupported")
                   : "—"}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">
@@ -533,21 +562,21 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             </div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Local Ports", "Yerel Portlar")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Local Ports")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">
               {localNode?.ports ? localNode.ports.filter((item) => item.listeningLocally).length : 0}/10
             </div>
             <div className="mt-1 break-words text-[10px] text-muted-foreground">{tr("Listening on this computer; not an Internet reachability test", "Bu bilgisayarda dinleyen portlar; Internet erişilebilirlik testi değildir")}</div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Started", "Başlangıç")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Started")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">
               {localNode?.node?.startedAt ? new Date(localNode.node.startedAt).toLocaleString(intlLocale(locale)) : "—"}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">{tr("Container Start Timestamp", "Container Başlangıç Zamanı")}</div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Restarts", "Yeniden Başlatma")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Restarts")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{localNode?.node?.restartCount ?? "—"}</div>
             <div className="mt-1 text-[10px] text-muted-foreground">{tr("Docker Restart Count", "Docker Yeniden Başlatma Sayısı")}</div>
           </div>
@@ -555,7 +584,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
 
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Ledger", "Ledger")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Ledger")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">
               {localNode?.node?.ledger?.number?.toLocaleString() || "—"}
             </div>
@@ -566,11 +595,11 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             </div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("Peers", "Peerler")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Peers")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">
               {localNode?.node?.peers?.authenticated ?? "—"}
               <span className="ml-1 text-[10px] font-normal text-muted-foreground">
-                {tr("Authenticated", "Doğrulanmış")}
+                {nodeStaticLabel(locale, "Authenticated")}
               </span>
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">
@@ -579,7 +608,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
                     `Incoming ${localNode.node.peers.inbound} / Outgoing ${localNode.node.peers.outbound}`,
                     `Gelen ${localNode.node.peers.inbound} / Giden ${localNode.node.peers.outbound}`
                   )
-                : tr("Direction Data Unavailable", "Yön verisi kullanılamıyor")}
+                : nodeStaticLabel(locale, "Direction Data Unavailable")}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">
               {localNode?.node?.peers?.pending != null
@@ -588,7 +617,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             </div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">
-            <div className="text-[10px] text-muted-foreground">{tr("SCP Quorum", "SCP Quorum")}</div>
+            <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "SCP Quorum")}</div>
             <div className="mt-1 text-sm font-semibold text-foreground">{localNode?.node?.quorum?.phase || "—"}</div>
             <div className="mt-1 text-[10px] text-muted-foreground">
               {localNode?.node?.quorum
@@ -612,32 +641,32 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
 
         <div className="mt-3 rounded-lg border border-border bg-background px-3 py-3">
           <div className="mb-2">
-            <div className="text-xs font-semibold text-foreground">{tr("Host & Docker Resources", "Host Ve Docker Kaynakları")}</div>
+            <div className="text-xs font-semibold text-foreground">{nodeStaticLabel(locale, "Host & Docker Resources")}</div>
             <div className="mt-1 text-[10px] text-muted-foreground">{tr("Read-only live resource telemetry from the local Connector.", "Yerel Connector'dan salt-okunur canlı kaynak telemetrisi.")}</div>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-border px-3 py-3">
-              <div className="text-[10px] text-muted-foreground">{tr("Host CPU", "Host CPU")}</div>
+              <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Host CPU")}</div>
               <div className="mt-1 text-sm font-semibold text-foreground">{formatPercent(localResources?.host?.cpuPercent)}</div>
               <div className="mt-1 text-[10px] text-muted-foreground">{tr("RAM", "RAM")}: {formatPercent(localResources?.host?.memory?.usedPercent)} · {formatBytes(localResources?.host?.memory?.usedBytes)} / {formatBytes(localResources?.host?.memory?.totalBytes)}</div>
             </div>
             <div className="rounded-lg border border-border px-3 py-3">
-              <div className="text-[10px] text-muted-foreground">{tr("C: Disk", "C: Disk")}</div>
+              <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "C: Disk")}</div>
               <div className="mt-1 text-sm font-semibold text-foreground">{formatPercent(localResources?.host?.disk?.usedPercent)}</div>
               <div className="mt-1 text-[10px] text-muted-foreground">{formatBytes(localResources?.host?.disk?.usedBytes)} / {formatBytes(localResources?.host?.disk?.totalBytes)}</div>
             </div>
             <div className="rounded-lg border border-border px-3 py-3">
               <div className="text-[10px] text-muted-foreground">{tr("Node Container", "Node Container")}</div>
               <div className="mt-1 text-sm font-semibold text-foreground">{formatPercent(localResources?.docker?.cpuPercent)}</div>
-              <div className="mt-1 text-[10px] text-muted-foreground">{tr("RAM", "RAM")}: {formatPercent(localResources?.docker?.memory?.usedPercent)} · {formatBytes(localResources?.docker?.memory?.usedBytes)} / {formatBytes(localResources?.docker?.memory?.limitBytes)} · {tr("PIDs", "PID")}: {localResources?.docker?.pids ?? "—"}</div>
+              <div className="mt-1 text-[10px] text-muted-foreground">{tr("RAM", "RAM")}: {formatPercent(localResources?.docker?.memory?.usedPercent)} · {formatBytes(localResources?.docker?.memory?.usedBytes)} / {formatBytes(localResources?.docker?.memory?.limitBytes)} · {nodeStaticLabel(locale, "PIDs")}: {localResources?.docker?.pids ?? "—"}</div>
             </div>
             <div className="rounded-lg border border-border px-3 py-3">
-              <div className="text-[10px] text-muted-foreground">{tr("Docker Network", "Docker Ağı")}</div>
+              <div className="text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Docker Network")}</div>
               <div className="mt-1 text-sm font-semibold text-foreground">↓ {formatBytes(localResources?.docker?.network?.receivedBytes)} · ↑ {formatBytes(localResources?.docker?.network?.sentBytes)}</div>
               <div className="mt-1 text-[10px] text-muted-foreground">{tr("WSL", "WSL")}: {localResources?.wsl?.available ? nodeLabel(locale, "Available") : nodeLabel(locale, "Unavailable")}</div>
             </div>
           </div>
-          <div className="mt-2 text-[10px] text-muted-foreground">{tr("Host Network", "Host Ağı")}: ↓ {formatBytes(localResources?.host?.network?.receivedBytes)} · ↑ {formatBytes(localResources?.host?.network?.sentBytes)} · {tr("Docker Block I/O", "Docker Block I/O")}: R {formatBytes(localResources?.docker?.blockIO?.readBytes)} / W {formatBytes(localResources?.docker?.blockIO?.writeBytes)}</div>
+          <div className="mt-2 text-[10px] text-muted-foreground">{nodeStaticLabel(locale, "Host Network")}: ↓ {formatBytes(localResources?.host?.network?.receivedBytes)} · ↑ {formatBytes(localResources?.host?.network?.sentBytes)} · {nodeStaticLabel(locale, "Docker Block I/O")}: R {formatBytes(localResources?.docker?.blockIO?.readBytes)} / W {formatBytes(localResources?.docker?.blockIO?.writeBytes)}</div>
         </div>
 
         {!localNodeError && localNode?.connector?.version && compareVersions(localNode.connector.version, MIN_CONNECTOR_VERSION) < 0 ? (
