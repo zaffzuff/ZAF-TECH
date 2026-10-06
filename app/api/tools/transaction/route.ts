@@ -4,7 +4,7 @@ export const dynamic="force-dynamic";
 
 export async function GET(request:Request){
  const id=new URL(request.url).searchParams.get("id")?.trim();
- if(!id||id.length>128||!/^[a-f0-9]{64}$/i.test(id))return NextResponse.json({error:"A 64-character transaction hash is required."},{status:400,headers:{"Cache-Control":"public, s-maxage=60, stale-while-revalidate=300"}});
+ if(!id||id.length>128||!/^[a-f0-9]{64}$/i.test(id))return NextResponse.json({error:"A 64-character transaction hash is required."},{status:400,headers:{"Cache-Control":"no-store"}});
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);
  try{
   const response=await fetch(`https://api.mainnet.minepi.com/transactions/${id}`,{cache:"no-store",headers:{Accept:"application/json"},signal:controller.signal});
