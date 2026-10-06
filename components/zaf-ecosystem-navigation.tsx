@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 
 export type ZafSection = "overview" | "apps" | "testnet" | "defi" | "node" | "intelligence" | "wallet";
@@ -84,22 +83,35 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   onSectionChange: (section: ZafSection) => void;
   onSubtabChange: (subtab: string) => void;
 }) {
-  const [moreOpen, setMoreOpen] = useState(false);
   const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["apps", "Apps"], ["testnet", "Testnet"], ["defi", "DeFi"], ["node", "Node & Compute"], ["intelligence", "Observatory"], ["wallet", "Wallet"]];
   const subtabs = ZAF_SECTION_TABS[section];
 
-  const selectSection = (next: ZafSection, nextSubtab?: string) => {
+  const selectSection = (next: ZafSection) => {
     onSectionChange(next);
-    onSubtabChange(nextSubtab ?? ZAF_SECTION_TABS[next][0] ?? "");
-    setMoreOpen(false);
+    onSubtabChange(ZAF_SECTION_TABS[next][0] ?? "");
   };
 
-  const mobileItems: Array<{ section: ZafSection; label: string; icon: string; subtab?: string }> = [
-    { section: "overview", label: "Overview", icon: "home", subtab: "Ecosystem" },
-    { section: "apps", label: "Apps", icon: "apps", subtab: "App Directory" },
-    { section: "defi", label: "DeFi", icon: "defi", subtab: "Overview" },
-    { section: "node", label: "Node", icon: "node", subtab: "Node" },
-  ];
+  const primaryNav = (
+    <div className="zaf-mobile-primary-nav grid grid-cols-4 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
+      {sections.map(([id, title]) => {
+        const meta = sectionMeta[id];
+        const active = section === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => selectSection(id)}
+            className={"zaf-mobile-primary-item min-w-0 rounded-xl px-1.5 py-2 text-[9px] font-medium leading-tight transition-colors " + (active ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+          >
+            <span className="flex min-h-10 flex-col items-center justify-center gap-1">
+              <Icon name={meta.icon} size={16} />
+              <span className="max-w-full truncate">{label(title, locale)}</span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <nav className="zaf-navigation mt-4 border-t border-border pt-3" aria-label={locale === "tr" ? "Ekosistem Bölümleri" : "Ecosystem Sections"}>
@@ -118,7 +130,6 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
             );
           })}
         </div>
-
         {subtabs.length ? (
           <div className="zaf-desktop-secondary-nav mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-1 pb-1.5">
             {subtabs.map(item => {
@@ -135,65 +146,19 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
       </div>
 
       <div className="lg:hidden">
-        <div className="zaf-mobile-context rounded-xl border border-border bg-card px-3 py-2.5">
-          <div className="flex items-center gap-2.5">
-            <span className="rounded-lg bg-foreground/10 p-1.5 text-foreground"><Icon name={sectionMeta[section].icon} size={15} /></span>
-            <div className="min-w-0 flex-1">
-              <div className="text-[9px] uppercase tracking-[0.14em] text-muted-foreground">{label("Overview", locale)}</div>
-              <div className="truncate text-xs font-semibold text-foreground">{label(sectionMeta[section].title, locale)}</div>
-            </div>
-            <span className="text-muted-foreground"><Icon name="chevron" size={14} /></span>
-          </div>
-        </div>
-
+        {primaryNav}
         {subtabs.length ? (
           <div className="zaf-mobile-subtabs mt-2 grid grid-cols-2 gap-1">
             {subtabs.map(item => {
               const active = subtab === item;
               return (
-                <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-mobile-subtab min-w-0 rounded-lg border px-2 py-2 text-[10px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
+                <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-mobile-subtab min-w-0 rounded-lg border px-2 py-1.5 text-[9px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
                   {label(item, locale)}
                 </button>
               );
             })}
           </div>
         ) : null}
-
-        {moreOpen ? (
-          <div className="zaf-mobile-more-menu mt-2 grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-card p-2 shadow-lg">
-            {sections.filter(([id]) => id === "testnet" || id === "intelligence" || id === "wallet").map(([id, title]) => {
-              const meta = sectionMeta[id];
-              return (
-                <button key={id} type="button" onClick={() => selectSection(id)} className={"rounded-lg border px-2 py-2 text-center text-[10px] font-medium " + (section === id ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground")}>
-                  <span className="mb-1 flex justify-center"><Icon name={meta.icon} size={15} /></span>
-                  {label(title, locale)}
-                </button>
-              );
-            })}
-          </div>
-        ) : null}
-
-        <div className="zaf-mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl">
-          <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
-            {mobileItems.map(item => {
-              const active = section === item.section;
-              return (
-                <button key={item.label} type="button" onClick={() => selectSection(item.section, item.subtab)} className={"rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors " + (active ? "bg-foreground text-background" : "text-muted-foreground")}>
-                  <span className="flex flex-col items-center gap-0.5">
-                    <Icon name={item.icon} size={16} />
-                    <span>{label(item.label === "Overview" ? "Overview" : item.label === "Apps" ? "Apps" : item.label, locale)}</span>
-                  </span>
-                </button>
-              );
-            })}
-            <button type="button" onClick={() => setMoreOpen(value => !value)} className={"rounded-lg px-1 py-1.5 text-[9px] font-medium transition-colors " + (moreOpen ? "bg-foreground text-background" : "text-muted-foreground")}>
-              <span className="flex flex-col items-center gap-0.5">
-                <Icon name="more" size={16} />
-                <span>{locale === "tr" ? "Daha Fazla" : "More"}</span>
-              </span>
-            </button>
-          </div>
-        </div>
       </div>
     </nav>
   );
