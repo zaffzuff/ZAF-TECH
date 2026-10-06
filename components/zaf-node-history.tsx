@@ -71,6 +71,25 @@ function formatBytes(value: number | null | undefined) {
   return (n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)) + " " + units[i];
 }
 
+function label(locale: Locale, value: "Healthy" | "Available" | "Available With Warnings" | "Unavailable" | "Average" | "Maximum" | "Incoming" | "Outgoing" | "Time" | "Status" | "Pending" | "Incoming / outgoing peer history") {
+  const labels: Record<typeof value, [string, string, string, string, string, string, string, string, string]> = {
+    Healthy: ["Healthy", "Sağlıklı", "Saludable", "健康", "Sano", "Sain", "Gesund", "Saudável", "Здоровый"],
+    Available: ["Available", "Çalışıyor", "Disponible", "可用", "Disponibile", "Disponible", "Verfügbar", "Disponível", "Доступно"],
+    "Available With Warnings": ["Available With Warnings", "Çalışıyor, Uyarılar Var", "Disponible con advertencias", "可用但有警告", "Disponibile con avvisi", "Disponible avec avertissements", "Verfügbar mit Warnungen", "Disponível com avisos", "Доступно с предупреждениями"],
+    Unavailable: ["Unavailable", "Kullanılamıyor", "No disponible", "不可用", "Non disponibile", "Indisponible", "Nicht verfügbar", "Indisponível", "Недоступно"],
+    Average: ["Average", "Ortalama", "Promedio", "平均", "Media", "Moyenne", "Durchschnitt", "Média", "Среднее"],
+    Maximum: ["Maximum", "Maksimum", "Máximo", "最大值", "Massimo", "Maximum", "Maximum", "Máximo", "Максимум"],
+    Incoming: ["Incoming", "Gelen", "Entrante", "传入", "In entrata", "Entrant", "Eingehend", "Recebido", "Входящий"],
+    Outgoing: ["Outgoing", "Giden", "Saliente", "传出", "In uscita", "Sortant", "Ausgehend", "Enviado", "Исходящий"],
+    Time: ["Time", "Zaman", "Hora", "时间", "Ora", "Heure", "Zeit", "Hora", "Время"],
+    Status: ["Status", "Durum", "Estado", "状态", "Stato", "Statut", "Status", "Status", "Статус"],
+    Pending: ["Pending", "Bekleyen", "Pendiente", "待处理", "In attesa", "En attente", "Ausstehend", "Pendente", "Ожидает"],
+    "Incoming / outgoing peer history": ["Incoming / outgoing peer history", "Gelen / giden peer geçmişi", "Historial de peers entrantes / salientes", "传入 / 传出节点历史", "Cronologia peer in entrata / uscita", "Historique des pairs entrants / sortants", "Verlauf eingehender / ausgehender Peers", "Histórico de peers recebidos / enviados", "История входящих / исходящих пиров"],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[value][index];
+}
+
 function rateFromSamples(samples: Sample[], rxKey: keyof Sample, txKey: keyof Sample) {
   if (samples.length < 2) return { rx: null, tx: null };
   const current = samples.at(-1);
@@ -209,7 +228,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-6">
             {[
               [tr("Availability", "Erişilebilirlik"), stats.availability == null ? "—" : `${stats.availability.toFixed(2)}%`],
-              [tr("Healthy", "Sağlıklı"), stats.health == null ? "—" : `${stats.health.toFixed(2)}%`],
+              [label(locale, "Healthy"), stats.health == null ? "—" : `${stats.health.toFixed(2)}%`],
               [tr("Avg Incoming", "Ort. Gelen"), stats.inbound == null ? "—" : stats.inbound.toFixed(1)],
               [tr("Avg Outgoing", "Ort. Giden"), stats.outbound == null ? "—" : stats.outbound.toFixed(1)],
               [tr("Samples", "Örnek"), samples.length.toLocaleString()],
@@ -253,7 +272,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
             <div className="rounded-lg border border-border p-3">
               <div className="text-[10px] text-muted-foreground">{tr("Node Health Summary", "Node Sağlık Özeti")}</div>
               <div className="mt-1 text-sm font-semibold text-foreground">
-                {latest?.healthy ? tr("Healthy", "Sağlıklı") : latest?.available ? tr("Available With Warnings", "Çalışıyor, Uyarılar Var") : tr("Unavailable", "Kullanılamıyor")}
+                {latest?.healthy ? label(locale, "Healthy") : latest?.available ? label(locale, "Available With Warnings") : label(locale, "Unavailable")}
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
                 <div className="rounded-md border border-border px-2 py-2">
@@ -303,7 +322,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
                 {chart.map((sample) => (
                   <span
                     key={sample.observedAt}
-                    title={sample.healthy ? tr("Healthy", "Sağlıklı") : sample.available ? tr("Available", "Çalışıyor") : tr("Unavailable", "Kullanılamıyor")}
+                    title={sample.healthy ? label(locale, "Healthy") : sample.available ? label(locale, "Available") : label(locale, "Unavailable")}
                     className={sample.healthy ? "flex-1 bg-foreground" : sample.available ? "flex-1 bg-muted-foreground/50" : "flex-1 bg-muted"}
                   />
                 ))}
@@ -320,11 +339,11 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
                 <div className="rounded-md border border-border px-2 py-2">
-                  <div className="text-muted-foreground">{tr("Average", "Ortalama")}</div>
+                  <div className="text-muted-foreground">{label(locale, "Average")}</div>
                   <div className="mt-0.5 font-medium text-foreground">{stats.listeners == null ? "—" : stats.listeners.toFixed(1) + "/10"}</div>
                 </div>
                 <div className="rounded-md border border-border px-2 py-2">
-                  <div className="text-muted-foreground">{tr("Maximum", "Maksimum")}</div>
+                  <div className="text-muted-foreground">{label(locale, "Maximum")}</div>
                   <div className="mt-0.5 font-medium text-foreground">{stats.maxListeners}/10</div>
                 </div>
               </div>
@@ -405,7 +424,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
 
           <div className="mt-3 rounded-lg border border-border p-3">
             <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>{tr("Incoming / outgoing peer history", "Gelen / giden peer geçmişi")}</span>
+              <span>{label(locale, "Incoming / outgoing peer history")}</span>
               <span>{tr("Max", "Maks.")}: {stats.maxInbound} / {stats.maxOutbound}</span>
             </div>
             {chart.length > 1 ? (
@@ -422,7 +441,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
               </div>
             )}
             <div className="flex gap-4 text-[10px] text-muted-foreground">
-              <span>— {tr("Incoming", "Gelen")}</span><span>-- {tr("Outgoing", "Giden")}</span>
+              <span>— {label(locale, "Incoming")}</span><span>-- {label(locale, "Outgoing")}</span>
             </div>
           </div>
 
@@ -430,11 +449,11 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
             <table className="w-full min-w-[760px] text-left text-[10px]">
               <thead className="bg-muted/40 text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2">{tr("Time", "Zaman")}</th>
-                  <th className="px-3 py-2">{tr("Status", "Durum")}</th>
-                  <th className="px-3 py-2">{tr("Incoming", "Gelen")}</th>
-                  <th className="px-3 py-2">{tr("Outgoing", "Giden")}</th>
-                  <th className="px-3 py-2">{tr("Pending", "Bekleyen")}</th>
+                  <th className="px-3 py-2">{label(locale, "Time")}</th>
+                  <th className="px-3 py-2">{label(locale, "Status")}</th>
+                  <th className="px-3 py-2">{label(locale, "Incoming")}</th>
+                  <th className="px-3 py-2">{label(locale, "Outgoing")}</th>
+                  <th className="px-3 py-2">{label(locale, "Pending")}</th>
                   <th className="px-3 py-2">{tr("Ledger Age", "Ledger Yaşı")}</th>
                   <th className="px-3 py-2">{tr("Listeners", "Dinleyici")}</th>
                   <th className="px-3 py-2">{tr("Restarts", "Yeniden Başlatma")}</th>
@@ -445,7 +464,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
                 {samples.slice(-8).reverse().map((s) => (
                   <tr key={s.observedAt} className="border-t border-border">
                     <td className="px-3 py-2 whitespace-nowrap">{new Date(s.observedAt).toLocaleString(intlLocale(locale))}</td>
-                    <td className="px-3 py-2">{s.healthy ? tr("Healthy", "Sağlıklı") : s.available ? tr("Available", "Çalışıyor") : tr("Unavailable", "Kullanılamıyor")}</td>
+                    <td className="px-3 py-2">{s.healthy ? label(locale, "Healthy") : s.available ? label(locale, "Available") : label(locale, "Unavailable")}</td>
                     <td className="px-3 py-2">{s.inbound ?? "—"}</td>
                     <td className="px-3 py-2">{s.outbound ?? "—"}</td>
                     <td className="px-3 py-2">{s.pending ?? "—"}</td>
