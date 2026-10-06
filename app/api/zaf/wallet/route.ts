@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getZafWallet } from "@/lib/zaf/wallet-client";
 import { getWalletActivityAnalytics } from "@/lib/zaf/wallet-analytics";
+import { rateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 
