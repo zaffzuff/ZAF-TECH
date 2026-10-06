@@ -468,3 +468,20 @@
 @media (min-width: 1024px) {
   .zaf-mobile-header { display: none; }
 }
+
+@media (min-width: 1024px) {
+  .zaf-desktop-search {
+    width: 250px;
+    max-width: 250px;
+    flex: 0 0 250px;
+  }
+
+  .zaf-desktop-search input {
+    min-width: 0;
+  }
+
+  .zaf-desktop-search button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
