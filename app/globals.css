@@ -441,3 +441,30 @@
   .zaf-mobile-primary-nav,
   .zaf-mobile-subtabs { display: none; }
 }
+
+
+/* Compact mobile header: actions and search live on the top row. */
+.zaf-mobile-header { display: none; }
+
+@media (max-width: 1023px) {
+  .zaf-desktop-header { display: none; }
+  .zaf-mobile-header { display: flex; }
+  .zaf-mobile-header-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+  .zaf-mobile-language > button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+  .zaf-mobile-language > button > span:nth-child(2),
+  .zaf-mobile-language > button > span:nth-child(3) {
+    display: none;
+  }
+  .zaf-mobile-language img { width: 18px; height: 13px; }
+  .zaf-mobile-search-panel input { min-height: 34px; }
+}
+
+@media (min-width: 1024px) {
+  .zaf-mobile-header { display: none; }
+}
