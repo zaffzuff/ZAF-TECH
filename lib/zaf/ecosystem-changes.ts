@@ -3,7 +3,8 @@ import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib
 
 type StoredPayload = {
   apps?: { totalCount?: number | null };
-  sources?: Array<{ id: string; label: string; status: string }>;\n  news?: Array<{ title: string; url: string; publishedAt: string | null }>;
+  sources?: Array<{ id: string; label: string; status: string }>;
+  news?: Array<{ title: string; url: string; publishedAt: string | null }>;
   signals?: Array<{
     id: string;
     title: string;
