@@ -107,7 +107,7 @@ function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number
     source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
     signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
     signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
-    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
+    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",\n    official_update: locale === "tr" ? "Resmi Pi duyurusu" : "Official Pi update",
   } as const;
   return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
 }
