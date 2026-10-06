@@ -3,6 +3,10 @@
     {
       "path": "/api/apps/health/cron",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/zaf/defi/cron",
+      "schedule": "0 * * * *"
     }
   ]
 }
