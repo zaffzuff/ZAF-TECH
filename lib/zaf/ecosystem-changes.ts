@@ -49,7 +49,7 @@ function payloadOf(value: unknown): StoredPayload {
 
 export async function getEcosystemChanges(): Promise<EcosystemChanges> {
   const current = (await getUnifiedObservation()).ecosystem;
-  const history = await getEcosystemSnapshotHistory(2);
+  const history = await getEcosystemSnapshotHistory(3);
 
   if (!current || !history.length) {
     return {
@@ -61,7 +61,13 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
     };
   }
 
-  const previous = payloadOf(history[0].payload);
+  const currentAt = new Date(current.generatedAt).getTime();
+  const previousRecord =
+    Number.isFinite(currentAt)
+      ? history.find(record => new Date(record.generatedAt).getTime() < currentAt)
+      : null;
+  const baseline = previousRecord ?? history[0];
+  const previous = payloadOf(baseline.payload);
   const changes: EcosystemChange[] = [];
 
   const previousApps = previous.apps?.totalCount ?? null;
@@ -145,7 +151,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         current: null,
         category: "signal_removed",
         sourceUrl: signal.sourceUrl ?? null,
-        observedAt: signal.detectedAt ?? history[0].generatedAt,
+        observedAt: current.generatedAt,
       });
     }
   }
@@ -176,7 +182,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
   return {
     generatedAt: current.generatedAt,
     configured: isEcosystemHistoryConfigured(),
-    comparedAt: history[0].generatedAt,
+    comparedAt: baseline.generatedAt,
     hasBaseline: true,
     changes: changes.slice(0, 50),
   };
