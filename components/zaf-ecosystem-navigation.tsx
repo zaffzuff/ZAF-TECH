@@ -3,14 +3,12 @@
 import { useId } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 
-export type ZafSection = "overview" | "apps" | "testnet" | "defi" | "node" | "intelligence" | "wallet";
+export type ZafSection = "overview" | "discover" | "network" | "intelligence" | "wallet";
 
 export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
-  overview: ["Pulse", "Ecosystem", "Network", "Tools"],
-  apps: ["App Directory", "App Health", "App Activity", "Staking"],
-  testnet: ["Assets"],
-  defi: ["Overview", "DEX", "AMM & Pools", "Tokens", "Launchpad"],
-  node: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
+  overview: ["Pulse", "Ecosystem"],
+  discover: ["App Directory", "App Health", "App Activity", "Staking", "Tools"],
+  network: ["Network", "Testnet Assets", "DeFi", "DEX", "AMM & Pools", "Tokens", "Launchpad", "Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
   intelligence: ["Radar", "Trust", "Activity Signals", "Graph", "Explorer"],
   wallet: [],
 };
@@ -24,10 +22,11 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Apps: ["Apps", "Uygulamalar", "Aplicaciones", "应用", "App", "Applications", "Apps", "Aplicativos", "Приложения"],
   Testnet: ["Testnet", "Testnet", "Testnet", "测试网", "Testnet", "Testnet", "Testnet", "Testnet", "Тестнет"],
   DeFi: ["DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi"],
-  "App Directory": ["Discover", "Keşfet", "Directorio De Apps", "应用目录", "Elenco App", "Annuaire Des Apps", "App-Verzeichnis", "Diretório De Apps", "Каталог Приложений"],
+  "App Directory": ["App Directory", "Uygulama Dizini", "Directorio De Apps", "应用目录", "Elenco App", "Annuaire Des Apps", "App-Verzeichnis", "Diretório De Apps", "Каталог Приложений"],
   "App Health": ["App Health", "Uygulama Sağlığı", "Salud De Apps", "应用健康", "Salute App", "Santé Des Apps", "App-Gesundheit", "Saúde Dos Apps", "Состояние Приложений"],
   "App Activity": ["App Activity", "Uygulama Aktivitesi", "Actividad De Apps", "应用活动", "Attività App", "Activité Des Apps", "App-Aktivität", "Atividade De Apps", "Активность Приложений"],
   Assets: ["Assets", "Varlıklar", "Activos", "资产", "Asset", "Actifs", "Vermögenswerte", "Ativos", "Активы"],
+  "Testnet Assets": ["Testnet Assets", "Testnet Varlıkları", "Activos De Testnet", "测试网资产", "Asset Testnet", "Actifs Testnet", "Testnet-Assets", "Ativos Testnet", "Активы Тестнета"],
   DEX: ["DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX"],
   "AMM & Pools": ["AMM & Pools", "AMM & Havuzlar", "AMM Y Pools", "AMM 与池", "AMM & Pool", "AMM & Pools", "AMM & Pools", "AMM & Pools", "AMM и Пулы"],
   Tokens: ["Tokens", "Tokenlar", "Tokens", "代币", "Token", "Tokens", "Token", "Tokens", "Токены"],
@@ -46,6 +45,9 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Graph: ["Graph", "Graf", "Gráfico", "图谱", "Grafo", "Graphe", "Graph", "Grafo", "Граф"],
   Explorer: ["Explorer", "Explorer", "Explorador", "浏览器", "Esplora", "Explorateur", "Explorer", "Explorador", "Обозреватель"],
   Wallet: ["Wallet", "Cüzdan", "Billetera", "钱包", "Wallet", "Portefeuille", "Wallet", "Carteira", "Кошелёк"],
+  Discover: ["Discover", "Keşfet", "Descubrir", "发现", "Scopri", "Découvrir", "Entdecken", "Descobrir", "Обзор"],
+  Intelligence: ["Intelligence", "İstihbarat", "Inteligencia", "智能", "Intelligenza", "Intelligence", "Intelligenz", "Inteligência", "Интеллект"],
+  Overview: ["Overview", "Genel Bakış", "Resumen", "概览", "Panoramica", "Vue d’ensemble", "Übersicht", "Visão Geral", "Обзор"],
 };
 
 function label(value: string, locale: Locale) {
@@ -56,10 +58,8 @@ function label(value: string, locale: Locale) {
 
 const sectionMeta: Record<ZafSection, { title: string; icon: string }> = {
   overview: { title: "Pulse", icon: "home" },
-  apps: { title: "Apps", icon: "apps" },
-  testnet: { title: "Testnet", icon: "testnet" },
-  defi: { title: "DeFi", icon: "defi" },
-  node: { title: "Node & Compute", icon: "node" },
+  discover: { title: "Discover", icon: "apps" },
+  network: { title: "Network", icon: "node" },
   intelligence: { title: "Intelligence", icon: "observatory" },
   wallet: { title: "Wallet", icon: "wallet" },
 };
@@ -243,7 +243,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   onSectionChange: (section: ZafSection) => void;
   onSubtabChange: (subtab: string) => void;
 }) {
-  const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["apps", "Apps"], ["testnet", "Testnet"], ["defi", "DeFi"], ["node", "Node & Compute"], ["intelligence", "Observatory"], ["wallet", "Wallet"]];
+  const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["discover", "Discover"], ["network", "Network"], ["intelligence", "Intelligence"], ["wallet", "Wallet"]];
   const subtabs = ZAF_SECTION_TABS[section];
 
   const selectSection = (next: ZafSection) => {
@@ -252,7 +252,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   };
 
   const primaryNav = (
-    <div className="zaf-mobile-primary-nav grid grid-cols-4 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
+    <div className="zaf-mobile-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
       {sections.map(([id, title]) => {
         const meta = sectionMeta[id];
         const active = section === id;
@@ -277,7 +277,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   return (
     <nav className="zaf-navigation mt-4 border-t border-border pt-3" aria-label={locale === "tr" ? "Ekosistem Bölümleri" : "Ecosystem Sections"}>
       <div className="hidden lg:block">
-        <div className="zaf-desktop-primary-nav grid grid-cols-7 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
+        <div className="zaf-desktop-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
           {sections.map(([id, title]) => {
             const meta = sectionMeta[id];
             const active = section === id;
