@@ -102,14 +102,16 @@ function radarSignalTitle(id: string, locale: Locale) {
   return labels[id]?.[index] ?? id;
 }
 function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number]["category"], locale: Locale) {
-  const labels = {
-    app_count: locale === "tr" ? "Uygulama sayısı değişti" : "App count changed",
-    source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
-    signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
-    signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
-    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
-  } as const;
-  return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
+  const labels: Record<NonNullable<EcosystemChangePayload["changes"][number]["category"]>, [string, string, string, string, string, string, string, string, string]> = {
+    app_count: ["App count changed", "Uygulama sayısı değişti", "Cambió el número de apps", "应用数量发生变化", "Numero di app cambiato", "Nombre d'apps modifié", "App-Anzahl geändert", "Número de apps alterado", "Изменилось число приложений"],
+    source_status: ["Source status changed", "Kaynak durumu değişti", "Cambió el estado de la fuente", "来源状态发生变化", "Stato della fonte cambiato", "État de la source modifié", "Quellenstatus geändert", "Estado da fonte alterado", "Изменился статус источника"],
+    signal_added: ["Newly observed", "Yeni gözlemlendi", "Observado recientemente", "新观察到", "Nuova osservazione", "Nouvellement observé", "Neu beobachtet", "Recentemente observado", "Новое наблюдение"],
+    signal_removed: ["No longer observed", "Artık gözlemlenmiyor", "Ya no se observa", "不再观察到", "Non più osservato", "N'est plus observé", "Nicht mehr beobachtet", "Deixou de ser observado", "Больше не наблюдается"],
+    defi_status: ["DeFi status changed", "DeFi durumu değişti", "Cambió el estado de DeFi", "DeFi 状态发生变化", "Stato DeFi cambiato", "État DeFi modifié", "DeFi-Status geändert", "Estado DeFi alterado", "Изменился статус DeFi"],
+    official_update: ["Official Pi update", "Resmi Pi duyurusu", "Actualización oficial de Pi", "Pi 官方更新", "Aggiornamento ufficiale Pi", "Mise à jour officielle de Pi", "Offizielles Pi-Update", "Atualização oficial da Pi", "Официальное обновление Pi"],
+  };
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[category ?? "signal_added"]?.[index] ?? (locale === "tr" ? "Değişiklik" : "Change");
 }
 
 function radarSignalValue(id: string, value: number | string | null, locale: Locale) {
@@ -145,13 +147,14 @@ function External({ href, children }: { href: string; children: React.ReactNode 
   return <a href={href} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">{children}</a>;
 }
 function searchTypeLabel(type: SearchResult["type"], locale: Locale) {
-  const labels: Record<SearchResult["type"], [string, string]> = {
-    app: ["App", "Uygulama"],
-    source: ["Source", "Kaynak"],
-    signal: ["Signal", "Sinyal"],
-    ledger: ["Ledger", "Ledger"],
+  const labels: Record<SearchResult["type"], [string, string, string, string, string, string, string, string, string]> = {
+    app: ["App", "Uygulama", "Aplicación", "应用", "App", "Application", "App", "Aplicativo", "Приложение"],
+    source: ["Source", "Kaynak", "Fuente", "来源", "Fonte", "Source", "Quelle", "Fonte", "Источник"],
+    signal: ["Signal", "Sinyal", "Señal", "信号", "Segnale", "Signal", "Signal", "Sinal", "Сигнал"],
+    ledger: ["Ledger", "Ledger", "Ledger", "账本", "Ledger", "Ledger", "Ledger", "Ledger", "Ledger"],
   };
-  return labels[type][locale === "tr" ? 1 : 0];
+  const index = locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0;
+  return labels[type][index];
 }
 
 function SearchIcon({ size = 16 }: { size?: number }) {
@@ -203,10 +206,10 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         {results.slice(0, 8).map(result => (
           <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
-              <span className="truncate text-[11px] font-medium text-foreground">{result.title}</span>
-              <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
+              <span className="min-w-0 break-words text-[11px] font-medium text-foreground">{result.title}</span>
+              <span className="shrink-0 max-w-[32%] break-words text-right text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
             </div>
-            <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{result.detail}</div>
+            <div className="mt-0.5 min-w-0 break-words text-[9px] text-muted-foreground">{result.detail}</div>
           </button>
         ))}
       </div>
@@ -510,10 +513,10 @@ export function ZafTechApp() {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const load = useCallback(async (force = false) => {
+  const load = useCallback(async (refreshViews = false) => {
     setRefreshing(true);
     try {
-      const response = await fetch(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" });
+      const response = await fetch("/api/zaf/observations", { cache: "no-store" });
       if (!response.ok) throw new Error("ZAF TECH observation request failed");
       const observation = await response.json();
       if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
@@ -526,7 +529,7 @@ export function ZafTechApp() {
         errors: Array.isArray(observation.errors) ? observation.errors : [],
       });
       setLoadError(null);
-      if (force) setRefreshNonce(value => value + 1);
+      if (refreshViews) setRefreshNonce(value => value + 1);
     } catch {
       setLoadError("DATA_REQUEST_FAILED");
     } finally {
@@ -537,7 +540,9 @@ export function ZafTechApp() {
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => void load(), 60000);
+    const id = window.setInterval(() => {
+      void load().then(() => setRefreshNonce(value => value + 1));
+    }, 60000);
     return () => window.clearInterval(id);
   }, [load]);
 
@@ -551,9 +556,9 @@ export function ZafTechApp() {
         <header className="border-b border-border pb-5 pt-7">
           <div className="zaf-desktop-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
-              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={44} height={44} className="h-11 w-11 shrink-0 object-contain" priority />
+              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={64} height={64} className="h-[64px] w-[64px] shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="text-2xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
+                <div className="text-[36px] font-bold tracking-tight ty-brand-text">ZAF TECH</div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
@@ -566,9 +571,9 @@ export function ZafTechApp() {
           </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
-              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" priority />
+              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={52} height={52} className="h-[52px] w-[52px] shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="text-xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
+                <div className="text-[28px] font-bold tracking-tight ty-brand-text">ZAF TECH</div>
                 <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
@@ -867,7 +872,8 @@ export function ZafTechApp() {
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH reads public Mainnet Horizon data and reports the observed sample. Daily values are normalized from the observed ledger window; they are not a complete calendar-day count.", "ZAF TECH herkese açık Mainnet Horizon verisini okur ve gözlemlenen örneği raporlar. Günlük değerler gözlemlenen ledger penceresinden normalize edilir; tam bir takvim günü toplamı değildir.")}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[11px]">
                 <External href="https://api.mainnet.minepi.com">{tr("Pi Mainnet Horizon", "Pi Mainnet Horizon")}</External>
-                <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>\n                {snapshot?.latestLedger?.sequence ? <a className="underline underline-offset-2" href={"/api/zaf/ledger/" + snapshot.latestLedger.sequence} target="_blank" rel="noreferrer">{tr("Ledger JSON", "Ledger JSON")}</a> : null}
+                <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
+                {snapshot?.latestLedger?.sequence ? <a className="underline underline-offset-2" href={"/api/zaf/ledger/" + snapshot.latestLedger.sequence} target="_blank" rel="noreferrer">{tr("Ledger JSON", "Ledger JSON")}</a> : null}
               </div>
             </div>
           </section>
@@ -972,7 +978,7 @@ type EcosystemChangePayload = {
     detailTr: string;
     previous: string | number | null;
     current: string | number | null;
-    category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+    category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status" | "official_update";
     sourceUrl?: string | null;
     observedAt?: string | null;
   }>;
@@ -1421,9 +1427,9 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
       <TrendView points={trends?.points ?? []} locale={locale} tr={tr} />
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title="Launchpad" value={displayStatus(data?.current.defi.launchpad, locale)} />
-        <Card title="DEX" value={displayStatus(data?.current.defi.dex, locale)} />
-        <Card title="AMM" value={displayStatus(data?.current.defi.amm, locale)} />
+        <Card title={tr("Launchpad", "Launchpad")} value={displayStatus(data?.current.defi.launchpad, locale)} />
+        <Card title={tr("DEX", "DEX")} value={displayStatus(data?.current.defi.dex, locale)} />
+        <Card title={tr("AMM", "AMM")} value={displayStatus(data?.current.defi.amm, locale)} />
         <Card title={tr("Mainnet Trading", "Mainnet İşlemleri")} value={displayStatus(data?.current.defi.mainnetTrading, locale)} />
       </div>
 

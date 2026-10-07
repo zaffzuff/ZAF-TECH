@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url).searchParams.get("url")?.trim();
   if (!url) return NextResponse.json({ error: "url is required" }, { status: 400 });
   if (!isHistoryStorageConfigured()) {
-    return NextResponse.json({ configured: false, url, points: [], summary: null }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+    return NextResponse.json({ configured: false, url, points: [], summary: null }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } });
   }
   let points;
   try {
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.json(
       { configured: true, url, points: [], summary: null, error: "Stored App Health history is temporarily unavailable." },
-      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+      { status: 503, headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },
     );
   }
   const checks = points.length;
@@ -69,5 +69,5 @@ export async function GET(request: Request) {
       firstCheckedAt: points[0]?.checkedAt ?? null,
       lastCheckedAt: points.at(-1)?.checkedAt ?? null,
     },
-  }, { headers: { "Cache-Control": "no-store, max-age=0" } });
+  }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } });
 }

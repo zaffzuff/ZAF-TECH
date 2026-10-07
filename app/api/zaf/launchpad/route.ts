@@ -1,8 +1,9 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { getLaunchpadObservation } from "@/lib/zaf/launchpad-observation";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export async function GET(request: NextRequest) {
   const network = request.nextUrl.searchParams.get("network")?.trim().toLowerCase() ?? "testnet";
@@ -14,6 +15,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json(getLaunchpadObservation(), {
-    headers: { "Cache-Control": "no-store, max-age=0" },
+    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=1800" },
   });
 }

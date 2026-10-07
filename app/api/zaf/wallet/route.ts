@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getZafWallet } from "@/lib/zaf/wallet-client";
 import { getWalletActivityAnalytics } from "@/lib/zaf/wallet-analytics";
+import { rateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const rate = rateLimit(request, { prefix: "zaf-wallet", limit: 30, windowMs: 60_000 });
+  if (!rate.allowed) return NextResponse.json({ error: "Rate limit exceeded. Please try again later." }, {
+    status: 429,
+    headers: { "Cache-Control": "no-store", "Retry-After": String(rate.retryAfterSeconds) },
+  });
+
   const address = request.nextUrl.searchParams.get("address")?.trim() ?? "";
   const network = request.nextUrl.searchParams.get("network")?.trim().toLowerCase() === "testnet"
     ? "testnet"
@@ -31,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ...snapshot, analytics }, {
       status,
-      headers: { "Cache-Control": "no-store, max-age=0" },
+      headers: { "Cache-Control": "public, s-maxage=15, stale-while-revalidate=60", "X-RateLimit-Limit": "30", "X-RateLimit-Remaining": String(rate.remaining) },
     });
   } catch (error) {
     return NextResponse.json(

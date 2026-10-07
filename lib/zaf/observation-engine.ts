@@ -1,6 +1,6 @@
 import { getEcosystemSnapshot, type EcosystemSnapshot } from "@/lib/zaf/ecosystem";
 import { getZafSnapshot } from "@/lib/zaf/horizon-client";
-import { saveObservationSnapshot, type ObservationHistoryRecord } from "@/lib/zaf/observation-history";
+import type { ObservationHistoryRecord } from "@/lib/zaf/observation-history";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 
 export type FreshnessState = "fresh" | "aging" | "stale" | "unknown";
@@ -94,7 +94,6 @@ async function collect(): Promise<UnifiedObservation> {
     network, ecosystem, errors,
   };
   if (network?.error) value.errors.push(network.error);
-  await saveObservationSnapshot(historyRecord(value)).catch(() => false);
   return value;
 }
 

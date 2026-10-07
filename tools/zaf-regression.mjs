@@ -68,6 +68,26 @@ if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
 }
 
 const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+const globalCss = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+const brandSizingRequirements = [
+  'width={64} height={64} className="h-[64px] w-[64px] shrink-0 object-contain"',
+  '<div className="text-[36px] font-bold tracking-tight ty-brand-text">ZAF TECH</div>',
+  'width={52} height={52} className="h-[52px] w-[52px] shrink-0 object-contain"',
+  '<div className="text-[28px] font-bold tracking-tight ty-brand-text">ZAF TECH</div>',
+];
+for (const token of brandSizingRequirements) {
+  if (!app.includes(token)) throw new Error("ZAF TECH brand sizing regression: " + token);
+}
+for (const token of ["overflow-wrap: anywhere", ".zaf-main-shell :where(.flex > *, .grid > *)", ".zaf-desktop-search"]) {
+  if (!globalCss.includes(token)) throw new Error("Locale-safe UI containment regression: " + token);
+}
+for (const file of ["app/error.tsx", "app/global-error.tsx", "app/not-found.tsx", "app/loading.tsx"]) {
+  if (!fs.existsSync(path.join(root, file))) throw new Error("Missing global runtime boundary: " + file);
+}
+const aboutPage = fs.readFileSync(path.join(root, "app/about/page.tsx"), "utf8");
+for (const token of ["English, Turkish, Spanish, Chinese, Italian, French, German, Portuguese and Russian", "Pi authentication, payments", "Sonraki Aşama"]) {
+  if (!aboutPage.includes(token)) throw new Error("About page scope regression: " + token);
+}
 const forbiddenVisibleTerms = [
   "Pi Ecosystem Intelligence",
   "Pi Ekosistem İstihbaratı",
@@ -250,13 +270,138 @@ const observationHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/observ
 if (!observationHistorySchema.includes("observationSchemaReady")) throw new Error("Observation schema initialization regression");
 
 const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
-if (!observationHistoryRoute.includes("10000")) throw new Error("Historical observation route limit regression");
+if (!observationHistoryRoute.includes("1000")) throw new Error("Historical observation route safety limit regression");
 
 
 
 
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
+
+const appHealthSecurity = fs.readFileSync(path.join(root, "lib/zaf/app-health.ts"), "utf8");
+for (const token of ["lookup(", "isSafeHttpUrl", "resolvesToPublicAddress", "redirect: \"manual\"", "AbortController", "signal: controller.signal"]) {
+  if (!appHealthSecurity.includes(token)) throw new Error("App Health SSRF/timeout guard regression: " + token);
+}
+
+for (const file of [
+  "lib/zaf/horizon-client.ts",
+  "lib/zaf/wallet-client.ts",
+  "lib/zaf/testnet-assets.ts",
+  "lib/zaf/defi-observation.ts",
+  "lib/zaf/ecosystem.ts",
+  "lib/zaf/historical-engine.ts",
+  "lib/zaf/history-client.ts",
+]) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  for (const token of ["AbortController", "signal: controller.signal"]) {
+    if (!source.includes(token)) throw new Error("External fetch timeout guard regression in " + file + ": " + token);
+  }
+}
+
+const apiSecurityRoutes = {
+  "app/api/apps/check/route.ts": ["rateLimit", "checkAppHealth", "Cache-Control"],
+  "app/api/apps/health/route.ts": ["getLatestAppChecks", "Cache-Control"],
+  "app/api/apps/health/cron/route.ts": ["CRON_SECRET", "authorization", "no-store"],
+  "app/api/zaf/observations/route.ts": ["getUnifiedObservation", "Cache-Control"],
+  "app/api/zaf/observations/cron/route.ts": ["CRON_SECRET", "saveObservationSnapshot", "no-store"],
+  "app/api/zaf/defi/route.ts": ["getDefiObservation", "Cache-Control"],
+  "app/api/zaf/defi/cron/route.ts": ["CRON_SECRET", "saveDefiSnapshot", "no-store"],
+  "app/api/zaf/wallet/route.ts": ["rateLimit", "getZafWallet", "Cache-Control"],
+  "app/api/zaf/search/route.ts": ["rateLimit", "getUnifiedObservation", "Cache-Control"],
+  "app/api/tools/transaction/route.ts": ["rateLimit", "AbortController", "Cache-Control"],
+};
+
+for (const [file, tokens] of Object.entries(apiSecurityRoutes)) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  for (const token of tokens) {
+    if (!source.includes(token)) throw new Error("API security invariant regression in " + file + ": " + token);
+  }
+}
+
+const publicObservationRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/route.ts"), "utf8");
+if (/[?&]force|searchParams.*force|force\s*[:=]/.test(publicObservationRoute)) {
+  throw new Error("Public observation route must not expose a force-refresh switch");
+}
+if (publicObservationRoute.includes("saveObservationSnapshot")) {
+  throw new Error("Public observation route must remain read-only");
+}
+
+const observatoryApp = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+if (/\/api\/zaf\/observations\?force=/.test(observatoryApp)) {
+  throw new Error("Observatory client must not send the removed observation force-refresh query");
+}
+
+const publicHealthRoute = fs.readFileSync(path.join(root, "app/api/apps/health/route.ts"), "utf8");
+if (publicHealthRoute.includes("runEcosystemHealthChecks")) {
+  throw new Error("Public app health route must not trigger live ecosystem health checks");
+}
+
+const publicDefiRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/route.ts"), "utf8");
+if (publicDefiRoute.includes("saveDefiSnapshot")) {
+  throw new Error("Public DeFi route must remain read-only");
+}
+
+const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+if (vercelConfig.git?.deploymentEnabled !== false) {
+  throw new Error("Automatic Vercel Git deployments must remain disabled");
+}
+for (const cron of vercelConfig.crons ?? []) {
+  if (!/^0 3 \* \* \*$/.test(cron.schedule)) {
+    throw new Error("Vercel Hobby-safe cron regression: " + cron.schedule);
+  }
+}
+
+const piTypes = fs.readFileSync(path.join(root, "lib/pi/types.ts"), "utf8");
+const piUserBlock = piTypes.match(/interface PiUser[\\s\\S]*?\\n}/)?.[0] ?? "";
+if (/accessToken\s*:\s*string/.test(piUserBlock)) {
+  throw new Error("Pi user model must not expose accessToken");
+}
+const piService = fs.readFileSync(path.join(root, "lib/pi/pi-service.ts"), "utf8");
+if (piService.includes("window.Pi") || piService.includes("Pi.init") || piService.includes("createPayment")) {
+  throw new Error("Pi service boundary must remain SDK-free before integration enablement");
+}
+const ecosystemChanges = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-changes.ts"), "utf8");
+for (const token of ["official_update", "current.news", "official Pi Network blog"]) {
+  if (!ecosystemChanges.includes(token)) throw new Error("Official Pi update sync regression: " + token);
+}
+
+const piConfig = fs.readFileSync(path.join(root, "lib/pi/pi-config.ts"), "utf8");
+if (!piConfig.includes("PI_FEATURES_ENABLED = false")) {
+  throw new Error("Pi features must remain disabled during foundation freeze");
+}
+
+const piBoundaryRoots = ["app", "components", "lib"];
+function walkSourceFiles(directory) {
+  const files = [];
+  const absolute = path.join(root, directory);
+  if (!fs.existsSync(absolute)) return files;
+  for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
+    const full = path.join(absolute, entry.name);
+    if (entry.isDirectory()) files.push(...walkSourceFiles(path.join(directory, entry.name)));
+    else if (entry.isFile() && /\.(ts|tsx|js|jsx)$/.test(entry.name)) files.push(full);
+  }
+  return files;
+}
+
+for (const directory of piBoundaryRoots) {
+  for (const file of walkSourceFiles(directory)) {
+    const relative = path.relative(root, file).replaceAll("\\\\", "/");
+    if (relative.startsWith("lib/pi/")) continue;
+    const source = fs.readFileSync(file, "utf8");
+    for (const token of ["window.Pi", "Pi.init", "createPayment", "Pi.authenticate", "NEXT_PUBLIC_PI_API_KEY"]) {
+      if (source.includes(token)) throw new Error("Pi SDK/API escaped integration boundary: " + relative + " -> " + token);
+    }
+  }
+}
+
+const piTypesSource = fs.readFileSync(path.join(root, "lib/pi/types.ts"), "utf8");
+const piUserMatch = piTypesSource.match(/interface PiUser[\s\S]*?\n}/);
+if (piUserMatch && /\baccessToken\s*:/.test(piUserMatch[0])) {
+  throw new Error("PiUser must not expose accessToken to UI-facing identity data");
+}
+if (!/interface PiCredential[\s\S]*?accessToken\s*:\s*string/.test(piTypesSource)) {
+  throw new Error("PiCredential boundary type must retain server-side credential representation");
+}
 
 console.log("ZAF TECH v1.1 regression checks passed.");
 

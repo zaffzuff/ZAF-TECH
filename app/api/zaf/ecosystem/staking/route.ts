@@ -6,6 +6,6 @@ export const revalidate = 0;
 
 export async function GET() {
   return NextResponse.json(getEcosystemStakingOverview(), {
-    headers: { "Cache-Control": "no-store, max-age=0" },
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
   });
 }

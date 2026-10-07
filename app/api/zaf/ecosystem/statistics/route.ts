@@ -7,6 +7,6 @@ export async function GET() {
   const statistics = await getEcosystemStatistics();
 
   return NextResponse.json(statistics, {
-    headers: { "Cache-Control": "no-store, max-age=0" },
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
   });
 }

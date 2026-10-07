@@ -1,4 +1,3 @@
-import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
 
 export const ECOSYSTEM_SOURCES = {
   ecosystemInterface: "https://ecosystem.pinet.com/",
@@ -386,12 +385,6 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
   }
 
   const snapshot = { generatedAt, sources, apps: appData, news, officialSignals, signals, defi };
-  void saveEcosystemSnapshot({
-    generatedAt,
-    sourceAvailable: appData.sourceAvailable,
-    observedAppCount: appData.totalCount,
-    payload: snapshot as unknown as Record<string, unknown>,
-  }).catch(() => undefined);
 
   return snapshot;
 }

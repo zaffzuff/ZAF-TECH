@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/zaf/rate-limit";
 
 const BASE = "https://api.mainnet.minepi.com";
 export const dynamic = "force-dynamic";
@@ -7,7 +8,10 @@ function validSequence(value: string) {
   return /^\d{1,12}$/.test(value) && Number(value) > 0;
 }
 
-export async function GET(_: Request, context: { params: Promise<{ sequence: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ sequence: string }> }) {
+  const rate = rateLimit(request, { prefix: "zaf-ledger", limit: 30, windowMs: 60_000 });
+  if (!rate.allowed) return NextResponse.json({ error: "Rate limit exceeded. Please try again later." }, { status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(rate.retryAfterSeconds) } });
+
   const { sequence } = await context.params;
   if (!validSequence(sequence)) return NextResponse.json({ error: "Invalid ledger sequence." }, { status: 400 });
 
@@ -37,7 +41,7 @@ export async function GET(_: Request, context: { params: Promise<{ sequence: str
       baseReserveInStroops: raw.base_reserve_in_stroops ?? null,
       source: BASE,
     }, {
-      headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" },
+      headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120", "X-RateLimit-Limit": "30", "X-RateLimit-Remaining": String(rate.remaining) },
     });
   } catch (error) {
     return NextResponse.json(

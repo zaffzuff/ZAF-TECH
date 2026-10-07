@@ -4,6 +4,7 @@ import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib
 type StoredPayload = {
   apps?: { totalCount?: number | null };
   sources?: Array<{ id: string; label: string; status: string }>;
+  news?: Array<{ title: string; url: string; publishedAt: string | null }>;
   signals?: Array<{
     id: string;
     title: string;
@@ -22,14 +23,14 @@ type StoredPayload = {
 };
 
 export type EcosystemChange = {
-  type: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+  type: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status" | "official_update";
   key: string;
   title: string;
   detail: string;
   detailTr: string;
   previous: string | number | null;
   current: string | number | null;
-  category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status";
+  category?: "app_count" | "source_status" | "signal_added" | "signal_removed" | "defi_status" | "official_update";
   sourceUrl?: string | null;
   observedAt?: string | null;
 };
@@ -48,7 +49,7 @@ function payloadOf(value: unknown): StoredPayload {
 
 export async function getEcosystemChanges(): Promise<EcosystemChanges> {
   const current = (await getUnifiedObservation()).ecosystem;
-  const history = await getEcosystemSnapshotHistory(2);
+  const history = await getEcosystemSnapshotHistory(3);
 
   if (!current || !history.length) {
     return {
@@ -60,7 +61,13 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
     };
   }
 
-  const previous = payloadOf(history[0].payload);
+  const currentAt = new Date(current.generatedAt).getTime();
+  const previousRecord =
+    Number.isFinite(currentAt)
+      ? history.find(record => new Date(record.generatedAt).getTime() < currentAt)
+      : null;
+  const baseline = previousRecord ?? history[0];
+  const previous = payloadOf(baseline.payload);
   const changes: EcosystemChange[] = [];
 
   const previousApps = previous.apps?.totalCount ?? null;
@@ -96,6 +103,24 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
     }
   }
 
+  const previousNews = new Map((previous.news ?? []).map(item => [item.url, item]));
+  for (const item of current.news ?? []) {
+    if (!previousNews.has(item.url)) {
+      changes.push({
+        type: "official_update",
+        key: item.url,
+        title: item.title,
+        detail: "A new publication was observed on the official Pi Network blog.",
+        detailTr: "Pi Network resmi blogunda yeni bir yayın gözlemlendi.",
+        previous: null,
+        current: item.title,
+        category: "official_update",
+        sourceUrl: item.url,
+        observedAt: item.publishedAt ?? current.generatedAt,
+      });
+    }
+  }
+
   const previousSignals = new Map((previous.signals ?? []).map(signal => [signal.id, signal]));
   const currentSignals = new Map(current.signals.map(signal => [signal.id, signal]));
   for (const signal of current.signals) {
@@ -126,7 +151,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
         current: null,
         category: "signal_removed",
         sourceUrl: signal.sourceUrl ?? null,
-        observedAt: signal.detectedAt ?? history[0].generatedAt,
+        observedAt: current.generatedAt,
       });
     }
   }
@@ -157,7 +182,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
   return {
     generatedAt: current.generatedAt,
     configured: isEcosystemHistoryConfigured(),
-    comparedAt: history[0].generatedAt,
+    comparedAt: baseline.generatedAt,
     hasBaseline: true,
     changes: changes.slice(0, 50),
   };
