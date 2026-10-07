@@ -152,7 +152,7 @@ for (const token of ["App Activity", "Newly Observed Apps", "Not Present In Late
 }
 
 const ecosystemStaking = fs.readFileSync(path.join(root, "components/zaf-ecosystem-staking.tsx"), "utf8");
-for (const token of ["Ecosystem Directory Staking", "Live Data Boundary", "Published Staking Evidence", "Coming soon target", "Historical official statements"]) {
+for (const token of ["Ecosystem Directory Staking", "Live Data Boundary", "Published Staking Evidence", "ZafComingSoon", "Historical official statements"]) {
   if (!ecosystemStaking.includes(token)) throw new Error("Ecosystem staking regression: " + token);
 }
 
