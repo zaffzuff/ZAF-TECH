@@ -169,11 +169,11 @@ export function ZafPulse({
       <div className="zaf-pulse-hero">
         <div className="zaf-pulse-kicker">
           <span className="zaf-signal-mark"><Icon kind="pulse" size={15} /></span>
-          <span>{tx(locale, "PI MAINNET · LIVE OBSERVATION · READ ONLY", "PI MAINNET · CANLI GÖZLEM · SALT OKUNUR")}</span>
+          <span>{tx(locale, "PI MAINNET · BLOCKCHAIN · WEB3 · LIVE OBSERVATION", "PI MAINNET · BLOCKCHAIN · WEB3 · CANLI GÖZLEM")}</span>
         </div>
         <h1 className="zaf-pulse-title mt-3">{tx(locale, "What is changing across Pi right now?", "Pi ekosisteminde şu anda ne değişiyor?")}</h1>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          {tx(locale, "ZAF TECH does not just show that activity exists. It exposes the measurable signals behind the movement, the latest network state, and the ecosystem changes worth noticing.", "ZAF TECH yalnızca aktivitenin var olduğunu söylemez. Hareketin arkasındaki ölçülebilir sinyalleri, ağın son durumunu ve dikkat edilmesi gereken ekosistem değişikliklerini görünür kılar.")}
+          {tx(locale, "ZAF TECH turns Pi blockchain activity, ecosystem apps, official developments, and Web3 signals into an observable daily brief. It shows what changed, how much, and where to inspect it.", "ZAF TECH; Pi blockchain aktivitesini, ekosistem uygulamalarını, resmi gelişmeleri ve Web3 sinyallerini günlük okunabilir bir özete dönüştürür. Ne değiştiğini, ne kadar değiştiğini ve nereden incelenebileceğini gösterir.")}
         </p>
 
         <div className="zaf-pulse-brief mt-5">
