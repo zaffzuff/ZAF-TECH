@@ -237,7 +237,7 @@ for (const token of ["DeFi", "DEX", "AMM & Pools", "Tokens"]) {
 }
 
 const testnetAssetsUI = fs.readFileSync(path.join(root, "components/zaf-testnet-assets.tsx"), "utf8");
-for (const token of ["Testnet Assets", "Observed Testnet Assets", "Coming Soon target", "Test-Pi has no real-world value"]) {
+for (const token of ["Testnet Assets", "Observed Testnet Assets", "ZafComingSoon", "Test-Pi has no real-world value"]) {
   if (!testnetAssetsUI.includes(token)) throw new Error("Testnet asset UI regression: " + token);
 }
 
