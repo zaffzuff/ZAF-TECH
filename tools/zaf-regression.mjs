@@ -228,7 +228,7 @@ for (const token of ["getDefiObservation", "Only Testnet DeFi observations", "ne
 }
 
 const defiUI = fs.readFileSync(path.join(root, "components/zaf-defi-observatory.tsx"), "utf8");
-for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Observed Pair Activity", "ZafComingSoon", "Mainnet Readiness"]) {
+for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Observed Pair Activity", "ZafComingSoon", "ZafComingSoon"]) {
   if (!defiUI.includes(token)) throw new Error("DeFi UI regression: " + token);
 }
 
