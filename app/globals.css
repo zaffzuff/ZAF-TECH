@@ -921,3 +921,226 @@
   .zaf-pulse-grid { gap: .9rem; }
   .zaf-pulse-card { padding: 1.15rem; }
 }
+
+
+/* Shared ZAF surface language — used across every product section. */
+.zaf-main-shell .border.border-border.bg-card,
+.zaf-main-shell .border.border-border.bg-background {
+  border-radius: 1rem;
+}
+
+.zaf-main-shell .border.border-border.bg-card {
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / 0.045);
+}
+
+.zaf-main-shell .rounded-xl.border.border-border.bg-card,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card {
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.zaf-main-shell .rounded-xl.border.border-border.bg-card:hover,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card:hover {
+  border-color: color-mix(in oklab, var(--ty-gold) 22%, var(--border));
+  box-shadow: 0 12px 30px oklch(0.05 0.01 265 / 0.07);
+}
+
+/* ZAF Pulse v2 — concrete data presentation */
+.zaf-pulse-brief {
+  padding: 1rem 1.05rem;
+  border: 1px solid color-mix(in oklab, var(--ty-gold) 22%, var(--border));
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--ty-gold-soft) 42%, var(--card)), var(--card));
+}
+
+.zaf-pulse-brief-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.zaf-pulse-brief-kicker {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .6rem;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: .09em;
+}
+
+.zaf-pulse-brief-head strong {
+  display: block;
+  margin-top: .25rem;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.zaf-pulse-brief p {
+  margin-top: .7rem;
+  max-width: 70rem;
+  color: var(--muted-foreground);
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.zaf-pulse-status {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: .18rem .45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: .58rem;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.zaf-pulse-status-positive {
+  border-color: color-mix(in oklab, var(--ty-active) 35%, var(--border));
+  color: var(--ty-active);
+  background: var(--ty-active-soft);
+}
+
+.zaf-pulse-status-negative {
+  border-color: color-mix(in oklab, var(--ty-demo) 35%, var(--border));
+  color: var(--ty-demo);
+  background: var(--ty-demo-soft);
+}
+
+.zaf-pulse-status-neutral {
+  color: var(--muted-foreground);
+  background: var(--background);
+}
+
+.zaf-pulse-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.zaf-pulse-metric-card {
+  min-width: 0;
+  padding: .78rem .88rem;
+  border: 1px solid var(--border);
+  border-radius: .85rem;
+  background: color-mix(in oklab, var(--background) 72%, transparent);
+}
+
+.zaf-pulse-metric-card > span,
+.zaf-pulse-metric-card > small {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .6rem;
+  line-height: 1.35;
+}
+
+.zaf-pulse-metric-card strong {
+  display: block;
+  margin: .25rem 0 .18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.zaf-pulse-source-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem;
+  color: var(--muted-foreground);
+  font-size: .6rem;
+  line-height: 1.4;
+}
+
+.zaf-pulse-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.zaf-pulse-fact-grid > div {
+  min-width: 0;
+  padding: .65rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  background: var(--background);
+}
+
+.zaf-pulse-fact-grid span {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .58rem;
+  line-height: 1.25;
+}
+
+.zaf-pulse-fact-grid strong {
+  display: block;
+  margin-top: .25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .76rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.zaf-pulse-data-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: .9rem;
+  background: var(--background);
+}
+
+.zaf-pulse-data-strip > div {
+  min-width: 0;
+}
+
+.zaf-pulse-data-strip span {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .58rem;
+}
+
+.zaf-pulse-data-strip strong {
+  display: block;
+  margin-top: .22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.zaf-pulse-data-strip button {
+  min-height: auto !important;
+  padding: .2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: .62rem;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .zaf-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .zaf-pulse-brief-head { align-items: flex-start; }
+  .zaf-pulse-data-strip { grid-template-columns: 1fr 1fr; }
+  .zaf-pulse-data-strip button { grid-column: 1 / -1; text-align: left; padding-top: .3rem; }
+}
+
+@media (max-width: 430px) {
+  .zaf-pulse-hero { padding: 1rem; }
+  .zaf-pulse-metrics { grid-template-columns: 1fr; }
+  .zaf-pulse-data-strip { grid-template-columns: 1fr; }
+  .zaf-pulse-data-strip button { grid-column: auto; }
+}
