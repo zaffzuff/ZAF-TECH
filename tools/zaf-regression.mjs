@@ -69,6 +69,15 @@ if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
 
 const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 const globalCss = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+const brandSizingRequirements = [
+  'width={64} height={64} className="h-[64px] w-[64px] shrink-0 object-contain"',
+  '<div className="text-[36px] font-bold tracking-tight ty-brand-text">ZAF TECH</div>',
+  'width={52} height={52} className="h-[52px] w-[52px] shrink-0 object-contain"',
+  '<div className="text-[28px] font-bold tracking-tight ty-brand-text">ZAF TECH</div>',
+];
+for (const token of brandSizingRequirements) {
+  if (!app.includes(token)) throw new Error("ZAF TECH brand sizing regression: " + token);
+}
 for (const token of ["overflow-wrap: anywhere", ".zaf-main-shell :where(.flex > *, .grid > *)", ".zaf-desktop-search"]) {
   if (!globalCss.includes(token)) throw new Error("Locale-safe UI containment regression: " + token);
 }
