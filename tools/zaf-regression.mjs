@@ -273,7 +273,7 @@ for (const token of ["getLaunchpadObservation", "Only Testnet Launchpad observat
 }
 
 const launchpadUI = fs.readFileSync(path.join(root, "components/zaf-launchpad-observatory.tsx"), "utf8");
-for (const token of ["Launchpad Observatory", "Published Launch Evidence", "Live Launchpad Feed", "Mainnet Readiness", "published-evidence"]) {
+for (const token of ["Launchpad Observatory", "Published Launch Evidence", "Live Launchpad Feed", "ZafComingSoon", "published-evidence"]) {
   if (!launchpadUI.includes(token)) throw new Error("Launchpad UI regression: " + token);
 }
 
