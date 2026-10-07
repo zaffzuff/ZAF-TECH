@@ -48,7 +48,6 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Discover: ["Discover", "Keşfet", "Descubrir", "发现", "Scopri", "Découvrir", "Entdecken", "Descobrir", "Обзор"],
   Intelligence: ["Intelligence", "İstihbarat", "Inteligencia", "智能", "Intelligenza", "Intelligence", "Intelligenz", "Inteligência", "Интеллект"],
   "Network Core": ["Network Core", "Ağ Temeli", "Núcleo De Red", "网络核心", "Nucleo Rete", "Noyau Réseau", "Netzwerk-Kern", "Núcleo Da Rede", "Ядро Сети"],
-  "DeFi": ["DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi"],
 };
 
 function label(value: string, locale: Locale) {
