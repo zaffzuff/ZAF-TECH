@@ -330,6 +330,12 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
               <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{categoryLabel(app.category, locale)}</span>
               <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{tr("Pi Features: Not Verified", "Pi Özellikleri: Doğrulanmadı")}</span>
             </div>
+            <div className="mt-2 rounded-lg bg-background px-2.5 py-2 text-[9px] leading-relaxed text-muted-foreground">
+              <span className="font-medium text-foreground">{tr("Why this is showing", "Neden gösteriliyor")}</span>
+              <span className="ml-1">{app.categoryBasis === "name-signal"
+                ? tr("Observed in the public app directory; category inferred from the public name/URL signal.", "Herkese açık uygulama dizininde gözlemlendi; kategori, herkese açık ad/URL sinyalinden çıkarıldı.")
+                : tr("Observed in the public app directory; no category signal was found in the public name/URL.", "Herkese açık uygulama dizininde gözlemlendi; herkese açık ad/URL içinde kategori sinyali bulunmadı.")}</span>
+            </div>
           </article>
         ))}
       </div>
