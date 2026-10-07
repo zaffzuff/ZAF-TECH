@@ -18,11 +18,10 @@ function tx(locale: Locale, en: string, tr: string) { return locale === "tr" ? t
 
 function observationTime(value: string | null | undefined, locale: Locale) {
   if (!value) return "—";
-  const time = Date.parse(value);
-  if (!Number.isFinite(time)) return "—";
-  const minutes = Math.max(0, Math.floor((Date.now() - time) / 60000));
-  if (locale === "tr") return minutes < 1 ? "Az önce" : minutes < 60 ? `${minutes} dk önce` : `${Math.floor(minutes / 60)} sa önce`;
-  return minutes < 1 ? "Just now" : minutes < 60 ? `${minutes} min ago` : `${Math.floor(minutes / 60)} hr ago`;
+  const match = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})/);
+  if (!match) return "—";
+  const [, year, month, day, hour, minute] = match;
+  return locale === "tr" ? `${day}.${month}.${year} ${hour}:${minute} UTC` : `${year}-${month}-${day} ${hour}:${minute} UTC`;
 }
 
 function Icon({ kind, size = 18 }: { kind: "pulse" | "rising" | "signal" | "new" | "watch"; size?: number }) {
