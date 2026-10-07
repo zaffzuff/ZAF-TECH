@@ -202,3 +202,34 @@ The long-term product story should be:
 **ZAF TECH is an independent, read-only ecosystem intelligence layer that helps Pioneers discover, understand, and evaluate observable activity across the Pi ecosystem.**
 
 It should complement the Pi ecosystem rather than present itself as an official Pi Core Team product.
+
+
+## Product rule — Activation Contract
+
+**Coming Soon is not a wish list.**
+
+A future capability may be shown in the product only when there is a credible, testable path to activating it.
+
+Before adding a future feature, ZAF TECH must answer:
+
+1. **Data** — What exact data does the feature require?
+2. **Source** — Which public or otherwise authorized source can provide that data?
+3. **Access** — Can ZAF TECH actually access that source reliably?
+4. **Validation** — Can the returned data be independently checked for correctness and freshness?
+5. **Activation** — What concrete condition will allow the feature to become active?
+
+Classification:
+
+- **ACTIVE** — The required evidence is observable and verifiable now.
+- **COMING SOON** — The capability is not active yet, but a concrete activation path exists and the missing dependency is realistically obtainable.
+- **BLOCKED / NOT PLANNED** — There is no reliable activation path, the required evidence cannot be observed, or the feature would require unsupported inference. It must not be exposed as a product capability.
+
+A feature must not be placed in **Coming Soon** merely because it would be useful, technically interesting, or desirable.
+
+Backend schemas, adapters, experiments, and internal prototypes may exist without being exposed to users. User-facing activation is conditional on reliable evidence.
+
+**Rule of inclusion:**
+
+> If ZAF TECH cannot identify a realistic activation path, ZAF TECH does not add the feature to the product.
+
+This rule applies retrospectively to existing features and prospectively to every new feature proposal.
