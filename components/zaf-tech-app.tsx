@@ -619,9 +619,9 @@ export function ZafTechApp() {
         <header className="border-b border-border pb-5 pt-7">
           <div className="zaf-desktop-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
-              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={44} height={44} className="h-11 w-11 shrink-0 object-contain" priority />
+              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={44} height={44} className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16" priority />
               <div className="min-w-0">
-                <div className="text-2xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
+                <div className="text-[1.8rem] font-bold tracking-tight ty-brand-text sm:text-[2rem]">ZAF TECH</div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
@@ -634,9 +634,9 @@ export function ZafTechApp() {
           </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
-              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" priority />
+              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={40} height={40} className="h-12 w-12 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="text-xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
+                <div className="text-2xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
                 <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
