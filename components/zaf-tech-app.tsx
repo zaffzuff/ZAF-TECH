@@ -283,6 +283,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
 function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }: { apps: AppItem[]; sourceOnline: boolean; generatedAt?: string; note?: string; locale: Locale; tr: (en: string, trText: string) => string }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"All" | AppCategory>("All");
+  const [sort, setSort] = useState<"name" | "category">("name");
   const directoryApps = useMemo(() => apps.map(app => toDirectoryApp(app, generatedAt ?? new Date().toISOString())), [apps, generatedAt]);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -292,6 +293,7 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
       return matchesQuery && matchesCategory;
     });
   }, [directoryApps, query, category]);
+  const ordered = useMemo(() => [...filtered].sort((a, b) => sort === "category" ? (a.category + a.name).localeCompare(b.category + b.name) : a.name.localeCompare(b.name)), [filtered, sort]);
 
   return (
     <section className="mt-5 sm:mt-7">
@@ -305,7 +307,15 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
         <Card title={tr("Source", "Kaynak")} value={displayStatus(sourceOnline ? "online" : "offline", locale)} detail={age(generatedAt, locale)} />
       </div>
       <div className="rounded-xl border border-border bg-card p-3">
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr("Search apps or URLs…", "Uygulama veya URL ara…")} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+          <div className="flex min-w-0 flex-1 items-center rounded-lg border border-border bg-background px-3">
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr("Search apps or URLs…", "Uygulama veya URL ara…")} className="w-full bg-transparent py-2 text-xs text-foreground outline-none" />
+          </div>
+          <select value={sort} onChange={e => setSort(e.target.value as "name" | "category")} className="rounded-lg border border-border bg-background px-3 py-2 text-[10px] text-foreground outline-none">
+            <option value="name">{tr("Sort: Name", "Sırala: Ad")}</option>
+            <option value="category">{tr("Sort: Category", "Sırala: Kategori")}</option>
+          </select>
+        </div>
         <div className="mt-2 overflow-x-auto ty-no-scrollbar">
           <div className="flex min-w-max gap-1">
             <button type="button" onClick={() => setCategory("All")} className={`rounded-md border px-2.5 py-1.5 text-[10px] font-medium ${category === "All" ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground"}`}>{tr("All", "Tümü")}</button>
@@ -313,8 +323,8 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
           </div>
         </div>
       </div>
-      <div className="mt-3 space-y-2">
-        {filtered.map(app => (
+      <div className="mt-3 grid gap-2 md:grid-cols-2">
+        {ordered.map(app => (
           <article key={app.url} className="rounded-xl border border-border bg-card p-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -329,6 +339,10 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{categoryLabel(app.category, locale)}</span>
               <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{tr("Pi Features: Not Verified", "Pi Özellikleri: Doğrulanmadı")}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-background px-2.5 py-2 text-[9px] text-muted-foreground">
+              <span>{tr("Observed from public directory", "Herkese açık dizinden gözlemlendi")}</span>
+              <span className="shrink-0">{age(app.lastChecked, locale)}</span>
             </div>
             <div className="mt-2 rounded-lg bg-background px-2.5 py-2 text-[9px] leading-relaxed text-muted-foreground">
               <span className="font-medium text-foreground">{tr("Why this is showing", "Neden gösteriliyor")}</span>
