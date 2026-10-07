@@ -780,7 +780,7 @@ export function ZafTechApp() {
             </div>
           </section>
         ) : null}
-        {!loading && section === "network" ? <ZafNodeCompute locale={locale} data={snapshot} subtab={subtab} /> : null}
+        {!loading && section === "network" && ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"].includes(subtab) ? <ZafNodeCompute locale={locale} data={snapshot} subtab={subtab} /> : null}
 
         {!loading && section === "wallet" ? <ZafWalletIntelligence locale={locale} /> : null}
 
