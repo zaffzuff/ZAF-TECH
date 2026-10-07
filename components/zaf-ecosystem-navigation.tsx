@@ -47,7 +47,6 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Wallet: ["Wallet", "Cüzdan", "Billetera", "钱包", "Wallet", "Portefeuille", "Wallet", "Carteira", "Кошелёк"],
   Discover: ["Discover", "Keşfet", "Descubrir", "发现", "Scopri", "Découvrir", "Entdecken", "Descobrir", "Обзор"],
   Intelligence: ["Intelligence", "İstihbarat", "Inteligencia", "智能", "Intelligenza", "Intelligence", "Intelligenz", "Inteligência", "Интеллект"],
-  Overview: ["Overview", "Genel Bakış", "Resumen", "概览", "Panoramica", "Vue d’ensemble", "Übersicht", "Visão Geral", "Обзор"],
 };
 
 function label(value: string, locale: Locale) {
