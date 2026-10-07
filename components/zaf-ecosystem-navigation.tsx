@@ -6,24 +6,24 @@ import type { Locale } from "@/lib/zaf/i18n";
 export type ZafSection = "overview" | "apps" | "testnet" | "defi" | "node" | "intelligence" | "wallet";
 
 export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
-  overview: ["Ecosystem", "Network", "Tools"],
+  overview: ["Pulse", "Ecosystem", "Network", "Tools"],
   apps: ["App Directory", "App Health", "App Activity", "Staking"],
   testnet: ["Assets"],
   defi: ["Overview", "DEX", "AMM & Pools", "Tokens", "Launchpad"],
   node: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
-  intelligence: ["Radar", "Activity Signals", "Graph", "Explorer"],
+  intelligence: ["Radar", "Trust", "Activity Signals", "Graph", "Explorer"],
   wallet: [],
 };
 
 const labels: Record<string, [string, string, string, string, string, string, string, string, string]> = {
-  Overview: ["Overview", "Genel Bakış", "Descripción General", "概览", "Panoramica", "Vue D’ensemble", "Übersicht", "Visão Geral", "Обзор"],
+  Overview: ["Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse"],\n  Pulse: ["Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse"],
   Network: ["Network", "Ağ", "Red", "网络", "Rete", "Réseau", "Netzwerk", "Rede", "Сеть"],
   Ecosystem: ["Ecosystem", "Ekosistem", "Ecosistema", "生态系统", "Ecosistema", "Écosystème", "Ökosystem", "Ecossistema", "Экосистема"],
   Tools: ["Tools", "Araçlar", "Herramientas", "工具", "Strumenti", "Outils", "Werkzeuge", "Ferramentas", "Инструменты"],
   Apps: ["Apps", "Uygulamalar", "Aplicaciones", "应用", "App", "Applications", "Apps", "Aplicativos", "Приложения"],
   Testnet: ["Testnet", "Testnet", "Testnet", "测试网", "Testnet", "Testnet", "Testnet", "Testnet", "Тестнет"],
   DeFi: ["DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi", "DeFi"],
-  "App Directory": ["App Directory", "Uygulama Dizini", "Directorio De Apps", "应用目录", "Elenco App", "Annuaire Des Apps", "App-Verzeichnis", "Diretório De Apps", "Каталог Приложений"],
+  "App Directory": ["Discover", "Keşfet", "Directorio De Apps", "应用目录", "Elenco App", "Annuaire Des Apps", "App-Verzeichnis", "Diretório De Apps", "Каталог Приложений"],
   "App Health": ["App Health", "Uygulama Sağlığı", "Salud De Apps", "应用健康", "Salute App", "Santé Des Apps", "App-Gesundheit", "Saúde Dos Apps", "Состояние Приложений"],
   "App Activity": ["App Activity", "Uygulama Aktivitesi", "Actividad De Apps", "应用活动", "Attività App", "Activité Des Apps", "App-Aktivität", "Atividade De Apps", "Активность Приложений"],
   Assets: ["Assets", "Varlıklar", "Activos", "资产", "Asset", "Actifs", "Vermögenswerte", "Ativos", "Активы"],
@@ -39,7 +39,7 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Compute: ["Compute", "Hesaplama", "Cómputo", "计算", "Calcolo", "Calcul", "Berechnung", "Computação", "Вычисления"],
   Infrastructure: ["Infrastructure", "Altyapı", "Infraestructura", "基础设施", "Infrastruttura", "Infrastructure", "Infrastruktur", "Infraestrutura", "Инфраструктура"],
   Observatory: ["Observatory", "Gözlem Merkezi", "Observatorio", "观测中心", "Osservatorio", "Observatoire", "Beobachtungszentrum", "Observatório", "Наблюдательный Центр"],
-  Radar: ["Radar", "Radar", "Radar", "雷达", "Radar", "Radar", "Radar", "Radar", "Радар"],
+  Trust: ["Trust", "Trust", "Radar", "雷达", "Radar", "Radar", "Radar", "Radar", "Радар"],
   "Activity Signals": ["Activity Signals", "Aktivite Sinyalleri", "Señales De Actividad", "活动信号", "Segnali Di Attività", "Signaux D’activité", "Aktivitätssignale", "Sinais De Atividade", "Сигналы Активности"],
   Graph: ["Graph", "Graf", "Gráfico", "图谱", "Grafo", "Graphe", "Graph", "Grafo", "Граф"],
   Explorer: ["Explorer", "Explorer", "Explorador", "浏览器", "Esplora", "Explorateur", "Explorer", "Explorador", "Обозреватель"],
@@ -53,12 +53,12 @@ function label(value: string, locale: Locale) {
 }
 
 const sectionMeta: Record<ZafSection, { title: string; icon: string }> = {
-  overview: { title: "Overview", icon: "home" },
+  overview: { title: "Pulse", icon: "home" },
   apps: { title: "Apps", icon: "apps" },
   testnet: { title: "Testnet", icon: "testnet" },
   defi: { title: "DeFi", icon: "defi" },
   node: { title: "Node & Compute", icon: "node" },
-  intelligence: { title: "Observatory", icon: "observatory" },
+  intelligence: { title: "Intelligence", icon: "observatory" },
   wallet: { title: "Wallet", icon: "wallet" },
 };
 
