@@ -16,6 +16,15 @@ type PulseChanges = { hasBaseline: boolean; changes: PulseChange[] };
 
 function tx(locale: Locale, en: string, tr: string) { return locale === "tr" ? tr : en; }
 
+function observationTime(value: string | null | undefined, locale: Locale) {
+  if (!value) return "—";
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return "—";
+  const minutes = Math.max(0, Math.floor((Date.now() - time) / 60000));
+  if (locale === "tr") return minutes < 1 ? "Az önce" : minutes < 60 ? `${minutes} dk önce` : `${Math.floor(minutes / 60)} sa önce`;
+  return minutes < 1 ? "Just now" : minutes < 60 ? `${minutes} min ago` : `${Math.floor(minutes / 60)} hr ago`;
+}
+
 function Icon({ kind, size = 18 }: { kind: "pulse" | "rising" | "signal" | "new" | "watch"; size?: number }) {
   const body = {
     pulse: <><path d="M3 12h4l2.1-6 3.2 12 2.1-6H21" /><path d="M3 5v14M21 5v14" opacity=".35" /></>,
@@ -49,13 +58,13 @@ export function ZafPulse({ locale, snapshot, radar, changes, onOpenRadar, onOpen
 
   return <section className="zaf-pulse mt-5 sm:mt-7">
     <div className="zaf-pulse-hero">
-      <div className="zaf-pulse-kicker"><span className="zaf-signal-mark"><Icon kind="pulse" size={15} /></span><span>{tx(locale, "PI ECOSYSTEM · OBSERVED", "PI EKOSİSTEMİ · GÖZLEMLENEN")}</span></div>
+      <div className="zaf-pulse-kicker"><span className="zaf-signal-mark"><Icon kind="pulse" size={15} /></span><span>{tx(locale, "PI MAINNET · OBSERVED · READ ONLY", "PI MAINNET · GÖZLEMLENEN · SALT OKUNUR")}</span></div>
       <h1 className="zaf-pulse-title mt-3">{tx(locale, "See what is changing across the Pi ecosystem.", "Pi ekosisteminde nelerin değiştiğini görün.")}</h1>
       <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm">{tx(locale, "ZAF TECH turns public observations into clear ecosystem signals. It does not predict the future or manufacture hype.", "ZAF TECH herkese açık gözlemleri anlaşılır ekosistem sinyallerine dönüştürür. Geleceği tahmin etmez ve yapay heyecan üretmez.")}</p>
       <div className="zaf-pulse-metrics mt-5">
         <div><span>{tx(locale, "Activity", "Aktivite")}</span><strong>{activity}</strong></div>
         <div><span>{tx(locale, "Coverage", "Kapsam")}</span><strong>{coverage}%</strong></div>
-        <div><span>{tx(locale, "Operations", "Operasyon")}</span><strong>{snapshot?.metrics.recentOperations?.toLocaleString() ?? "—"}</strong></div>
+        <div><span>{tx(locale, "Latest observation", "Son gözlem")}</span><strong>{observationTime(radar?.generatedAt ?? snapshot?.generatedAt, locale)}</strong></div>
       </div>
     </div>
 
@@ -84,7 +93,7 @@ export function ZafPulse({ locale, snapshot, radar, changes, onOpenRadar, onOpen
     </div>
 
     <div className="zaf-pulse-footer mt-3">
-      <div><span className="zaf-confidence-bar"><span style={{ width: String(radar?.confidence.score ?? 0) + "%" }} /></span><span>{tx(locale, "Observation confidence", "Gözlem güven seviyesi")} {radar?.confidence.score ?? 0}%</span></div>
+      <div><span className="zaf-confidence-bar"><span style={{ width: String(radar?.confidence.score ?? 0) + "%" }} /></span><span>{tx(locale, "Observation confidence", "Gözlem güven seviyesi")} {radar?.confidence.score ?? 0}% · {tx(locale, "Pi Mainnet Horizon", "Pi Mainnet Horizon")}</span></div>
       <button type="button" onClick={onOpenRadar}>{tx(locale, "Open full intelligence view", "Tam istihbarat görünümünü aç")}</button>
     </div>
   </section>;
