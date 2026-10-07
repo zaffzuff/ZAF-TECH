@@ -1183,3 +1183,133 @@
     white-space: nowrap;
   }
 }
+
+
+/* ZAF global product surface — Pulse presentation language across every module. */
+.zaf-main-shell .zaf-unified-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: .95rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--ty-gold-soft) 26%, transparent), transparent 62%),
+    linear-gradient(145deg, var(--card), var(--background));
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / .055);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.zaf-main-shell .zaf-unified-card::before,
+.zaf-main-shell .rounded-xl.border.border-border.bg-card::before,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 16% auto 16%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ty-gold) 42%, transparent), transparent);
+  opacity: .55;
+  pointer-events: none;
+}
+
+.zaf-main-shell .zaf-unified-card:hover,
+.zaf-main-shell .rounded-xl.border.border-border.bg-card:hover,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card:hover {
+  border-color: color-mix(in oklab, var(--ty-gold) 24%, var(--border));
+  box-shadow: 0 12px 30px oklch(0.05 0.01 265 / .075);
+  transform: translateY(-1px);
+}
+
+.zaf-main-shell .zaf-unified-card-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  color: var(--foreground);
+}
+
+.zaf-main-shell .zaf-unified-card-title {
+  margin-top: .38rem;
+  color: var(--foreground);
+  font-size: .69rem;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.zaf-main-shell .zaf-unified-card-detail {
+  margin-top: .22rem;
+  color: var(--muted-foreground);
+  font-size: .59rem;
+  line-height: 1.4;
+}
+
+.zaf-main-shell .rounded-xl.border.border-border.bg-card,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--ty-gold-soft) 18%, transparent), transparent 62%),
+    linear-gradient(145deg, var(--card), var(--background));
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / .045);
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h1,
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h2 {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child p {
+  max-width: 72rem;
+  margin-top: .35rem;
+  color: var(--muted-foreground);
+  font-size: .69rem;
+  line-height: 1.55;
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child {
+  margin-bottom: 1rem;
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h1::before,
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h2::before {
+  content: "";
+  display: inline-block;
+  width: .28rem;
+  height: 1rem;
+  margin-right: .55rem;
+  vertical-align: -.12rem;
+  border-radius: 999px;
+  background: var(--ty-gold);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--ty-gold) 24%, transparent);
+}
+
+.zaf-main-shell .zaf-desktop-two-up > .rounded-xl,
+.zaf-main-shell .zaf-desktop-two-up > .rounded-2xl {
+  min-width: 0;
+}
+
+.zaf-main-shell .grid > .rounded-xl.border.border-border.bg-card,
+.zaf-main-shell .grid > .rounded-2xl.border.border-border.bg-card {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .zaf-main-shell .zaf-unified-card {
+    padding: .82rem .88rem;
+  }
+
+  .zaf-main-shell .zaf-unified-card-value {
+    font-size: 1.1rem;
+  }
+
+  .zaf-main-shell section:not(.zaf-pulse) > div:first-child h1,
+  .zaf-main-shell section:not(.zaf-pulse) > div:first-child h2 {
+    font-size: .98rem;
+  }
+}
