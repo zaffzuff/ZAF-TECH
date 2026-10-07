@@ -3,20 +3,19 @@
 import { useId } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 
-export type ZafSection = "overview" | "apps" | "testnet" | "defi" | "node" | "intelligence" | "wallet";
+export type ZafSection = "overview" | "discover" | "network" | "intelligence" | "wallet";
 
 export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
-  overview: ["Ecosystem", "Network", "Tools"],
-  apps: ["App Directory", "App Health", "App Activity", "Staking"],
-  testnet: ["Assets"],
-  defi: ["Overview", "DEX", "AMM & Pools", "Tokens", "Launchpad"],
-  node: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
-  intelligence: ["Radar", "Activity Signals", "Graph", "Explorer"],
+  overview: ["Pulse", "Ecosystem"],
+  discover: ["App Directory", "App Health", "App Activity", "Staking", "Tools"],
+  network: ["Network", "Testnet Assets", "DeFi", "DEX", "AMM & Pools", "Tokens", "Launchpad", "Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
+  intelligence: ["Radar", "Trust", "Activity Signals", "Graph", "Explorer"],
   wallet: [],
 };
 
 const labels: Record<string, [string, string, string, string, string, string, string, string, string]> = {
-  Overview: ["Overview", "Genel Bakış", "Descripción General", "概览", "Panoramica", "Vue D’ensemble", "Übersicht", "Visão Geral", "Обзор"],
+  Overview: ["Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse"],
+  Pulse: ["Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse", "Pulse"],
   Network: ["Network", "Ağ", "Red", "网络", "Rete", "Réseau", "Netzwerk", "Rede", "Сеть"],
   Ecosystem: ["Ecosystem", "Ekosistem", "Ecosistema", "生态系统", "Ecosistema", "Écosystème", "Ökosystem", "Ecossistema", "Экосистема"],
   Tools: ["Tools", "Araçlar", "Herramientas", "工具", "Strumenti", "Outils", "Werkzeuge", "Ferramentas", "Инструменты"],
@@ -27,6 +26,7 @@ const labels: Record<string, [string, string, string, string, string, string, st
   "App Health": ["App Health", "Uygulama Sağlığı", "Salud De Apps", "应用健康", "Salute App", "Santé Des Apps", "App-Gesundheit", "Saúde Dos Apps", "Состояние Приложений"],
   "App Activity": ["App Activity", "Uygulama Aktivitesi", "Actividad De Apps", "应用活动", "Attività App", "Activité Des Apps", "App-Aktivität", "Atividade De Apps", "Активность Приложений"],
   Assets: ["Assets", "Varlıklar", "Activos", "资产", "Asset", "Actifs", "Vermögenswerte", "Ativos", "Активы"],
+  "Testnet Assets": ["Testnet Assets", "Testnet Varlıkları", "Activos De Testnet", "测试网资产", "Asset Testnet", "Actifs Testnet", "Testnet-Assets", "Ativos Testnet", "Активы Тестнета"],
   DEX: ["DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX", "DEX"],
   "AMM & Pools": ["AMM & Pools", "AMM & Havuzlar", "AMM Y Pools", "AMM 与池", "AMM & Pool", "AMM & Pools", "AMM & Pools", "AMM & Pools", "AMM и Пулы"],
   Tokens: ["Tokens", "Tokenlar", "Tokens", "代币", "Token", "Tokens", "Token", "Tokens", "Токены"],
@@ -40,10 +40,14 @@ const labels: Record<string, [string, string, string, string, string, string, st
   Infrastructure: ["Infrastructure", "Altyapı", "Infraestructura", "基础设施", "Infrastruttura", "Infrastructure", "Infrastruktur", "Infraestrutura", "Инфраструктура"],
   Observatory: ["Observatory", "Gözlem Merkezi", "Observatorio", "观测中心", "Osservatorio", "Observatoire", "Beobachtungszentrum", "Observatório", "Наблюдательный Центр"],
   Radar: ["Radar", "Radar", "Radar", "雷达", "Radar", "Radar", "Radar", "Radar", "Радар"],
+  Trust: ["Trust", "Trust", "Trust", "信任", "Trust", "Confiance", "Vertrauen", "Confiança", "Доверие"],
   "Activity Signals": ["Activity Signals", "Aktivite Sinyalleri", "Señales De Actividad", "活动信号", "Segnali Di Attività", "Signaux D’activité", "Aktivitätssignale", "Sinais De Atividade", "Сигналы Активности"],
   Graph: ["Graph", "Graf", "Gráfico", "图谱", "Grafo", "Graphe", "Graph", "Grafo", "Граф"],
   Explorer: ["Explorer", "Explorer", "Explorador", "浏览器", "Esplora", "Explorateur", "Explorer", "Explorador", "Обозреватель"],
   Wallet: ["Wallet", "Cüzdan", "Billetera", "钱包", "Wallet", "Portefeuille", "Wallet", "Carteira", "Кошелёк"],
+  Discover: ["Discover", "Keşfet", "Descubrir", "发现", "Scopri", "Découvrir", "Entdecken", "Descobrir", "Обзор"],
+  Intelligence: ["Intelligence", "Analiz Merkezi", "Inteligencia", "智能", "Intelligenza", "Intelligence", "Intelligenz", "Inteligência", "Интеллект"],
+  "Network Core": ["Network Core", "Ağ Temeli", "Núcleo De Red", "网络核心", "Nucleo Rete", "Noyau Réseau", "Netzwerk-Kern", "Núcleo Da Rede", "Ядро Сети"],
 };
 
 function label(value: string, locale: Locale) {
@@ -53,12 +57,10 @@ function label(value: string, locale: Locale) {
 }
 
 const sectionMeta: Record<ZafSection, { title: string; icon: string }> = {
-  overview: { title: "Overview", icon: "home" },
-  apps: { title: "Apps", icon: "apps" },
-  testnet: { title: "Testnet", icon: "testnet" },
-  defi: { title: "DeFi", icon: "defi" },
-  node: { title: "Node & Compute", icon: "node" },
-  intelligence: { title: "Observatory", icon: "observatory" },
+  overview: { title: "Pulse", icon: "home" },
+  discover: { title: "Discover", icon: "apps" },
+  network: { title: "Network", icon: "node" },
+  intelligence: { title: "Intelligence", icon: "observatory" },
   wallet: { title: "Wallet", icon: "wallet" },
 };
 
@@ -241,8 +243,14 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   onSectionChange: (section: ZafSection) => void;
   onSubtabChange: (subtab: string) => void;
 }) {
-  const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["apps", "Apps"], ["testnet", "Testnet"], ["defi", "DeFi"], ["node", "Node & Compute"], ["intelligence", "Observatory"], ["wallet", "Wallet"]];
+  const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["discover", "Discover"], ["network", "Network"], ["intelligence", "Intelligence"], ["wallet", "Wallet"]];
   const subtabs = ZAF_SECTION_TABS[section];
+  const networkGroups = [
+    { label: "Network Core", items: ["Network"] },
+    { label: "Testnet", items: ["Testnet Assets"] },
+    { label: "DeFi", items: ["DeFi", "DEX", "AMM & Pools", "Tokens", "Launchpad"] },
+    { label: "Node & Compute", items: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"] },
+  ];
 
   const selectSection = (next: ZafSection) => {
     onSectionChange(next);
@@ -250,7 +258,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   };
 
   const primaryNav = (
-    <div className="zaf-mobile-primary-nav grid grid-cols-4 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
+    <div className="zaf-mobile-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
       {sections.map(([id, title]) => {
         const meta = sectionMeta[id];
         const active = section === id;
@@ -275,7 +283,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   return (
     <nav className="zaf-navigation mt-4 border-t border-border pt-3" aria-label={locale === "tr" ? "Ekosistem Bölümleri" : "Ecosystem Sections"}>
       <div className="hidden lg:block">
-        <div className="zaf-desktop-primary-nav grid grid-cols-7 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
+        <div className="zaf-desktop-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
           {sections.map(([id, title]) => {
             const meta = sectionMeta[id];
             const active = section === id;
@@ -291,33 +299,73 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
           })}
         </div>
         {subtabs.length ? (
-          <div className="zaf-desktop-secondary-nav mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-1 pb-1.5">
-            {subtabs.map(item => {
-              const active = subtab === item;
-              return (
-                <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-desktop-secondary-item relative px-1 py-1 text-[10px] font-medium transition-colors " + (active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                  {label(item, locale)}
-                  <span className={"absolute inset-x-1 -bottom-1 h-0.5 rounded-full transition-opacity " + (active ? "bg-primary opacity-100" : "opacity-0")} />
-                </button>
-              );
-            })}
-          </div>
+          section === "network" ? (
+            <div className="zaf-network-secondary mt-2 grid grid-cols-4 gap-2 border-b border-border pb-2">
+              {networkGroups.map(group => (
+                <div key={group.label} className="min-w-0 rounded-xl border border-border/70 bg-card/50 px-2.5 py-2">
+                  <div className="mb-1.5 px-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label(group.label, locale)}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {group.items.map(item => {
+                      const active = subtab === item;
+                      return (
+                        <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"rounded-lg px-2 py-1 text-[10px] font-medium transition-colors " + (active ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+                          {label(item, locale)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="zaf-desktop-secondary-nav mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-1 pb-1.5">
+              {subtabs.map(item => {
+                const active = subtab === item;
+                return (
+                  <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-desktop-secondary-item relative px-1 py-1 text-[10px] font-medium transition-colors " + (active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                    {label(item, locale)}
+                    <span className={"absolute inset-x-1 -bottom-1 h-0.5 rounded-full transition-opacity " + (active ? "bg-primary opacity-100" : "opacity-0")} />
+                  </button>
+                );
+              })}
+            </div>
+          )
         ) : null}
       </div>
 
       <div className="lg:hidden">
         {primaryNav}
         {subtabs.length ? (
-          <div className="zaf-mobile-subtabs mt-2 grid grid-cols-2 gap-1">
-            {subtabs.map(item => {
-              const active = subtab === item;
-              return (
-                <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-mobile-subtab min-w-0 rounded-lg border px-2 py-1.5 text-[9px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
-                  {label(item, locale)}
-                </button>
-              );
-            })}
-          </div>
+          section === "network" ? (
+            <div className="zaf-network-secondary mt-2 grid grid-cols-2 gap-1.5">
+              {networkGroups.map(group => (
+                <div key={group.label} className="min-w-0 rounded-xl border border-border/70 bg-card/60 p-2">
+                  <div className="mb-1.5 px-0.5 text-[8px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label(group.label, locale)}</div>
+                  <div className="grid grid-cols-1 gap-1">
+                    {group.items.map(item => {
+                      const active = subtab === item;
+                      return (
+                        <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"min-w-0 rounded-lg border px-2 py-1.5 text-[9px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
+                          <span className="block truncate">{label(item, locale)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="zaf-mobile-subtabs mt-2 grid grid-cols-2 gap-1">
+              {subtabs.map(item => {
+                const active = subtab === item;
+                return (
+                  <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-mobile-subtab min-w-0 rounded-lg border px-2 py-1.5 text-[9px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
+                    <span className="block truncate">{label(item, locale)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )
         ) : null}
       </div>
     </nav>

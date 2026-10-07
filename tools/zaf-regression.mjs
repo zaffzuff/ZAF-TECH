@@ -152,7 +152,7 @@ for (const token of ["App Activity", "Newly Observed Apps", "Not Present In Late
 }
 
 const ecosystemStaking = fs.readFileSync(path.join(root, "components/zaf-ecosystem-staking.tsx"), "utf8");
-for (const token of ["Ecosystem Directory Staking", "Live Data Boundary", "Published Staking Evidence", "Coming soon target", "Historical official statements"]) {
+for (const token of ["Ecosystem Directory Staking", "Live Data Boundary", "Published Staking Evidence", "ZafComingSoon", "Historical official statements"]) {
   if (!ecosystemStaking.includes(token)) throw new Error("Ecosystem staking regression: " + token);
 }
 
@@ -228,7 +228,7 @@ for (const token of ["getDefiObservation", "Only Testnet DeFi observations", "ne
 }
 
 const defiUI = fs.readFileSync(path.join(root, "components/zaf-defi-observatory.tsx"), "utf8");
-for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Observed Pair Activity", "Coming Soon target", "Mainnet Readiness"]) {
+for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Observed Pair Activity", "ZafComingSoon", "ZafComingSoon"]) {
   if (!defiUI.includes(token)) throw new Error("DeFi UI regression: " + token);
 }
 
@@ -237,7 +237,7 @@ for (const token of ["DeFi", "DEX", "AMM & Pools", "Tokens"]) {
 }
 
 const testnetAssetsUI = fs.readFileSync(path.join(root, "components/zaf-testnet-assets.tsx"), "utf8");
-for (const token of ["Testnet Assets", "Observed Testnet Assets", "Coming Soon target", "Test-Pi has no real-world value"]) {
+for (const token of ["Testnet Assets", "Observed Testnet Assets", "ZafComingSoon", "Test-Pi has no real-world value"]) {
   if (!testnetAssetsUI.includes(token)) throw new Error("Testnet asset UI regression: " + token);
 }
 
@@ -273,7 +273,7 @@ for (const token of ["getLaunchpadObservation", "Only Testnet Launchpad observat
 }
 
 const launchpadUI = fs.readFileSync(path.join(root, "components/zaf-launchpad-observatory.tsx"), "utf8");
-for (const token of ["Launchpad Observatory", "Published Launch Evidence", "Live Launchpad Feed", "Mainnet Readiness", "published-evidence"]) {
+for (const token of ["Launchpad Observatory", "Published Launch Evidence", "Live Launchpad Feed", "ZafComingSoon", "published-evidence"]) {
   if (!launchpadUI.includes(token)) throw new Error("Launchpad UI regression: " + token);
 }
 

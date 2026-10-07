@@ -31,7 +31,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "DeFi": "DeFi",
     "Node & Compute": "Node & Compute",
     "Pioneer": "Pioneer",
-    "Intelligence": "Gözlem Merkezi",
+    "Intelligence": "Analiz Merkezi",
     "All Apps": "Tüm Uygulamalar",
     "New Apps": "Yeni Uygulamalar",
     "App Activity": "Uygulama Aktivitesi",
