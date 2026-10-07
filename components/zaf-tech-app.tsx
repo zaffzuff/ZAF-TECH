@@ -284,7 +284,27 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"All" | AppCategory>("All");
   const [sort, setSort] = useState<"name" | "category">("name");
+  const [activity, setActivity] = useState<{ newApps: Array<{ url: string; observationCount: number; lastSeenAt: string | null }>; historical: Array<{ url: string; observationCount: number }> } | null>(null);
   const directoryApps = useMemo(() => apps.map(app => toDirectoryApp(app, generatedAt ?? new Date().toISOString())), [apps, generatedAt]);
+  useEffect(() => {
+    let active = true;
+    const loadActivity = async () => {
+      try {
+        const response = await fetch("/api/zaf/ecosystem/apps", { cache: "no-store" });
+        if (!response.ok) return;
+        const body = await response.json();
+        if (!active) return;
+        setActivity({
+          newApps: (body.newApps ?? []).map((item: { url: string; observationCount: number; lastSeenAt: string | null }) => ({ url: item.url, observationCount: item.observationCount, lastSeenAt: item.lastSeenAt })),
+          historical: (body.apps ?? []).map((item: { url: string; observationCount: number }) => ({ url: item.url, observationCount: item.observationCount })),
+        });
+      } catch {
+        if (active) setActivity(null);
+      }
+    };
+    void loadActivity();
+    return () => { active = false; };
+  }, []);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return directoryApps.filter(app => {
@@ -344,6 +364,17 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
               <span>{tr("Observed from public directory", "Herkese açık dizinden gözlemlendi")}</span>
               <span className="shrink-0">{age(app.lastChecked, locale)}</span>
             </div>
+            {(() => {
+              const activityRecord = activity?.historical.find(item => item.url === app.url);
+              const isNew = activity?.newApps.some(item => item.url === app.url) ?? false;
+              if (!activityRecord && !isNew) return null;
+              return (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[9px] text-muted-foreground">
+                  {isNew ? <span className="rounded-full border border-border px-2 py-0.5 font-medium text-foreground">{tr("New observation", "Yeni gözlem")}</span> : null}
+                  {activityRecord ? <span>{activityRecord.observationCount} {tr("stored observations", "kayıtlı gözlem")}</span> : null}
+                </div>
+              );
+            })()}
             <div className="mt-2 rounded-lg bg-background px-2.5 py-2 text-[9px] leading-relaxed text-muted-foreground">
               <span className="font-medium text-foreground">{tr("Why this is showing", "Neden gösteriliyor")}</span>
               <span className="ml-1">{app.categoryBasis === "name-signal"
@@ -355,7 +386,7 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
       </div>
       {!filtered.length ? <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[11px] text-muted-foreground">{apps.length ? tr("No applications match the current filters.", "Mevcut filtrelerle eşleşen uygulama yok.") : note}</div> : null}
       <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[10px] leading-relaxed text-muted-foreground">
-        {tr("Category is a ZAF TECH classification based on the public app name/URL signal, not an official Pi category. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF TECH sınıflandırmasıdır; resmi Pi kategorisi değildir. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulayana kadar doğrulanmamış olarak kalır.")}
+        {tr("Category is a ZAF TECH classification based on the public app name/URL signal, not an official Pi category. Activity labels use persisted public ecosystem observations when available. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF TECH sınıflandırmasıdır; resmi Pi kategorisi değildir. Aktivite etiketleri, mevcut olduğunda kayıtlı herkese açık ekosistem gözlemlerini kullanır. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulanana kadar doğrulanmamış olarak kalır.")}
       </div>
     </section>
   );
