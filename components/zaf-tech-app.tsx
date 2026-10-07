@@ -45,6 +45,7 @@ type EcosystemPayload = {
   generatedAt: string;
   apps: { sourceAvailable: boolean; totalCount: number | null; items: AppItem[]; note: string };
   sources: Array<{ label: string; status: string; url: string; detail: string }>;
+  officialSignals?: Array<{ title: string; value: string; observedAt: string; sourceUrl: string }>;
 };
 
 function number(value: number | null | undefined, digits = 0, locale: Locale = "en") {
@@ -669,7 +670,7 @@ export function ZafTechApp() {
         ) : null}
 
         {!loading && !loadError && section === "overview" && subtab === "Pulse" ? (
-          <ZafPulse locale={locale} snapshot={snapshot} radar={radarData} changes={radarChanges} onOpenRadar={() => { setSection("intelligence"); setSubtab("Radar"); }} onOpenDiscover={() => { setSection("discover"); setSubtab("App Directory"); }} />
+          <ZafPulse locale={locale} snapshot={snapshot} radar={radarData} changes={radarChanges} ecosystem={ecosystem} onOpenRadar={() => { setSection("intelligence"); setSubtab("Radar"); }} onOpenDiscover={() => { setSection("discover"); setSubtab("App Directory"); }} />
         ) : null}
         {!loading && !loadError && section === "overview" && subtab === "Ecosystem" ? (
           <section className="mt-5 sm:mt-7">
