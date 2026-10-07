@@ -474,12 +474,26 @@ export function ZafTechApp() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const requestedSection = params.get("section") as ZafSection | null;
+    const rawSection = params.get("section");
+    const requestedSubtab = params.get("subtab") ?? "";
+    const legacyMap: Record<string, { section: ZafSection; subtab?: string }> = {
+      apps: { section: "discover" },
+      testnet: { section: "network", subtab: "Testnet Assets" },
+      defi: { section: "network" },
+      node: { section: "network" },
+      observatory: { section: "intelligence" },
+    };
+    const mapped = rawSection && legacyMap[rawSection] ? legacyMap[rawSection] : null;
+    const requestedSection = (mapped?.section ?? rawSection) as ZafSection | null;
+    const normalizedSubtab = mapped?.subtab ?? (
+      rawSection === "defi" && requestedSubtab === "Overview" ? "DeFi" :
+      rawSection === "node" && requestedSubtab === "Node" ? "Node" :
+      requestedSubtab
+    );
     if (requestedSection && Object.prototype.hasOwnProperty.call(ZAF_SECTION_TABS, requestedSection)) {
       setSection(requestedSection);
-      const requestedSubtab = params.get("subtab");
       const allowed = ZAF_SECTION_TABS[requestedSection];
-      setSubtab(requestedSubtab && allowed.includes(requestedSubtab) ? requestedSubtab : (allowed[0] ?? ""));
+      setSubtab(allowed.includes(normalizedSubtab) ? normalizedSubtab : (allowed[0] ?? ""));
     }
     const requestedLedger = params.get("ledger");
     if (requestedLedger && /^\d{1,12}$/.test(requestedLedger)) {
@@ -604,7 +618,7 @@ export function ZafTechApp() {
         ) : null}
 
         {!loading && !loadError && section === "overview" && subtab === "Pulse" ? (
-          <ZafPulse locale={locale} snapshot={snapshot} radar={radarData} changes={radarChanges} onOpenRadar={() => { setSection("intelligence"); setSubtab("Radar"); }} onOpenDiscover={() => { setSection("apps"); setSubtab("App Directory"); }} />
+          <ZafPulse locale={locale} snapshot={snapshot} radar={radarData} changes={radarChanges} onOpenRadar={() => { setSection("intelligence"); setSubtab("Radar"); }} onOpenDiscover={() => { setSection("discover"); setSubtab("App Directory"); }} />
         ) : null}
         {!loading && !loadError && section === "overview" && subtab === "Ecosystem" ? (
           <section className="mt-5 sm:mt-7">
@@ -634,14 +648,14 @@ export function ZafTechApp() {
           </section>
         ) : null}
 
-        {!loading && section === "apps" && subtab === "App Health" ? <ZafAppHealth locale={locale} /> : null}
-        {!loading && section === "apps" && subtab === "App Activity" ? <ZafEcosystemAppActivity locale={locale} tr={tr} /> : null}
-        {!loading && section === "apps" && subtab === "Staking" ? <ZafEcosystemStaking locale={locale} tr={tr} /> : null}
-        {!loading && section === "testnet" && subtab === "Assets" ? <ZafTestnetAssets locale={locale} tr={tr} /> : null}
-        {!loading && section === "defi" && subtab === "Launchpad" ? <ZafLaunchpadObservatory locale={locale} tr={tr} /> : null}
-        {!loading && section === "defi" && subtab !== "Launchpad" ? <ZafDefiObservatory locale={locale} tr={tr} view={subtab as "Overview" | "DEX" | "AMM & Pools" | "Tokens"} /> : null}
+        {!loading && section === "discover" && subtab === "App Health" ? <ZafAppHealth locale={locale} /> : null}
+        {!loading && section === "discover" && subtab === "App Activity" ? <ZafEcosystemAppActivity locale={locale} tr={tr} /> : null}
+        {!loading && section === "discover" && subtab === "Staking" ? <ZafEcosystemStaking locale={locale} tr={tr} /> : null}
+        {!loading && section === "network" && subtab === "Testnet Assets" ? <ZafTestnetAssets locale={locale} tr={tr} /> : null}
+        {!loading && section === "network" && subtab === "Launchpad" ? <ZafLaunchpadObservatory locale={locale} tr={tr} /> : null}
+        {!loading && section === "network" && ["DeFi", "DEX", "AMM & Pools", "Tokens"].includes(subtab) ? <ZafDefiObservatory locale={locale} tr={tr} view={subtab === "DeFi" ? "Overview" : subtab as "DEX" | "AMM & Pools" | "Tokens"} /> : null}
 
-        {!loading && section === "apps" && subtab === "App Directory" ? <AppDirectoryView apps={apps} sourceOnline={sourceOnline} generatedAt={ecosystem?.generatedAt} note={ecosystem?.apps.note} locale={locale} tr={tr} /> : null}
+        {!loading && section === "discover" && subtab === "App Directory" ? <AppDirectoryView apps={apps} sourceOnline={sourceOnline} generatedAt={ecosystem?.generatedAt} note={ecosystem?.apps.note} locale={locale} tr={tr} /> : null}
 
         {!loading && section === "intelligence" && subtab === "Trust" ? (
           <ZafTrust locale={locale} snapshot={snapshot} radar={radarData} />
@@ -766,7 +780,7 @@ export function ZafTechApp() {
             </div>
           </section>
         ) : null}
-        {!loading && section === "node" ? <ZafNodeCompute locale={locale} data={snapshot} subtab={subtab} /> : null}
+        {!loading && section === "network" ? <ZafNodeCompute locale={locale} data={snapshot} subtab={subtab} /> : null}
 
         {!loading && section === "wallet" ? <ZafWalletIntelligence locale={locale} /> : null}
 
@@ -775,7 +789,7 @@ export function ZafTechApp() {
 
         {!loading && section === "intelligence" && subtab === "Explorer" ? <ObservatoryExplorerView apps={apps} sources={ecosystem?.sources ?? []} snapshot={snapshot} locale={locale} tr={tr} /> : null}
 
-        {!loading && section === "overview" && subtab === "Network" ? (
+        {!loading && section === "network" && subtab === "Network" ? (
           <section className="mt-5 sm:mt-7">
             <div className="mb-3">
               <h2 className="text-sm font-semibold text-foreground">{tr("Pi Network", "Pi Network")}</h2>
@@ -882,7 +896,7 @@ export function ZafTechApp() {
           </section>
         ) : null}
 
-        {!loading && section === "overview" && subtab === "Tools" ? <ZafDeveloperTools locale={locale} /> : null}
+        {!loading && section === "discover" && subtab === "Tools" ? <ZafDeveloperTools locale={locale} /> : null}
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
