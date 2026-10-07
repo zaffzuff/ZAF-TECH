@@ -49,8 +49,8 @@ export function ZafPulse({ locale, snapshot, radar, changes, onOpenRadar, onOpen
 
   return <section className="zaf-pulse mt-5 sm:mt-7">
     <div className="zaf-pulse-hero">
-      <div className="zaf-pulse-kicker"><span className="zaf-signal-mark"><Icon kind="pulse" size={15} /></span><span>{tx(locale, "PI ECOSYSTEM · LIVE", "PI EKOSİSTEMİ · CANLI")}</span></div>
-      <h1 className="zaf-pulse-title mt-3">{tx(locale, "Know what is moving before it becomes obvious.", "Ne hareket ediyor, herkes fark etmeden önce gör.")}</h1>
+      <div className="zaf-pulse-kicker"><span className="zaf-signal-mark"><Icon kind="pulse" size={15} /></span><span>{tx(locale, "PI ECOSYSTEM · OBSERVED", "PI EKOSİSTEMİ · GÖZLEMLENEN")}</span></div>
+      <h1 className="zaf-pulse-title mt-3">{tx(locale, "See what is changing across the Pi ecosystem.", "Pi ekosisteminde nelerin değiştiğini görün.")}</h1>
       <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm">{tx(locale, "ZAF TECH turns public observations into clear ecosystem signals. It does not predict the future or manufacture hype.", "ZAF TECH herkese açık gözlemleri anlaşılır ekosistem sinyallerine dönüştürür. Geleceği tahmin etmez ve yapay heyecan üretmez.")}</p>
       <div className="zaf-pulse-metrics mt-5">
         <div><span>{tx(locale, "Activity", "Aktivite")}</span><strong>{activity}</strong></div>
@@ -71,9 +71,9 @@ export function ZafPulse({ locale, snapshot, radar, changes, onOpenRadar, onOpen
       </article>
 
       <article className="zaf-pulse-card">
-        <div className="zaf-pulse-card-head"><div className="zaf-pulse-label"><span className="zaf-icon-new"><Icon kind="new" size={16} /></span>{tx(locale, "Discover", "Keşfet")}</div><button type="button" onClick={onOpenDiscover} className="zaf-pulse-link">{tx(locale, "Open", "Aç")}</button></div>
+        <div className="zaf-pulse-card-head"><div className="zaf-pulse-label"><span className="zaf-icon-new"><Icon kind="new" size={16} /></span>{tx(locale, "Latest Activity", "Son Aktivite")}</div><button type="button" onClick={onOpenDiscover} className="zaf-pulse-link">{tx(locale, "Discover", "Keşfet")}</button></div>
         <div className="zaf-pulse-big-number">{snapshot?.metrics.recentTransactions?.toLocaleString() ?? "—"}</div>
-        <div className="text-[10px] text-muted-foreground">{tx(locale, "Observed transactions in the current sample", "Mevcut örnekte gözlemlenen işlemler")}</div>
+        <div className="text-[10px] text-muted-foreground">{tx(locale, "Transactions observed in the current sample", "Mevcut örnekte gözlemlenen işlemler")}</div>
         <Sparkline rising={activity === "rising"} />
       </article>
 
