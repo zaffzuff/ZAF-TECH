@@ -24,6 +24,18 @@ function observationTime(value: string | null | undefined, locale: Locale) {
   return locale === "tr" ? `${day}.${month}.${year} ${hour}:${minute} UTC` : `${year}-${month}-${day} ${hour}:${minute} UTC`;
 }
 
+function activityLabel(value: string, locale: Locale) {
+  if (locale === "tr") {
+    if (value === "rising") return "Yükseliyor";
+    if (value === "falling") return "Düşüyor";
+    if (value === "stable") return "Sabit";
+  }
+  if (value === "rising") return "Rising";
+  if (value === "falling") return "Falling";
+  if (value === "stable") return "Stable";
+  return value;
+}
+
 function Icon({ kind, size = 18 }: { kind: "pulse" | "rising" | "signal" | "new" | "watch"; size?: number }) {
   const body = {
     pulse: <><path d="M3 12h4l2.1-6 3.2 12 2.1-6H21" /><path d="M3 5v14M21 5v14" opacity=".35" /></>,
@@ -54,6 +66,7 @@ export function ZafPulse({ locale, snapshot, radar, changes, onOpenRadar, onOpen
   const available = radar?.sourceCoverage.available ?? 0;
   const coverage = total ? Math.round((available / total) * 100) : 0;
   const activity = snapshot?.intelligence.activityState ?? "—";
+  const activityDisplay = activity === "—" ? activity : activityLabel(activity, locale);
 
   return <section className="zaf-pulse mt-5 sm:mt-7">
     <div className="zaf-pulse-hero">
@@ -61,7 +74,7 @@ export function ZafPulse({ locale, snapshot, radar, changes, onOpenRadar, onOpen
       <h1 className="zaf-pulse-title mt-3">{tx(locale, "See what is changing across the Pi ecosystem.", "Pi ekosisteminde nelerin değiştiğini görün.")}</h1>
       <p className="mt-2 max-w-xl text-xs leading-relaxed text-muted-foreground sm:text-sm">{tx(locale, "ZAF TECH turns public observations into clear ecosystem signals. It does not predict the future or manufacture hype.", "ZAF TECH herkese açık gözlemleri anlaşılır ekosistem sinyallerine dönüştürür. Geleceği tahmin etmez ve yapay heyecan üretmez.")}</p>
       <div className="zaf-pulse-metrics mt-5">
-        <div><span>{tx(locale, "Activity", "Aktivite")}</span><strong>{activity}</strong></div>
+        <div><span>{tx(locale, "Activity", "Aktivite")}</span><strong>{activityDisplay}</strong></div>
         <div><span>{tx(locale, "Coverage", "Kapsam")}</span><strong>{coverage}%</strong></div>
         <div><span>{tx(locale, "Latest observation", "Son gözlem")}</span><strong>{observationTime(radar?.generatedAt ?? snapshot?.generatedAt, locale)}</strong></div>
       </div>
