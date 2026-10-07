@@ -151,13 +151,15 @@ export function ZafPulse({
     : "—";
 
   const brief = (() => {
-    const tx = radar?.dailyTransactions;
-    const ops = radar?.dailyOperations;
+    const txPerDay = radar?.dailyTransactions;
+    const opsPerDay = radar?.dailyOperations;
     const success = snapshot?.metrics.transactionSuccessRate;
-    if (tx != null && ops != null && success != null) {
-      return tx.changePercent == null
-        ? tx(locale, `Mainnet is currently observable at about ${metricValue(txPerDay, locale)} transactions and ${metricValue(opsPerDay, locale)} operations per day, with a ${success.toFixed(1)}% observed transaction success rate.`, `Mainnet şu anda yaklaşık ${metricValue(tx, locale)} işlem ve ${metricValue(ops, locale)} operasyon/gün seviyesinde gözlemleniyor; gözlemlenen işlem başarı oranı %${success.toFixed(1)}.`)
-        : tx(locale, `The latest rolling window shows a ${changeLabel(radar.signals.find(s => s.id === "transaction-pace")?.changePercent ?? null, locale)} transaction-pace move and ${changeLabel(radar.signals.find(s => s.id === "operation-pace")?.changePercent ?? null, locale)} operation-pace move.`, `Son hareketli pencere işlem temposunda ${changeLabel(radar.signals.find(s => s.id === "transaction-pace")?.changePercent ?? null, locale)} ve operasyon temposunda ${changeLabel(radar.signals.find(s => s.id === "operation-pace")?.changePercent ?? null, locale)} değişim gösteriyor.`);
+    const txChange = radar?.signals.find(s => s.id === "transaction-pace")?.changePercent ?? null;
+    const opChange = radar?.signals.find(s => s.id === "operation-pace")?.changePercent ?? null;
+    if (txPerDay != null && opsPerDay != null && success != null) {
+      return txChange == null
+        ? tx(locale, `Mainnet is currently observable at about ${metricValue(txPerDay, locale)} transactions and ${metricValue(opsPerDay, locale)} operations per day, with a ${success.toFixed(1)}% observed transaction success rate.`, `Mainnet şu anda yaklaşık ${metricValue(txPerDay, locale)} işlem ve ${metricValue(opsPerDay, locale)} operasyon/gün seviyesinde gözlemleniyor; gözlemlenen işlem başarı oranı %${success.toFixed(1)}.`)
+        : tx(locale, `The latest rolling window shows a ${changeLabel(txChange, locale)} transaction-pace move and ${changeLabel(opChange, locale)} operation-pace move.`, `Son hareketli pencere işlem temposunda ${changeLabel(txChange, locale)} ve operasyon temposunda ${changeLabel(opChange, locale)} değişim gösteriyor.`);
     }
     return tx(locale, "Live Mainnet observations are still forming. The dashboard will surface concrete movements as the observation window fills.", "Canlı Mainnet gözlemleri hâlâ oluşuyor. Gözlem penceresi doldukça dashboard somut hareketleri gösterecek.");
   })();
