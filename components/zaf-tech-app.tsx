@@ -537,7 +537,7 @@ export function ZafTechApp() {
     const mapped = rawSection && legacyMap[rawSection] ? legacyMap[rawSection] : null;
     const requestedSection = (mapped?.section ?? rawSection) as ZafSection | null;
     const normalizedSubtab = mapped?.subtab ?? (
-      rawSection === "defi" && requestedSubtab === "Overview" ? "DeFi" :
+      rawSection === "defi" && (!requestedSubtab || requestedSubtab === "Overview") ? "DeFi" :
       rawSection === "node" && requestedSubtab === "Node" ? "Node" :
       requestedSubtab
     );
