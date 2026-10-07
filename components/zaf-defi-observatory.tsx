@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale } from "@/lib/zaf/i18n";
+import { ZafComingSoon } from "@/components/zaf-coming-soon";
 
 type AssetRef = { assetType:string|null; assetCode:string|null; issuer:string|null; label:string };
 type Pool = { networkScope:"testnet"; poolId:string; feeBp:number|null; totalShares:number|null; reserves:Array<{asset:AssetRef;amount:number|null}>; observedTrades:number; lastModifiedLedger:string|null };
@@ -95,7 +96,7 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
         [tr("DEX","DEX"),tr("Orderbook-style trades and exchange observations. Mainnet data is intentionally separated from Testnet data.","Emir defteri tipi işlemler ve borsa gözlemleri. Mainnet verisi Testnet verisinden bilinçli olarak ayrı tutulur.")],
         [tr("AMM & Pools","AMM & Havuzlar"),tr("Liquidity-pool reserves, pool identifiers and observed pool activity.","Likidite havuzu rezervleri, havuz kimlikleri ve gözlemlenen havuz aktivitesi.")],
         [tr("Tokens","Tokenlar"),tr("Assets observed in DEX/AMM records, linked to issuers where the source exposes them.","DEX/AMM kayıtlarında gözlemlenen varlıklar; kaynak açığa çıkardığında issuer bilgisiyle.")],
-        [tr("Mainnet Readiness","Mainnet Hazırlığı"),tr("The interface is prepared for a future public Mainnet DeFi source; it does not imply that Mainnet DeFi is currently enabled.","Arayüz gelecekteki herkese açık Mainnet DeFi kaynağı için hazırdır; Mainnet DeFi'nin şu anda etkin olduğu anlamına gelmez.")]
+        [tr("Mainnet Readiness","Mainnet Hazırlığı"), <ZafComingSoon key="mainnet-readiness" locale={locale} title={tr("Mainnet DeFi Observation", "Mainnet DeFi Gözlemi")} detail={tr("This surface is prepared for a future verifiable public Mainnet DeFi source. It does not indicate that Mainnet DeFi is currently observable here.", "Bu yüzey gelecekteki doğrulanabilir herkese açık Mainnet DeFi kaynağı için hazırlanmıştır. Mainnet DeFi'nin şu anda burada gözlemlenebildiği anlamına gelmez.")} />]
       ].map(([title,detail])=><div key={title} className="rounded-xl border border-border bg-card p-4"><div className="text-xs font-semibold text-foreground">{title}</div><p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{detail}</p></div>)}
     </div>:null}
 
