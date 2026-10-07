@@ -182,6 +182,15 @@
 
 /* Brand text: gold → silver gradient for the wordmark */
 
+.light .ty-brand-text {
+  background-image: linear-gradient(
+    100deg,
+    oklch(0.62 0.11 82) 0%,
+    oklch(0.48 0.015 265) 62%,
+    oklch(0.36 0.01 265) 100%
+  );
+}
+
 .ty-brand-text {
   font-family: var(--font-michroma), sans-serif;
   font-weight: 400;
