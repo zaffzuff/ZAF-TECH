@@ -142,7 +142,13 @@ function categoryLabel(category: AppCategory, locale: Locale) {
 }
 
 function Card({ title, value, detail }: { title: string; value: string; detail?: string }) {
-  return <div className="rounded-xl border border-border bg-card p-3 sm:p-4"><div className="text-xl font-bold ty-nums text-foreground sm:text-2xl">{value}</div><div className="mt-1 text-xs font-medium text-foreground">{title}</div>{detail ? <div className="mt-1 text-[11px] text-muted-foreground">{detail}</div> : null}</div>;
+  return (
+    <div className="zaf-unified-card min-w-0">
+      <div className="zaf-unified-card-value ty-nums">{value}</div>
+      <div className="zaf-unified-card-title">{title}</div>
+      {detail ? <div className="zaf-unified-card-detail">{detail}</div> : null}
+    </div>
+  );
 }
 function External({ href, children }: { href: string; children: React.ReactNode }) {
   return <a href={href} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">{children}</a>;
