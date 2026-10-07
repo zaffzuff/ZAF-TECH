@@ -183,6 +183,18 @@ Avoid:
 - optional notifications
 - Pioneer-specific discovery
 
+## Product rule — Coming Soon
+
+ZAF TECH never presents a future capability as active.
+
+- If a feature is fully backed by observable, verifiable data today, it may be active.
+- If its infrastructure exists but the required reliable public data is not yet available, the user-facing surface must remain passive and clearly show **Coming Soon**.
+- Future ranking, intelligence, historical, Mainnet, personalization, notification, or similar capabilities must not display synthetic, estimated, or placeholder results as if they were live data.
+- Existing features that were added before this rule are subject to the same standard and should be audited when touched.
+- Backend schemas, adapters, storage, and components may be prepared in advance, but activation is conditional on reliable evidence.
+
+This rule protects the product's core positioning: if ZAF TECH cannot observe it, ZAF TECH does not present it as fact.
+
 ## PCT positioning
 
 The long-term product story should be:
