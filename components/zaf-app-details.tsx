@@ -156,7 +156,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
 
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <div className="text-xs font-semibold text-foreground">{tr("Live Health Observation", "Canlı Sağlık Gözlemi")}</div>
                 <p className="mt-1 text-[10px] text-muted-foreground">{tr("A fresh server-side reachability check of the public application URL.", "Herkese açık uygulama URL'si için güncel sunucu tarafı erişilebilirlik kontrolü.")}</p>
               </div>
@@ -208,7 +208,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                 {trendPoints.length > 0 ? (
                   <div className="mt-3 rounded-lg border border-border p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <div>
+                      <div className="min-w-0">
                         <div className="text-[9px] font-semibold text-foreground">{tr("Health Score Trend", "Sağlık Skoru Trendi")}</div>
                         <div className="mt-0.5 text-[9px] text-muted-foreground">{tr("Earliest → latest stored checks", "En eski → en yeni kayıtlı kontroller")}</div>
                       </div>
