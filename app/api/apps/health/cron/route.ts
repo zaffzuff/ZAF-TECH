@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     {
       ok: true,
       scheduled: true,
+      rateLimitRowsRemoved,
       ...result,
     },
     {
