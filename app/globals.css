@@ -1379,3 +1379,16 @@
     height: 30px;
   }
 }
+
+
+/* Bronze is the consistent active/primary-action color across desktop and mobile.
+   Keep foreground text dark for contrast in both the light and dark palettes. */
+.zaf-main-shell button.bg-foreground.text-background {
+  background-color: var(--ty-bronze) !important;
+  border-color: var(--ty-bronze) !important;
+  color: oklch(0.18 0.012 265) !important;
+}
+
+.zaf-main-shell .zaf-desktop-secondary-nav .bg-primary.opacity-100 {
+  background-color: var(--ty-bronze) !important;
+}
