@@ -81,6 +81,35 @@ for (const file of [
   }
 }
 
+const rateLimit = fs.readFileSync(path.join(root, "lib/zaf/rate-limit.ts"), "utf8");
+for (const token of ["consumeRateLimit", "enforceRateLimit", "rateLimitHeaders", "cleanupZafRateLimits", "429", "Retry-After", "zaf_rate_limits", "ON CONFLICT (key_hash)"]) {
+  if (!rateLimit.includes(token)) throw new Error("Rate-limit foundation regression: " + token);
+}
+const dbRateLimit = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+for (const token of ["0002_rate_limits", "CREATE TABLE IF NOT EXISTS zaf_rate_limits", "zaf_rate_limits_updated_at_idx"]) {
+  if (!dbRateLimit.includes(token)) throw new Error("Rate-limit migration regression: " + token);
+}
+const rateLimitedRoutes = [
+  "app/api/apps/check/route.ts",
+  "app/api/zaf/search/route.ts",
+  "app/api/zaf/wallet/route.ts",
+  "app/api/zaf/radar/route.ts",
+  "app/api/zaf/observations/route.ts",
+  "app/api/zaf/observations/history/route.ts",
+  "app/api/zaf/defi/route.ts",
+  "app/api/zaf/assets/route.ts",
+  "app/api/zaf/ecosystem/route.ts",
+  "app/api/zaf/ecosystem/apps/route.ts",
+  "app/api/zaf/launchpad/route.ts",
+];
+for (const file of rateLimitedRoutes) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  if (!source.includes('from "@/lib/zaf/rate-limit"') || !source.includes("enforceRateLimit")) {
+    throw new Error("Rate-limit route coverage regression: " + file);
+  }
+}
+const cronRateLimit = fs.readFileSync(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
+if (!cronRateLimit.includes("cleanupZafRateLimits")) throw new Error("Rate-limit cleanup cron regression");
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");

@@ -76,6 +76,19 @@ const MIGRATIONS: Migration[] = [
         ON zaf_observation_snapshots (generated_at DESC)`,
     ],
   },
+  {
+    id: "0002_rate_limits",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS zaf_rate_limits (
+        key_hash TEXT PRIMARY KEY,
+        window_start TIMESTAMPTZ NOT NULL,
+        request_count INTEGER NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )`,
+      `CREATE INDEX IF NOT EXISTS zaf_rate_limits_updated_at_idx
+        ON zaf_rate_limits (updated_at DESC)`,
+    ],
+  },
 ];
 
 export function isZafDatabaseConfigured() {

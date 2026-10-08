@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDefiObservation } from "@/lib/zaf/defi-observation";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 import {
   compareDefiSnapshots,
   getDefiSnapshotHistory,
@@ -13,6 +14,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await enforceRateLimit(request, "defi", { limit: 20, windowMs: 60_000 });
+  if (rateLimit) return rateLimit;
+
   const network = request.nextUrl.searchParams.get("network")?.trim().toLowerCase() ?? "testnet";
   if (network !== "testnet") {
     return NextResponse.json(

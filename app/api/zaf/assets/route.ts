@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTestnetAssets } from "@/lib/zaf/testnet-assets";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await enforceRateLimit(request, "assets", { limit: 30, windowMs: 60_000 });
+  if (rateLimit) return rateLimit;
+
   const network = request.nextUrl.searchParams.get("network")?.trim().toLowerCase() ?? "testnet";
   if (network !== "testnet") return NextResponse.json({ error: "Only Testnet asset observations are enabled in this phase.", networkScope: "unknown" }, { status: 400, headers: { "Cache-Control": "no-store" } });
   const limit = Number(request.nextUrl.searchParams.get("limit") ?? "100");

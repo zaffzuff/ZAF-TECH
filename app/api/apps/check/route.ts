@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { checkAppHealth } from "@/lib/zaf/app-health";
 import { calculateAppHealthScore } from "@/lib/zaf/app-health-score";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const rateLimit = await enforceRateLimit(request, "app-check", { limit: 20, windowMs: 60_000 });
+  if (rateLimit) return rateLimit;
+
   const target = new URL(request.url).searchParams.get("url")?.trim();
 
   if (!target) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,9 @@ function cleanQuery(value: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await enforceRateLimit(request, "search", { limit: 60, windowMs: 60_000 });
+  if (rateLimit) return rateLimit;
+
   const q = cleanQuery(request.nextUrl.searchParams.get("q") ?? "");
   if (q.length < 2) return NextResponse.json({ query: q, results: [] }, { headers: { "Cache-Control": "no-store" } });
 

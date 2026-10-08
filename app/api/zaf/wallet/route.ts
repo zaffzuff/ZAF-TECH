@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getZafWallet } from "@/lib/zaf/wallet-client";
 import { getWalletActivityAnalytics } from "@/lib/zaf/wallet-analytics";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await enforceRateLimit(request, "wallet", { limit: 30, windowMs: 60_000 });
+  if (rateLimit) return rateLimit;
+
   const address = request.nextUrl.searchParams.get("address")?.trim() ?? "";
   const network = request.nextUrl.searchParams.get("network")?.trim().toLowerCase() === "testnet"
     ? "testnet"
