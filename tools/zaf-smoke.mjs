@@ -143,6 +143,24 @@ try {
   });
   if (piLogin.status !== 400) throw new Error(`/api/auth/pi empty body expected 400, received ${piLogin.status}: ${piLogin.text.slice(0, 220)}`);
 
+  // A streamed request deliberately omits Content-Length. The server must
+  // enforce the same body limit while reading the stream, not only by header.
+  const oversizedPiBody = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(JSON.stringify({ accessToken: "x".repeat(20_000) })));
+      controller.close();
+    },
+  });
+  const oversizedPiLogin = await requestWithOptions("/api/auth/pi", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: oversizedPiBody,
+    duplex: "half",
+  });
+  if (oversizedPiLogin.status !== 413) {
+    throw new Error(`/api/auth/pi streamed oversized body expected 413, received ${oversizedPiLogin.status}: ${oversizedPiLogin.text.slice(0, 220)}`);
+  }
+
   const piLogout = await requestWithOptions("/api/auth/pi/logout", { method: "POST" });
   if (piLogout.status !== 200) throw new Error(`/api/auth/pi/logout expected 200, received ${piLogout.status}`);
   if (!/zaf_pi_session=.*Max-Age=0/i.test(piLogout.headers["set-cookie"] ?? "")) {
