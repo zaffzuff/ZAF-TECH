@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDefiObservation } from "@/lib/zaf/defi-observation";
-import {
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
+import {
   compareDefiSnapshots,
   getDefiSnapshotHistory,
   getLatestDefiSnapshot,
