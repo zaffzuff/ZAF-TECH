@@ -7,7 +7,8 @@
     "dev": "next dev",
     "start": "next start",
     "node:connector": "node tools/zaf-node-connector.mjs",
-    "regression": "node tools/zaf-regression.mjs"
+    "regression": "node tools/zaf-regression.mjs",
+    "smoke": "node tools/zaf-smoke.mjs"
   },
   "dependencies": {
     "geist": "latest",
