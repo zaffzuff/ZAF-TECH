@@ -167,6 +167,30 @@ try {
     throw new Error("Pi logout did not clear the session cookie");
   }
 
+  // Probe storage with a syntactically valid but unknown cookie. If storage is
+  // unavailable, session lookup and logout must both fail closed; if storage
+  // is available, the unknown session must remain unauthenticated and logout
+  // must be idempotent. The browser cookie must be cleared in either case.
+  const sessionCookie = "zaf_pi_session=smoke-invalid-session-token";
+  const piSessionStorageProbe = await requestWithOptions("/api/auth/pi/session", {
+    headers: { cookie: sessionCookie },
+  });
+  if (![401, 503].includes(piSessionStorageProbe.status)) {
+    throw new Error(`Pi session storage probe expected 401 or 503, received ${piSessionStorageProbe.status}`);
+  }
+
+  const piLogoutWithCookie = await requestWithOptions("/api/auth/pi/logout", {
+    method: "POST",
+    headers: { cookie: sessionCookie },
+  });
+  const expectedLogoutStatus = piSessionStorageProbe.status === 503 ? 503 : 200;
+  if (piLogoutWithCookie.status !== expectedLogoutStatus) {
+    throw new Error(`Pi logout storage failure expected ${expectedLogoutStatus}, received ${piLogoutWithCookie.status}`);
+  }
+  if (!/zaf_pi_session=.*Max-Age=0/i.test(piLogoutWithCookie.headers["set-cookie"] ?? "")) {
+    throw new Error("Pi logout with a session cookie did not clear the local cookie");
+  }
+
   if (external) {
     const response = await request("/api/apps/check?url=https://example.com");
     if (response.status !== 200) throw new Error(`Live external health check expected 200, received ${response.status}`);
