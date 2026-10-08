@@ -56,6 +56,7 @@ export function ZafEcosystemStaking({ locale, tr }: { locale: Locale; tr: (en: s
       </div>
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
+        <div className="mb-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{tr("Coming soon target", "Yaklaşan hedef")}</div>
         <div className="text-xs font-semibold text-foreground">{tr("Live Data Boundary", "Canlı Veri Sınırı")}</div>
         <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
           {tr("Pi documents that Ecosystem Directory Staking affects an app or service's directory ranking. The current developer staking-data API is app-specific and initially whitelist-gated, so ZAF TECH does not assume it can query a complete ecosystem-wide stake feed.", "Pi belgelerine göre Ecosystem Directory Staking bir uygulama veya hizmetin dizin sıralamasını etkiler. Mevcut geliştirici staking-data API'si uygulamaya özeldir ve başlangıçta whitelist gerektirir; bu nedenle ZAF TECH tüm ekosistemi kapsayan bir stake akışını varmış gibi kabul etmez.")}
