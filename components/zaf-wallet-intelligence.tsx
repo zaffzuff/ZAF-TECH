@@ -125,7 +125,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
 
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="text-xs font-semibold text-foreground">{tr("Observed Assets", "Gözlemlenen Varlıklar")}</div>
             <p className="mt-1 text-[10px] text-muted-foreground">{tr("Public asset balances returned by the selected Pi Horizon network. Custom assets are shown with issuer information when available.", "Seçilen Pi Horizon ağının döndürdüğü herkese açık varlık bakiyeleri. Özel varlıklar mevcut olduğunda issuer bilgisiyle gösterilir.")}</p>
           </div>
@@ -202,7 +202,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{tr("Recent Transactions", "Son İşlemler")}</div><span className="text-[10px] text-muted-foreground">{data.transactions.length}</span></div>
         <div className="mt-2 grid gap-2 zaf-desktop-two-up">
-          {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? tr("Success", "Başarılı") : tx.successful === false ? tr("Failed", "Başarısız") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
+          {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? tr("Success", "Başarılı") : tx.successful === false ? tr("Failed", "Başarısız") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
           {!data.transactions.length ? <div className="text-[11px] text-muted-foreground">{tr("No Recent Transactions Returned.", "Son İşlemler Döndürülmedi.")}</div> : null}
         </div>
       </div>
