@@ -351,7 +351,7 @@ if (!observationHistoryRoute.includes("10000")) throw new Error("Historical obse
 
 
 const smokeHarness = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
-for (const token of ["fetchWithTimeout", "AbortSignal.timeout", "Smoke server did not become ready"]) {
+for (const token of ["fetchWithTimeout", "AbortSignal.timeout", "stopSmokeServer", "process.kill(-child.pid", "Smoke server did not become ready"]) {
   if (!smokeHarness.includes(token)) throw new Error("Deterministic smoke harness regression: " + token);
 }
 
