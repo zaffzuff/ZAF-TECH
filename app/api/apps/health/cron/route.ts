@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runEcosystemHealthChecks } from "@/lib/zaf/app-health-runner";
 import { cleanupZafRateLimits } from "@/lib/zaf/rate-limit";
+import { cleanupExpiredPiSessions } from "@/lib/zaf/pi/session";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +25,14 @@ export async function GET(request: Request) {
 
   const result = await runEcosystemHealthChecks();
   const rateLimitRowsRemoved = await cleanupZafRateLimits();
+  const piSessionRowsRemoved = await cleanupExpiredPiSessions();
 
   return NextResponse.json(
     {
       ok: true,
       scheduled: true,
       rateLimitRowsRemoved,
+      piSessionRowsRemoved,
       ...result,
     },
     {
