@@ -85,7 +85,7 @@ export function ZafLaunchpadObservatory({ locale, tr }: { locale: Locale; tr: (e
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="text-xs font-semibold text-foreground">{tr("Published Launch Evidence", "Yayınlanmış Launch Kanıtları")}</div>
             <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These records summarize figures and mechanics published by Pi Network. They are not reconstructed from live chain transactions.", "Bu kayıtlar Pi Network tarafından yayınlanan rakam ve mekanizmaların özetidir. Canlı zincir işlemlerinden yeniden oluşturulmamıştır.")}</p>
           </div>
@@ -96,8 +96,8 @@ export function ZafLaunchpadObservatory({ locale, tr }: { locale: Locale; tr: (e
           {launches.map(launch => (
             <article key={launch.id} className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-foreground">{launch.token}</div>
+                <div className="min-w-0">
+                  <div className="break-words text-sm font-semibold text-foreground">{launch.token}</div>
                   <div className="mt-0.5 text-[10px] text-muted-foreground">{launch.project}</div>
                 </div>
                 <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">Testnet</span>
