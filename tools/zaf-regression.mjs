@@ -110,6 +110,16 @@ for (const file of rateLimitedRoutes) {
 }
 const cronRateLimit = fs.readFileSync(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
 if (!cronRateLimit.includes("cleanupZafRateLimits")) throw new Error("Rate-limit cleanup cron regression");
+const piRuntime = fs.readFileSync(path.join(root, "lib/zaf/pi/runtime.ts"), "utf8");
+for (const token of ["PI_SDK_VERSION = \"2.0\"", "PI_SDK_SCRIPT_URL", "PI_PLATFORM_API_DEFAULT", "testnet", "mainnet", "PI_ENVIRONMENT", "PI_NETWORK", "assertPiRuntimeCompatible", "isPiProductionReady"]) {
+  if (!piRuntime.includes(token)) throw new Error("Pi runtime matrix regression: " + token);
+}
+if (!piRuntime.includes("https://api.testnet.minepi.com") || !piRuntime.includes("https://api.mainnet.minepi.com")) {
+  throw new Error("Pi runtime Horizon endpoint regression");
+}
+if (!piRuntime.includes("environment === \"sandbox\" ? network === \"testnet\" : network === \"mainnet\"")) {
+  throw new Error("Pi runtime compatibility guard regression");
+}
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
