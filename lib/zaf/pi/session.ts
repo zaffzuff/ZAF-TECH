@@ -6,6 +6,7 @@ import type { PiVerifiedUser } from "@/lib/zaf/pi/auth";
 
 export const PI_SESSION_COOKIE = "zaf_pi_session";
 export const PI_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const MAX_SESSION_COOKIE_LENGTH = 128;
 
 export type PiSessionUser = {
   uid: string;
@@ -33,7 +34,12 @@ function readSessionToken(request: Request) {
     .map(part => part.trim())
     .find(part => part.startsWith(prefix))
     ?.slice(prefix.length);
-  return value ? decodeURIComponent(value) : null;
+  if (!value || value.length > MAX_SESSION_COOKIE_LENGTH) return null;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
 }
 
 export async function createPiSession(user: PiVerifiedUser): Promise<{ token: string; expiresAt: string }> {
