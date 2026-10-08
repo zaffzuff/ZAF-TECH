@@ -1,5 +1,5 @@
-import postgres from "postgres";
 import { calculateAppHealthScore } from "@/lib/zaf/app-health-score";
+import { ensureZafSchema, getZafDb, isZafDatabaseConfigured } from "@/lib/zaf/db";
 
 export type AppCheckRecord = {
   appName: string;
@@ -14,58 +14,20 @@ export type AppCheckRecord = {
   error: string | null;
 };
 
-let sqlClient: ReturnType<typeof postgres> | null = null;
-let appChecksSchemaReady = false;
-
-function getClient() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) return null;
-  if (!sqlClient) {
-    sqlClient = postgres(connectionString, {
-      max: 2,
-      prepare: false,
-    });
-  }
-  return sqlClient;
-}
 
 export function isHistoryStorageConfigured() {
-  return Boolean(process.env.DATABASE_URL);
+  return isZafDatabaseConfigured();
 }
 
 export async function ensureAppChecksTable() {
-  if (appChecksSchemaReady) return true;
-  const sql = getClient();
-  if (!sql) return false;
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS zaf_app_checks (
-      id BIGSERIAL PRIMARY KEY,
-      app_name TEXT NOT NULL,
-      url TEXT NOT NULL,
-      status INTEGER,
-      ok BOOLEAN NOT NULL,
-      reachable BOOLEAN NOT NULL,
-      response_time_ms INTEGER NOT NULL,
-      https BOOLEAN NOT NULL,
-      redirect BOOLEAN NOT NULL,
-      checked_at TIMESTAMPTZ NOT NULL,
-      error TEXT
-    )
-  `;
-  await sql`
-    CREATE INDEX IF NOT EXISTS zaf_app_checks_url_checked_at_idx
-    ON zaf_app_checks (url, checked_at DESC)
-  `;
-  appChecksSchemaReady = true;
-  return true;
+  return ensureZafSchema();
 }
 
 export async function saveAppChecks(records: AppCheckRecord[]) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql || records.length === 0) return false;
+  if (!(await ensureZafSchema())) return false;
 
-  await ensureAppChecksTable();
 
   await sql.begin(async (tx) => {
     for (const record of records) {
@@ -84,10 +46,10 @@ export async function saveAppChecks(records: AppCheckRecord[]) {
 }
 
 export async function getLatestAppChecks(limit = 20) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return null;
+  if (!(await ensureZafSchema())) return null;
 
-  await ensureAppChecksTable();
 
   return sql`
     SELECT DISTINCT ON (url)
@@ -108,10 +70,10 @@ export async function getLatestAppChecks(limit = 20) {
 }
 
 export async function getAppCheckHistory(url: string, limit = 50) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return null;
+  if (!(await ensureZafSchema())) return null;
 
-  await ensureAppChecksTable();
 
   return sql`
     SELECT

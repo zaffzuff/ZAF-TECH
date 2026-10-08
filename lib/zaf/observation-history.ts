@@ -1,6 +1,5 @@
 import type { ZafNetworkScope } from "@/lib/zaf/network-scope";
-
-import postgres from "postgres";
+import { ensureZafSchema, getZafDb, isZafDatabaseConfigured } from "@/lib/zaf/db";
 
 export type ObservationHistoryRecord = {
   generatedAt: string;
@@ -28,52 +27,8 @@ export type RollingObservationBaseline = {
   windowMinutes: number;
 };
 
-let observationSchemaReady = false;
-
-function getClient() {
-  const url = process.env.DATABASE_URL;
-  return url ? postgres(url, { max: 2, prepare: false }) : null;
-}
-
 export function isObservationHistoryConfigured() {
-  return Boolean(process.env.DATABASE_URL);
-}
-
-async function ensureTable(sql: ReturnType<typeof postgres>) {
-  if (observationSchemaReady) return true;
-  await sql`
-    CREATE TABLE IF NOT EXISTS zaf_observation_snapshots (
-      id BIGSERIAL PRIMARY KEY,
-      bucket_start TIMESTAMPTZ NOT NULL UNIQUE,
-      generated_at TIMESTAMPTZ NOT NULL,
-      network_scope TEXT NOT NULL DEFAULT 'mainnet' CHECK (network_scope IN ('mainnet', 'testnet', 'unknown')),
-      freshness_state TEXT NOT NULL,
-      confidence_score NUMERIC NULL,
-      network_ledger TEXT NULL,
-      protocol_version INTEGER NULL,
-      observed_transactions INTEGER NULL,
-      observed_operations INTEGER NULL,
-      daily_transactions INTEGER NULL,
-      daily_operations INTEGER NULL,
-      observed_apps INTEGER NULL,
-      available_sources INTEGER NOT NULL,
-      total_sources INTEGER NOT NULL
-    )
-  `;
-  await sql`
-    ALTER TABLE zaf_observation_snapshots
-    ADD COLUMN IF NOT EXISTS network_scope TEXT NOT NULL DEFAULT 'mainnet'
-  `;
-  await sql`
-    CREATE INDEX IF NOT EXISTS zaf_observation_snapshots_generated_at_idx
-    ON zaf_observation_snapshots (generated_at DESC)
-  `;
-  await sql.unsafe(
-    "ALTER TABLE zaf_observation_snapshots " +
-    "ALTER COLUMN daily_transactions TYPE DOUBLE PRECISION USING daily_transactions::double precision, " +
-    "ALTER COLUMN daily_operations TYPE DOUBLE PRECISION USING daily_operations::double precision"
-  );
-  observationSchemaReady = true;
+  return isZafDatabaseConfigured();
 }
 
 function bucketStart(value: string) {
@@ -91,10 +46,10 @@ function median(values: number[]) {
 }
 
 export async function saveObservationSnapshot(record: ObservationHistoryRecord) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return false;
   try {
-    await ensureTable(sql);
+    if (!(await ensureZafSchema())) return false;
     await sql`
       INSERT INTO zaf_observation_snapshots
         (bucket_start, generated_at, network_scope, freshness_state, confidence_score, network_ledger, protocol_version, observed_transactions, observed_operations, daily_transactions, daily_operations, observed_apps, available_sources, total_sources)
@@ -118,16 +73,14 @@ export async function saveObservationSnapshot(record: ObservationHistoryRecord) 
   } catch (error) {
     console.error("[ZAF-TECH] Observation history write failed", error);
     return false;
-  } finally {
-    await sql.end();
   }
 }
 
 export async function getObservationHistory(limit = 336) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return [];
   try {
-    await ensureTable(sql);
+    if (!(await ensureZafSchema())) return [];
     const safeLimit = Math.min(Math.max(limit, 1), 1000);
     return await sql`
       SELECT
@@ -152,16 +105,14 @@ export async function getObservationHistory(limit = 336) {
   } catch (error) {
     console.error("[ZAF-TECH] Observation history read failed", error);
     return [];
-  } finally {
-    await sql.end();
   }
 }
 
 export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSeconds = 300) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return null;
   try {
-    await ensureTable(sql);
+    if (!(await ensureZafSchema())) return null;
     const cutoffMs = Date.parse(beforeGeneratedAt) - (minAgeSeconds * 1000);
     if (!Number.isFinite(cutoffMs)) return null;
     const cutoff = new Date(cutoffMs).toISOString();
@@ -190,16 +141,14 @@ export async function getPreviousObservation(beforeGeneratedAt: string, minAgeSe
   } catch (error) {
     console.error("[ZAF-TECH] Observation baseline read failed", error);
     return null;
-  } finally {
-    await sql.end();
   }
 }
 
 export async function getRollingObservationBaseline(beforeGeneratedAt: string, windowMinutes = 30, minAgeSeconds = 300, minPoints = 3) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return null;
   try {
-    await ensureTable(sql);
+    if (!(await ensureZafSchema())) return null;
     const generatedAtMs = Date.parse(beforeGeneratedAt);
     if (!Number.isFinite(generatedAtMs)) return null;
 
@@ -240,7 +189,5 @@ export async function getRollingObservationBaseline(beforeGeneratedAt: string, w
   } catch (error) {
     console.error("[ZAF-TECH] Rolling observation baseline read failed", error);
     return null;
-  } finally {
-    await sql.end();
   }
 }

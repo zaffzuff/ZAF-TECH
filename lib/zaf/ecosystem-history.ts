@@ -1,4 +1,5 @@
-import postgres from "postgres";
+
+import { ensureZafSchema, getZafDb, isZafDatabaseConfigured } from "@/lib/zaf/db";
 
 export type EcosystemSnapshotRecord = {
   generatedAt: string;
@@ -7,38 +8,16 @@ export type EcosystemSnapshotRecord = {
   payload: Record<string, unknown>;
 };
 
-function getClient() {
-  const url = process.env.DATABASE_URL;
-  if (!url) return null;
-  return postgres(url, { max: 2, prepare: false });
-}
-
 export function isEcosystemHistoryConfigured() {
-  return Boolean(process.env.DATABASE_URL);
-}
-
-async function ensureTable(sql: ReturnType<typeof postgres>) {
-  await sql`
-    CREATE TABLE IF NOT EXISTS zaf_ecosystem_snapshots (
-      id BIGSERIAL PRIMARY KEY,
-      generated_at TIMESTAMPTZ NOT NULL,
-      source_available BOOLEAN NOT NULL,
-      observed_app_count INTEGER NULL,
-      payload JSONB NOT NULL
-    )
-  `;
-  await sql`
-    CREATE INDEX IF NOT EXISTS zaf_ecosystem_snapshots_generated_at_idx
-    ON zaf_ecosystem_snapshots (generated_at DESC)
-  `;
+  return isZafDatabaseConfigured();
 }
 
 export async function saveEcosystemSnapshot(record: EcosystemSnapshotRecord) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return false;
 
   try {
-    await ensureTable(sql);
+    if (!(await ensureZafSchema())) return false;
 
     const latest = await sql`
       SELECT generated_at AS "generatedAt"
@@ -63,17 +42,15 @@ export async function saveEcosystemSnapshot(record: EcosystemSnapshotRecord) {
     return true;
   } catch {
     return false;
-  } finally {
-    await sql.end();
   }
 }
 
 export async function getEcosystemSnapshotHistory(limit = 50) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return [];
 
   try {
-    await ensureTable(sql);
+    if (!(await ensureZafSchema())) return [];
     const safeLimit = Math.min(Math.max(limit, 1), 200);
     return await sql`
       SELECT id, generated_at AS "generatedAt",
@@ -84,7 +61,5 @@ export async function getEcosystemSnapshotHistory(limit = 50) {
       ORDER BY generated_at DESC
       LIMIT ${safeLimit}
     `;
-  } finally {
-    await sql.end();
   }
 }

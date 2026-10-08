@@ -62,6 +62,25 @@ for (const file of removedStandalonePages) {
   if (fs.existsSync(path.join(root, file))) throw new Error("Redundant standalone page returned: " + file);
 }
 
+const db = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+for (const token of ["getZafDb", "ensureZafSchema", "zaf_schema_migrations", "pg_advisory_xact_lock", "0001_core_history", "zaf_app_checks", "zaf_defi_snapshots", "zaf_ecosystem_snapshots", "zaf_observation_snapshots"]) {
+  if (!db.includes(token)) throw new Error("Central DB/migration regression: " + token);
+}
+for (const file of [
+  "lib/zaf/app-check-history.ts",
+  "lib/zaf/observation-history.ts",
+  "lib/zaf/defi-history.ts",
+  "lib/zaf/ecosystem-history.ts",
+]) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  if (source.includes('from "postgres"') || source.includes("postgres(")) {
+    throw new Error("Direct Postgres client bypass remains in " + file);
+  }
+  if (!source.includes("ensureZafSchema")) {
+    throw new Error("Central schema gate is missing in " + file);
+  }
+}
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
