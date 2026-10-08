@@ -138,9 +138,9 @@ for (const token of ["PI_SESSION_COOKIE", "randomBytes", "hashSessionToken", "cr
 }
 
 for (const token of ["0003_pi_auth_sessions", "CREATE TABLE IF NOT EXISTS zaf_pi_sessions", "session_hash TEXT PRIMARY KEY", "zaf_pi_sessions_pi_uid_idx", "zaf_pi_sessions_expires_at_idx"]) {
-  if (!dbSchema.includes(token)) throw new Error("Pi session migration regression: " + token);
+  if (!dbRateLimit.includes(token)) throw new Error("Pi session migration regression: " + token);
 }
-const piSessionMigration = dbSchema.slice(dbSchema.indexOf("id: \"0003_pi_auth_sessions\""));
+const piSessionMigration = dbRateLimit.slice(dbRateLimit.indexOf("id: \"0003_pi_auth_sessions\""));
 if (piSessionMigration.includes("access_token TEXT")) throw new Error("Pi access token must never be persisted in session schema");
 
 for (const file of [
