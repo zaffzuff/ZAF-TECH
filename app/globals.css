@@ -522,3 +522,41 @@
     height: 20px;
   }
 }
+
+/* Desktop brand lockup: the wordmark aligns with the right edge of the identity badges, while the enlarged logo occupies the left visual weight. */
+@media (min-width: 1024px) {
+  .zaf-desktop-header {
+    align-items: flex-start;
+  }
+
+  .zaf-desktop-header > div:first-child {
+    flex: 0 0 380px;
+    width: 380px;
+    min-width: 380px;
+    gap: 18px;
+    align-items: center;
+  }
+
+  .zaf-desktop-header > div:first-child > img {
+    width: 88px;
+    height: 88px;
+  }
+
+  .zaf-desktop-header > div:first-child > .min-w-0 {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .zaf-desktop-header > div:first-child > .min-w-0 > .ty-brand-text {
+    font-size: 2.1rem;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .zaf-desktop-header > div:first-child > .min-w-0 > p {
+    margin-top: .55rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
