@@ -118,10 +118,12 @@ export async function deletePiSession(request: Request) {
   const token = readSessionToken(request);
   if (!token) return false;
 
-  const sql = getZafDb();
-  if (!sql || !(await ensureZafSchema())) return false;
-
   try {
+    const sql = getZafDb();
+    if (!sql || !(await ensureZafSchema())) {
+      throw new PiSessionStorageError();
+    }
+
     const rows = await sql`
       DELETE FROM zaf_pi_sessions
       WHERE session_hash = ${hashSessionToken(token)}
@@ -129,8 +131,9 @@ export async function deletePiSession(request: Request) {
     `;
     return rows.length > 0;
   } catch (error) {
+    if (error instanceof PiSessionStorageError) throw error;
     console.error("[ZAF-TECH] Pi session deletion failed", error);
-    return false;
+    throw new PiSessionStorageError();
   }
 }
 
