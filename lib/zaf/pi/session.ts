@@ -20,6 +20,13 @@ export type PiSession = {
   expiresAt: string;
 };
 
+export class PiSessionStorageError extends Error {
+  constructor(message = "Pi session storage is unavailable.") {
+    super(message);
+    this.name = "PiSessionStorageError";
+  }
+}
+
 function hashSessionToken(token: string) {
   return createHash("sha256")
     .update("zaf-pi-session:v1|" + token)
@@ -45,19 +52,24 @@ function readSessionToken(request: Request) {
 export async function createPiSession(user: PiVerifiedUser): Promise<{ token: string; expiresAt: string }> {
   const sql = getZafDb();
   if (!sql || !(await ensureZafSchema())) {
-    throw new Error("Pi session storage is unavailable.");
+    throw new PiSessionStorageError();
   }
 
   const config = getPiRuntimeConfig();
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + PI_SESSION_MAX_AGE_SECONDS * 1000).toISOString();
 
-  await sql`
-    INSERT INTO zaf_pi_sessions
-      (session_hash, pi_uid, username, environment, network, created_at, expires_at, last_seen_at)
-    VALUES
-      (${hashSessionToken(token)}, ${user.uid}, ${user.username}, ${config.environment}, ${config.network}, NOW(), ${expiresAt}, NOW())
-  `;
+  try {
+    await sql`
+      INSERT INTO zaf_pi_sessions
+        (session_hash, pi_uid, username, environment, network, created_at, expires_at, last_seen_at)
+      VALUES
+        (${hashSessionToken(token)}, ${user.uid}, ${user.username}, ${config.environment}, ${config.network}, NOW(), ${expiresAt}, NOW())
+    `;
+  } catch (error) {
+    console.error("[ZAF-TECH] Pi session creation storage failed", error);
+    throw new PiSessionStorageError();
+  }
 
   return { token, expiresAt };
 }
@@ -67,9 +79,11 @@ export async function getPiSession(request: Request): Promise<PiSession | null> 
   if (!token) return null;
 
   const sql = getZafDb();
-  if (!sql || !(await ensureZafSchema())) return null;
+  if (!sql || !(await ensureZafSchema())) throw new PiSessionStorageError();
 
-  const rows = await sql`
+  let rows;
+  try {
+    rows = await sql`
     SELECT
       pi_uid AS "piUid",
       username,
@@ -80,7 +94,11 @@ export async function getPiSession(request: Request): Promise<PiSession | null> 
     WHERE session_hash = ${hashSessionToken(token)}
       AND expires_at > NOW()
     LIMIT 1
-  `;
+    `;
+  } catch (error) {
+    console.error("[ZAF-TECH] Pi session lookup failed", error);
+    throw new PiSessionStorageError();
+  }
 
   const row = rows[0] as Record<string, unknown> | undefined;
   if (!row || typeof row.piUid !== "string") return null;
@@ -103,26 +121,34 @@ export async function deletePiSession(request: Request) {
   const sql = getZafDb();
   if (!sql || !(await ensureZafSchema())) return false;
 
-  const rows = await sql`
-    DELETE FROM zaf_pi_sessions
-    WHERE session_hash = ${hashSessionToken(token)}
-    RETURNING session_hash
-  `;
-
-  return rows.length > 0;
+  try {
+    const rows = await sql`
+      DELETE FROM zaf_pi_sessions
+      WHERE session_hash = ${hashSessionToken(token)}
+      RETURNING session_hash
+    `;
+    return rows.length > 0;
+  } catch (error) {
+    console.error("[ZAF-TECH] Pi session deletion failed", error);
+    return false;
+  }
 }
 
 export async function cleanupExpiredPiSessions() {
   const sql = getZafDb();
   if (!sql || !(await ensureZafSchema())) return 0;
 
-  const rows = await sql`
-    DELETE FROM zaf_pi_sessions
-    WHERE expires_at <= NOW()
-    RETURNING session_hash
-  `;
-
-  return rows.length;
+  try {
+    const rows = await sql`
+      DELETE FROM zaf_pi_sessions
+      WHERE expires_at <= NOW()
+      RETURNING session_hash
+    `;
+    return rows.length;
+  } catch (error) {
+    console.error("[ZAF-TECH] Expired Pi session cleanup failed", error);
+    return 0;
+  }
 }
 
 export function setPiSessionCookie(response: NextResponse, token: string) {
