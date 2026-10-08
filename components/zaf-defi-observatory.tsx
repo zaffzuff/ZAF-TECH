@@ -133,7 +133,7 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
 
     <div className="mt-3 rounded-xl border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="text-xs font-semibold text-foreground">{tr("Historical Tracking & Change Alerts","Tarihsel Takip ve Değişim Uyarıları")}</div>
           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Stored DeFi snapshots are compared only when historical storage is configured. Alerts are change candidates from observed data, not predictions.","Tarihsel depolama yapılandırıldığında kayıtlı DeFi snapshot'ları karşılaştırılır. Uyarılar gözlemlenen veriden üretilen değişim adaylarıdır; tahmin değildir.")}</p>
         </div>
@@ -147,7 +147,7 @@ export function ZafDefiObservatory({locale,tr,view}:{locale:Locale;tr:(en:string
       </div>
       {data?.history?.alerts.length ? <div className="mt-3 space-y-2">
         {data.history.alerts.slice(0,6).map(alert=><div key={alert.id} className="rounded-lg border border-border p-3">
-          <div className="flex items-start justify-between gap-2"><div className="text-[10px] font-semibold text-foreground">{locale==="tr"?alert.detailTr:alert.title}</div><span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{alert.severity}</span></div>
+          <div className="flex items-start justify-between gap-2"><div className="min-w-0 break-words text-[10px] font-semibold text-foreground">{locale==="tr"?alert.detailTr:alert.title}</div><span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{alert.severity}</span></div>
           <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{locale==="tr"?alert.detailTr:alert.detail}</p>
           {(alert.previous!=null||alert.current!=null)?<div className="mt-1 text-[9px] text-muted-foreground">{String(alert.previous??"—")} → {String(alert.current??"—")}</div>:null}
         </div>)}
