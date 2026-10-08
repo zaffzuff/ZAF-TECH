@@ -81,7 +81,16 @@ function absoluteUrl(value: string) {
 }
 
 function stripHtml(value: string) {
-  return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&(?:amp|#38|#038|#x26);/gi, "&")
+    .replace(/&(?:quot|#34|#x22);/gi, '"')
+    .replace(/&(?:apos|#39|#x27);/gi, "'")
+    .replace(/&(?:lt|#60|#x3c);/gi, "<")
+    .replace(/&(?:gt|#62|#x3e);/gi, ">")
+    .replace(/&(?:nbsp|#160|#xa0);/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function fetchText(url: string, timeoutMs = 8_000) {
