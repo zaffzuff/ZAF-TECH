@@ -25,3 +25,5 @@ jobs:
         run: npm run regression
       - name: Build
         run: npm run build
+      - name: Smoke checks
+        run: npm run smoke
