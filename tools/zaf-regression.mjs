@@ -129,6 +129,18 @@ for (const token of ["SearchPanel", "/api/zaf/search", "Global Search", "deepLin
   if (!app.includes(token)) throw new Error("Search/deep-link regression: " + token);
 }
 
+const nextConfig = fs.readFileSync(path.join(root, "next.config.mjs"), "utf8");
+for (const token of [
+  "poweredByHeader: false",
+  "X-Content-Type-Options",
+  "Referrer-Policy",
+  "X-Frame-Options",
+  "Permissions-Policy",
+  "Strict-Transport-Security",
+]) {
+  if (!nextConfig.includes(token)) throw new Error("Production security header regression: " + token);
+}
+
 const styles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
 for (const token of [
   "Desktop brand lockup",
