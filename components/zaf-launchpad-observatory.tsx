@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale } from "@/lib/zaf/i18n";
+import { ZafComingSoon } from "@/components/zaf-coming-soon";
 
 type LaunchpadEvidence = {
   id: string;
@@ -127,11 +128,7 @@ export function ZafLaunchpadObservatory({ locale, tr }: { locale: Locale; tr: (e
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="text-xs font-semibold text-foreground">{tr("Mainnet Readiness", "Mainnet Hazırlığı")}</div>
-          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("The current official source describes Launchpad as being iterated on Testnet. ZAF TECH does not infer Mainnet activation from Testnet launches.", "Mevcut resmi kaynak Launchpad'in Testnet'te iterasyon aşamasında olduğunu belirtiyor. ZAF TECH Testnet launch'larından Mainnet aktivasyonu çıkarmaz.")}</p>
-          {data?.currentOfficialStatus ? <a href={data.currentOfficialStatus.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-block text-[9px] text-foreground underline underline-offset-2">{tr("Current Official Status Source", "Güncel Resmi Durum Kaynağı")}</a> : null}
-        </div>
+        <div className="space-y-2"><ZafComingSoon locale={locale} title={tr("Mainnet Launchpad Observation", "Mainnet Launchpad Gözlemi")} detail={tr("Mainnet launchpad activity will remain disabled until a reliable public source can be observed.", "Mainnet Launchpad aktivitesi güvenilir bir herkese açık kaynak gözlemlenebilir hale gelene kadar pasif kalacaktır.")} />{data?.currentOfficialStatus ? <a href={data.currentOfficialStatus.sourceUrl} target="_blank" rel="noreferrer" className="text-[9px] text-foreground underline underline-offset-2">{tr("Current Official Status Source", "Güncel Resmi Durum Kaynağı")}</a> : null}</div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs font-semibold text-foreground">{tr("Live Data Boundary", "Canlı Veri Sınırı")}</div>
           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("ZAF TECH currently reports published evidence only. A missing live Launchpad feed is not treated as proof that Launchpad is inactive or unavailable on the network.", "ZAF TECH şu anda yalnızca yayınlanmış kanıtları raporlar. Canlı Launchpad akışının bulunmaması, Launchpad'in ağ üzerinde pasif veya kullanılamaz olduğunun kanıtı olarak kabul edilmez.")}</p>
