@@ -15,7 +15,13 @@ export async function POST(request: Request) {
   try {
     await deletePiSession(request);
   } catch (error) {
-    console.error("[ZAF-TECH] Pi session deletion failed", error);
+    console.error("[ZAF-TECH] Pi session revocation failed", error);
+    const response = NextResponse.json(
+      { error: "Pi session could not be revoked. Please retry.", code: "SESSION_UNAVAILABLE" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+    clearPiSessionCookie(response);
+    return response;
   }
 
   const response = NextResponse.json(
