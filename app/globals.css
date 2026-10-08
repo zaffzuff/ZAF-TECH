@@ -1324,3 +1324,58 @@
     font-size: .98rem;
   }
 }
+
+
+/* Mobile header hardening: keep the wordmark on one line and reserve a stable
+   touch target for search, language, theme, and refresh actions. */
+@media (max-width: 1023px) {
+  .zaf-mobile-header {
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .zaf-mobile-header > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .zaf-mobile-header > :last-child {
+    flex: 0 0 auto;
+    gap: 0.25rem;
+  }
+  .zaf-mobile-header-icon {
+    flex: 0 0 32px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    line-height: 1;
+    touch-action: manipulation;
+  }
+  .zaf-mobile-header .ty-brand-text {
+    display: block;
+    white-space: nowrap;
+    overflow: visible;
+    letter-spacing: 0.015em;
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 380px) {
+  .zaf-mobile-header {
+    gap: 0.35rem;
+  }
+  .zaf-mobile-header > :first-child {
+    gap: 0.35rem;
+  }
+  .zaf-mobile-header > :first-child > img {
+    width: 40px;
+    height: 40px;
+  }
+  .zaf-mobile-header-icon,
+  .zaf-mobile-language > button {
+    flex-basis: 30px;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+  }
+}
