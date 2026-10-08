@@ -62,6 +62,25 @@ for (const file of removedStandalonePages) {
   if (fs.existsSync(path.join(root, file))) throw new Error("Redundant standalone page returned: " + file);
 }
 
+const db = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+for (const token of ["getZafDb", "ensureZafSchema", "zaf_schema_migrations", "pg_advisory_xact_lock", "0001_core_history", "zaf_app_checks", "zaf_defi_snapshots", "zaf_ecosystem_snapshots", "zaf_observation_snapshots"]) {
+  if (!db.includes(token)) throw new Error("Central DB/migration regression: " + token);
+}
+for (const file of [
+  "lib/zaf/app-check-history.ts",
+  "lib/zaf/observation-history.ts",
+  "lib/zaf/defi-history.ts",
+  "lib/zaf/ecosystem-history.ts",
+]) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  if (source.includes('from "postgres"') || source.includes("postgres(")) {
+    throw new Error("Direct Postgres client bypass remains in " + file);
+  }
+  if (!source.includes("ensureZafSchema")) {
+    throw new Error("Central schema gate is missing in " + file);
+  }
+}
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
@@ -174,9 +193,11 @@ for (const token of ["getRadarObservation", "getRollingObservationBaseline", "sa
 }
 
 const observationHistory = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
-for (const token of ["function median", "getRollingObservationBaseline", "DOUBLE PRECISION", "daily_transactions"]) {
+const dbSchema = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+for (const token of ["function median", "getRollingObservationBaseline", "daily_transactions"]) {
   if (!observationHistory.includes(token)) throw new Error("Observation history regression: " + token);
 }
+if (!dbSchema.includes("DOUBLE PRECISION")) throw new Error("Central DB schema regression: DOUBLE PRECISION");
 
 for (const token of ["30-minute rolling median", "Rolling baseline", "30 dakikalık hareketli medyana göre"]) {
   if (!app.includes(token)) throw new Error("Radar UI interpretation regression: " + token);
@@ -260,8 +281,7 @@ for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", 
   if (!app.includes(token)) throw new Error("Historical observatory UI regression: " + token);
 }
 
-const appHealthHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/app-check-history.ts"), "utf8");
-if (!appHealthHistorySchema.includes("appChecksSchemaReady")) throw new Error("App Health schema initialization regression");
+if (!dbSchema.includes("zaf_app_checks")) throw new Error("App Health schema initialization regression");
 
 const networkScope = fs.readFileSync(path.join(root, "lib/zaf/network-scope.ts"), "utf8");
 for (const token of ["ZAF_NETWORK_SCOPES", "ZafNetworkScope", "mainnet", "testnet", "unknown"]) {
@@ -322,14 +342,18 @@ for (const token of ["Observed Assets", "asset.assetIssuer", "Public asset balan
   if (!walletUI.includes(token)) throw new Error("Wallet asset UI regression: " + token);
 }
 
-const observationHistorySchema = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
-if (!observationHistorySchema.includes("observationSchemaReady")) throw new Error("Observation schema initialization regression");
+if (!dbSchema.includes("zaf_observation_snapshots")) throw new Error("Observation schema initialization regression");
 
 const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
 if (!observationHistoryRoute.includes("10000")) throw new Error("Historical observation route limit regression");
 
 
 
+
+const smokeHarness = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
+for (const token of ["fetchWithTimeout", "AbortSignal.timeout", "stopSmokeServer", "process.kill(-child.pid", "Smoke server did not become ready"]) {
+  if (!smokeHarness.includes(token)) throw new Error("Deterministic smoke harness regression: " + token);
+}
 
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");

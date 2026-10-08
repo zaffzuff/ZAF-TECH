@@ -1,5 +1,5 @@
-import postgres from "postgres";
 import type { DefiObservation } from "@/lib/zaf/defi-observation";
+import { ensureZafSchema, getZafDb, isZafDatabaseConfigured } from "@/lib/zaf/db";
 
 export type DefiHistorySnapshot = {
   generatedAt: string;
@@ -22,19 +22,8 @@ export type DefiChangeAlert = {
   previous: number | string | null;
 };
 
-function getClient() {
-  const url = process.env.DATABASE_URL;
-  if (!url) return null;
-  return postgres(url, { max: 2, prepare: false });
-}
-
 export function isDefiHistoryConfigured() {
-  return Boolean(process.env.DATABASE_URL);
-}
-
-async function ensureTable(sql: ReturnType<typeof postgres>) {
-  await sql.unsafe("CREATE TABLE IF NOT EXISTS zaf_defi_snapshots (id BIGSERIAL PRIMARY KEY, generated_at TIMESTAMPTZ NOT NULL, pools INTEGER NOT NULL, trades INTEGER NOT NULL, pairs INTEGER NOT NULL, distinct_assets INTEGER NOT NULL, pool_ids JSONB NOT NULL, pair_keys JSONB NOT NULL)");
-  await sql.unsafe("CREATE INDEX IF NOT EXISTS zaf_defi_snapshots_generated_at_idx ON zaf_defi_snapshots (generated_at DESC)");
+  return isZafDatabaseConfigured();
 }
 
 export function toDefiHistorySnapshot(observation: DefiObservation): DefiHistorySnapshot {
@@ -50,10 +39,9 @@ export function toDefiHistorySnapshot(observation: DefiObservation): DefiHistory
 }
 
 export async function getLatestDefiSnapshot(): Promise<DefiHistorySnapshot | null> {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return null;
-  try {
-    await ensureTable(sql);
+  if (!(await ensureZafSchema())) return null;
     const rows = await sql.unsafe('SELECT generated_at AS "generatedAt", pools, trades, pairs, distinct_assets AS "distinctAssets", pool_ids AS "poolIds", pair_keys AS "pairKeys" FROM zaf_defi_snapshots ORDER BY generated_at DESC LIMIT 1');
     const row = rows[0] as Record<string, unknown> | undefined;
     if (!row) return null;
@@ -66,32 +54,24 @@ export async function getLatestDefiSnapshot(): Promise<DefiHistorySnapshot | nul
       poolIds: Array.isArray(row.poolIds) ? row.poolIds.map(String) : [],
       pairKeys: Array.isArray(row.pairKeys) ? row.pairKeys.map(String) : [],
     };
-  } finally {
-    await sql.end();
-  }
 }
 
 export async function saveDefiSnapshot(snapshot: DefiHistorySnapshot) {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return false;
-  try {
-    await ensureTable(sql);
+  if (!(await ensureZafSchema())) return false;
     const latest = await sql.unsafe('SELECT generated_at AS "generatedAt" FROM zaf_defi_snapshots ORDER BY generated_at DESC LIMIT 1');
     const latestAt = latest[0]?.generatedAt ? new Date(String(latest[0].generatedAt)).getTime() : null;
     const currentAt = new Date(snapshot.generatedAt).getTime();
     if (latestAt != null && Number.isFinite(currentAt) && currentAt - latestAt < 300000) return false;
     await sql.unsafe('INSERT INTO zaf_defi_snapshots (generated_at, pools, trades, pairs, distinct_assets, pool_ids, pair_keys) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb)', [snapshot.generatedAt, snapshot.pools, snapshot.trades, snapshot.pairs, snapshot.distinctAssets, JSON.stringify(snapshot.poolIds), JSON.stringify(snapshot.pairKeys)]);
     return true;
-  } finally {
-    await sql.end();
-  }
 }
 
 export async function getDefiSnapshotHistory(limit = 50): Promise<DefiHistorySnapshot[]> {
-  const sql = getClient();
+  const sql = getZafDb();
   if (!sql) return [];
-  try {
-    await ensureTable(sql);
+  if (!(await ensureZafSchema())) return [];
     const safeLimit = Math.min(Math.max(Math.floor(limit), 1), 200);
     const rows = await sql.unsafe('SELECT generated_at AS "generatedAt", pools, trades, pairs, distinct_assets AS "distinctAssets", pool_ids AS "poolIds", pair_keys AS "pairKeys" FROM zaf_defi_snapshots ORDER BY generated_at DESC LIMIT $1', [safeLimit]);
     return rows.map(row => ({
@@ -103,9 +83,6 @@ export async function getDefiSnapshotHistory(limit = 50): Promise<DefiHistorySna
       poolIds: Array.isArray(row.poolIds) ? row.poolIds.map(String) : [],
       pairKeys: Array.isArray(row.pairKeys) ? row.pairKeys.map(String) : [],
     }));
-  } finally {
-    await sql.end();
-  }
 }
 
 export function compareDefiSnapshots(current: DefiHistorySnapshot, previous: DefiHistorySnapshot | null): DefiChangeAlert[] {
@@ -120,3 +97,4 @@ export function compareDefiSnapshots(current: DefiHistorySnapshot, previous: Def
   if (current.distinctAssets !== previous.distinctAssets) alerts.push({ id: "asset-count", severity: "info", type: "asset-count-change", title: "Observed DeFi asset count changed", detail: "Observed DeFi-linked assets changed from " + previous.distinctAssets + " to " + current.distinctAssets + ".", detailTr: "Gözlemlenen DeFi bağlantılı varlık sayısı " + previous.distinctAssets + " değerinden " + current.distinctAssets + " değerine değişti.", current: current.distinctAssets, previous: previous.distinctAssets });
   return alerts;
 }
+
