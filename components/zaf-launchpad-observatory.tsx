@@ -128,6 +128,7 @@ export function ZafLaunchpadObservatory({ locale, tr }: { locale: Locale; tr: (e
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="sr-only">{tr("Mainnet Readiness", "Mainnet Hazırlığı")}</div>
         <div className="space-y-2"><ZafComingSoon locale={locale} title={tr("Mainnet Launchpad Observation", "Mainnet Launchpad Gözlemi")} detail={tr("Mainnet launchpad activity will remain disabled until a reliable public source can be observed.", "Mainnet Launchpad aktivitesi güvenilir bir herkese açık kaynak gözlemlenebilir hale gelene kadar pasif kalacaktır.")} />{data?.currentOfficialStatus ? <a href={data.currentOfficialStatus.sourceUrl} target="_blank" rel="noreferrer" className="text-[9px] text-foreground underline underline-offset-2">{tr("Current Official Status Source", "Güncel Resmi Durum Kaynağı")}</a> : null}</div>
         <div className="rounded-xl border border-border bg-card p-4">
           <div className="text-xs font-semibold text-foreground">{tr("Live Data Boundary", "Canlı Veri Sınırı")}</div>
