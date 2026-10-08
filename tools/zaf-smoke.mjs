@@ -28,6 +28,13 @@ const requiredHeaders = [
 let server = null;
 let serverError = null;
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
+  return fetch(url, {
+    ...options,
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+}
+
 async function waitForServer() {
   const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {
@@ -36,7 +43,7 @@ async function waitForServer() {
       throw new Error(`Smoke server exited before becoming ready (code ${server.exitCode}).`);
     }
     try {
-      const response = await fetch(baseUrl, { redirect: "manual" });
+      const response = await fetchWithTimeout(baseUrl, { redirect: "manual" }, 5000);
       if (response.status === 200) return;
     } catch {}
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -45,7 +52,7 @@ async function waitForServer() {
 }
 
 async function request(path) {
-  const response = await fetch(baseUrl + path, { redirect: "manual" });
+  const response = await fetchWithTimeout(baseUrl + path, { redirect: "manual" });
   return {
     status: response.status,
     headers: Object.fromEntries(response.headers.entries()),
