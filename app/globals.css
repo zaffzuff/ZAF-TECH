@@ -32,6 +32,8 @@
   --ty-gold-soft: oklch(0.28 0.05 86);
   --ty-silver: oklch(0.84 0.008 265);
   --ty-silver-soft: oklch(0.3 0.006 265);
+  --ty-bronze: oklch(0.81 0.095 67);
+  --ty-bronze-soft: oklch(0.3 0.045 67);
 
   /* Functional status — solid muted pills, one color family per meaning */
   --ty-active: oklch(0.75 0.1 158);
@@ -101,6 +103,8 @@
   --ty-gold-soft: oklch(0.94 0.04 86);
   --ty-silver: oklch(0.42 0.008 265);
   --ty-silver-soft: oklch(0.91 0.006 265);
+  --ty-bronze: oklch(0.66 0.09 67);
+  --ty-bronze-soft: oklch(0.93 0.035 67);
   --ty-active: oklch(0.55 0.14 158);
   --ty-active-soft: oklch(0.93 0.05 158);
   --ty-beta: oklch(0.62 0.13 78);
@@ -146,6 +150,8 @@
   --color-ty-gold-soft: var(--ty-gold-soft);
   --color-ty-silver: var(--ty-silver);
   --color-ty-silver-soft: var(--ty-silver-soft);
+  --color-ty-bronze: var(--ty-bronze);
+  --color-ty-bronze-soft: var(--ty-bronze-soft);
 
   --color-ty-active: var(--ty-active);
   --color-ty-active-soft: var(--ty-active-soft);
@@ -180,7 +186,16 @@
   }
 }
 
-/* Brand text: gold → silver gradient for the wordmark */
+/* Brand text: gold → silver → bronze metallic gradient. Logo remains untouched. */
+
+.light .ty-brand-text {
+  background-image: linear-gradient(
+    100deg,
+    oklch(0.66 0.105 82) 0%,
+    oklch(0.54 0.012 265) 55%,
+    oklch(0.56 0.075 67) 100%
+  );
+}
 
 .ty-brand-text {
   font-family: var(--font-michroma), sans-serif;
@@ -188,9 +203,10 @@
   letter-spacing: 0.035em;
   background-image: linear-gradient(
     100deg,
-    oklch(0.86 0.1 90) 0%,
-    oklch(0.92 0.02 100) 40%,
-    oklch(0.82 0.01 265) 100%
+    oklch(0.88 0.105 90) 0%,
+    oklch(0.92 0.02 100) 42%,
+    oklch(0.84 0.008 265) 67%,
+    oklch(0.86 0.085 67) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -200,7 +216,8 @@
 .ty-hero-grad {
   background:
     radial-gradient(120% 90% at 15% 0%, oklch(0.26 0.05 86 / 0.55), transparent 60%),
-    radial-gradient(120% 90% at 100% 0%, oklch(0.24 0.02 265 / 0.6), transparent 55%);
+    radial-gradient(120% 90% at 58% 0%, oklch(0.26 0.015 265 / 0.28), transparent 52%),
+    radial-gradient(120% 90% at 100% 0%, oklch(0.24 0.035 67 / 0.5), transparent 55%);
 }
 
 .ty-nums {
@@ -523,6 +540,621 @@
   }
 }
 
+
+/* ZAF Pulse — primary dashboard surface */
+.zaf-pulse {
+  color: var(--foreground);
+}
+
+.zaf-pulse-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 1.35rem;
+  padding: 1.5rem;
+  background:
+    radial-gradient(90% 120% at 0% 0%, oklch(0.72 0.08 86 / 0.10), transparent 54%),
+    radial-gradient(90% 120% at 100% 100%, oklch(0.72 0.07 67 / 0.07), transparent 56%),
+    linear-gradient(135deg, var(--card), var(--background));
+  box-shadow: 0 14px 40px oklch(0.05 0.01 265 / 0.08);
+}
+
+.zaf-pulse-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ty-gold), transparent);
+  opacity: .55;
+}
+
+.zaf-pulse-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--muted-foreground);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.zaf-signal-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: .65rem;
+  color: var(--ty-gold);
+  background: var(--ty-gold-soft);
+}
+
+.zaf-pulse-title {
+  max-width: 48rem;
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -.025em;
+}
+
+.zaf-pulse-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .65rem;
+}
+
+.zaf-pulse-metrics > div {
+  min-width: 0;
+  padding: .8rem .9rem;
+  border: 1px solid var(--border);
+  border-radius: .85rem;
+  background: color-mix(in oklab, var(--background) 72%, transparent);
+}
+
+.zaf-pulse-metrics span {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .62rem;
+  line-height: 1.3;
+}
+
+.zaf-pulse-metrics strong {
+  display: block;
+  margin-top: .3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .82rem;
+  font-weight: 650;
+}
+
+.zaf-pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.zaf-pulse-card {
+  min-width: 0;
+  min-height: 12rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / 0.05);
+}
+
+.zaf-pulse-card-rising {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--ty-gold-soft) 32%, var(--card)), var(--card));
+}
+
+.zaf-pulse-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  min-width: 0;
+  margin-bottom: .9rem;
+}
+
+.zaf-pulse-label {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: .5rem;
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.zaf-icon-rising,
+.zaf-icon-signal,
+.zaf-icon-new,
+.zaf-icon-watch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: .55rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+}
+
+.zaf-icon-rising { color: var(--ty-active); }
+.zaf-icon-signal { color: var(--ty-gold); }
+.zaf-icon-new { color: var(--ty-demo); }
+.zaf-icon-watch { color: var(--ty-verified); }
+
+.zaf-pulse-link {
+  flex: 0 0 auto;
+  min-height: auto !important;
+  padding: .2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: .66rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zaf-pulse-link:hover {
+  color: var(--foreground);
+}
+
+.zaf-pulse-signal {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+  padding: .7rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.zaf-pulse-signal > .min-w-0 {
+  flex: 1 1 auto;
+}
+
+.zaf-sparkline {
+  display: block;
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
+  height: 1.75rem;
+  overflow: visible;
+  color: var(--ty-gold);
+}
+
+.zaf-sparkline path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  vector-effect: non-scaling-stroke;
+}
+
+.zaf-pulse-list-row {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  min-width: 0;
+  padding: .65rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.zaf-pulse-list-row > .min-w-0 {
+  flex: 1 1 auto;
+}
+
+.zaf-signal-dot,
+.zaf-signal-ring {
+  display: block;
+  flex: 0 0 auto;
+  width: .5rem;
+  height: .5rem;
+  margin-top: .28rem;
+  border-radius: 999px;
+  background: var(--ty-active);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ty-active) 13%, transparent);
+}
+
+.zaf-signal-ring {
+  background: transparent;
+  border: 1.5px solid var(--ty-gold);
+  box-shadow: none;
+}
+
+.zaf-pulse-empty {
+  min-height: 6rem;
+  display: flex;
+  align-items: center;
+  color: var(--muted-foreground);
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+.zaf-pulse-big-number {
+  margin: .2rem 0 .1rem;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.65rem, 3vw, 2.25rem);
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: -.03em;
+}
+
+.zaf-pulse-card > .zaf-sparkline {
+  width: 100%;
+  height: 2.5rem;
+  margin-top: 1rem;
+}
+
+.zaf-pulse-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: .9rem;
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: .66rem;
+}
+
+.zaf-pulse-footer > div {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: .55rem;
+}
+
+.zaf-confidence-bar {
+  display: block;
+  width: 4.5rem;
+  height: .3rem;
+  overflow: hidden;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.zaf-confidence-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ty-active);
+}
+
+.zaf-pulse-footer button {
+  min-height: auto !important;
+  padding: .15rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: .66rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+/* ZAF Trust — evidence presentation */
+.zaf-trust-card {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+
+.zaf-trust-card > svg {
+  flex: 0 0 auto;
+  color: var(--ty-gold);
+}
+
+.zaf-trust-card > div {
+  min-width: 0;
+}
+
+.zaf-trust-card strong {
+  display: block;
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.zaf-trust-card span {
+  display: block;
+  margin-top: .28rem;
+  color: var(--muted-foreground);
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+.zaf-trust-evidence {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  min-width: 0;
+  padding: .8rem;
+  border: 1px solid var(--border);
+  border-radius: .8rem;
+  background: var(--background);
+}
+
+.zaf-trust-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: .55rem;
+  color: var(--ty-active);
+  background: var(--ty-active-soft);
+}
+
+.zaf-trust-icon-muted {
+  color: var(--muted-foreground);
+  background: var(--muted);
+}
+
+.zaf-trust-evidence > div {
+  min-width: 0;
+}
+
+.zaf-trust-evidence strong {
+  display: block;
+  font-size: .72rem;
+  font-weight: 650;
+}
+
+.zaf-trust-evidence p {
+  margin-top: .25rem;
+  color: var(--muted-foreground);
+  font-size: .65rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 767px) {
+  .zaf-pulse-hero { padding: 1.15rem; }
+  .zaf-pulse-metrics { grid-template-columns: 1fr; }
+  .zaf-pulse-grid { grid-template-columns: 1fr; }
+  .zaf-pulse-footer { align-items: flex-start; flex-direction: column; }
+  .zaf-sparkline { flex-basis: 5.5rem; width: 5.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .zaf-pulse-hero { padding: 1.75rem 1.85rem; }
+  .zaf-pulse-grid { gap: .9rem; }
+  .zaf-pulse-card { padding: 1.15rem; }
+}
+
+
+/* Shared ZAF surface language — used across every product section. */
+.zaf-main-shell .border.border-border.bg-card,
+.zaf-main-shell .border.border-border.bg-background {
+  border-radius: 1rem;
+}
+
+.zaf-main-shell .border.border-border.bg-card {
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / 0.045);
+}
+
+.zaf-main-shell .rounded-xl.border.border-border.bg-card,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card {
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.zaf-main-shell .rounded-xl.border.border-border.bg-card:hover,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card:hover {
+  border-color: color-mix(in oklab, var(--ty-gold) 22%, var(--border));
+  box-shadow: 0 12px 30px oklch(0.05 0.01 265 / 0.07);
+}
+
+/* ZAF Pulse v2 — concrete data presentation */
+.zaf-pulse-brief {
+  padding: 1rem 1.05rem;
+  border: 1px solid color-mix(in oklab, var(--ty-gold) 22%, var(--border));
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--ty-gold-soft) 42%, var(--card)), color-mix(in oklab, var(--ty-bronze-soft) 18%, var(--card)), var(--card));
+}
+
+.zaf-pulse-brief-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.zaf-pulse-brief-kicker {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .6rem;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: .09em;
+}
+
+.zaf-pulse-brief-head strong {
+  display: block;
+  margin-top: .25rem;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.zaf-pulse-brief p {
+  margin-top: .7rem;
+  max-width: 70rem;
+  color: var(--muted-foreground);
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.zaf-pulse-status {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: .18rem .45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: .58rem;
+  line-height: 1.2;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.zaf-pulse-status-positive {
+  border-color: color-mix(in oklab, var(--ty-active) 35%, var(--border));
+  color: var(--ty-active);
+  background: var(--ty-active-soft);
+}
+
+.zaf-pulse-status-negative {
+  border-color: color-mix(in oklab, var(--ty-demo) 35%, var(--border));
+  color: var(--ty-demo);
+  background: var(--ty-demo-soft);
+}
+
+.zaf-pulse-status-neutral {
+  color: var(--muted-foreground);
+  background: var(--background);
+}
+
+.zaf-pulse-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.zaf-pulse-metric-card {
+  min-width: 0;
+  padding: .78rem .88rem;
+  border: 1px solid var(--border);
+  border-radius: .85rem;
+  background: color-mix(in oklab, var(--background) 72%, transparent);
+}
+
+.zaf-pulse-metric-card > span,
+.zaf-pulse-metric-card > small {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .6rem;
+  line-height: 1.35;
+}
+
+.zaf-pulse-metric-card strong {
+  display: block;
+  margin: .25rem 0 .18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  line-height: 1.1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.zaf-pulse-source-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem;
+  color: var(--muted-foreground);
+  font-size: .6rem;
+  line-height: 1.4;
+}
+
+.zaf-pulse-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.zaf-pulse-fact-grid > div {
+  min-width: 0;
+  padding: .65rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  background: var(--background);
+}
+
+.zaf-pulse-fact-grid span {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .58rem;
+  line-height: 1.25;
+}
+
+.zaf-pulse-fact-grid strong {
+  display: block;
+  margin-top: .25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .76rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.zaf-pulse-data-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: .9rem;
+  background: var(--background);
+}
+
+.zaf-pulse-data-strip > div {
+  min-width: 0;
+}
+
+.zaf-pulse-data-strip span {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: .58rem;
+}
+
+.zaf-pulse-data-strip strong {
+  display: block;
+  margin-top: .22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.zaf-pulse-data-strip button {
+  min-height: auto !important;
+  padding: .2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: .62rem;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .zaf-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .zaf-pulse-brief-head { align-items: flex-start; }
+  .zaf-pulse-data-strip { grid-template-columns: 1fr 1fr; }
+  .zaf-pulse-data-strip button { grid-column: 1 / -1; text-align: left; padding-top: .3rem; }
+}
+
+@media (max-width: 430px) {
+  .zaf-pulse-hero { padding: 1rem; }
+  .zaf-pulse-metrics { grid-template-columns: 1fr; }
+  .zaf-pulse-data-strip { grid-template-columns: 1fr; }
+  .zaf-pulse-data-strip button { grid-column: auto; }
+}
+
+
 /* Desktop brand lockup: the wordmark aligns with the right edge of the identity badges, while the enlarged logo occupies the left visual weight. */
 @media (min-width: 1024px) {
   .zaf-desktop-header {
@@ -558,5 +1190,137 @@
     margin-top: .55rem;
     text-align: center;
     white-space: nowrap;
+  }
+}
+
+
+/* ZAF global product surface — Pulse presentation language across every module. */
+.zaf-main-shell .zaf-unified-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: .95rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--ty-gold-soft) 26%, transparent), transparent 62%),
+    radial-gradient(90% 120% at 100% 100%, color-mix(in oklab, var(--ty-bronze-soft) 16%, transparent), transparent 60%),
+    linear-gradient(145deg, var(--card), var(--background));
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / .055);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.zaf-main-shell .zaf-unified-card::before,
+.zaf-main-shell .rounded-xl.border.border-border.bg-card::before,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 16% auto 16%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ty-gold) 42%, transparent), transparent);
+  opacity: .55;
+  pointer-events: none;
+}
+
+.zaf-main-shell .zaf-unified-card:hover,
+.zaf-main-shell .rounded-xl.border.border-border.bg-card:hover,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card:hover {
+  border-color: color-mix(in oklab, var(--ty-gold) 24%, var(--border));
+  box-shadow: 0 12px 30px oklch(0.05 0.01 265 / .075);
+  transform: translateY(-1px);
+}
+
+.zaf-main-shell .zaf-unified-card-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  color: var(--foreground);
+}
+
+.zaf-main-shell .zaf-unified-card-title {
+  margin-top: .38rem;
+  color: var(--foreground);
+  font-size: .69rem;
+  line-height: 1.3;
+  font-weight: 650;
+}
+
+.zaf-main-shell .zaf-unified-card-detail {
+  margin-top: .22rem;
+  color: var(--muted-foreground);
+  font-size: .59rem;
+  line-height: 1.4;
+}
+
+.zaf-main-shell .rounded-xl.border.border-border.bg-card,
+.zaf-main-shell .rounded-2xl.border.border-border.bg-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in oklab, var(--ty-gold-soft) 18%, transparent), transparent 62%),
+    radial-gradient(90% 120% at 100% 100%, color-mix(in oklab, var(--ty-bronze-soft) 13%, transparent), transparent 60%),
+    linear-gradient(145deg, var(--card), var(--background));
+  box-shadow: 0 8px 24px oklch(0.05 0.01 265 / .045);
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h1,
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h2 {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child p {
+  max-width: 72rem;
+  margin-top: .35rem;
+  color: var(--muted-foreground);
+  font-size: .69rem;
+  line-height: 1.55;
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child {
+  margin-bottom: 1rem;
+}
+
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h1::before,
+.zaf-main-shell section:not(.zaf-pulse) > div:first-child h2::before {
+  content: "";
+  display: inline-block;
+  width: .28rem;
+  height: 1rem;
+  margin-right: .55rem;
+  vertical-align: -.12rem;
+  border-radius: 999px;
+  background: var(--ty-gold);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--ty-gold) 24%, transparent);
+}
+
+.zaf-main-shell .zaf-desktop-two-up > .rounded-xl,
+.zaf-main-shell .zaf-desktop-two-up > .rounded-2xl {
+  min-width: 0;
+}
+
+.zaf-main-shell .grid > .rounded-xl.border.border-border.bg-card,
+.zaf-main-shell .grid > .rounded-2xl.border.border-border.bg-card {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .zaf-main-shell .zaf-unified-card {
+    padding: .82rem .88rem;
+  }
+
+  .zaf-main-shell .zaf-unified-card-value {
+    font-size: 1.1rem;
+  }
+
+  .zaf-main-shell section:not(.zaf-pulse) > div:first-child h1,
+  .zaf-main-shell section:not(.zaf-pulse) > div:first-child h2 {
+    font-size: .98rem;
   }
 }
