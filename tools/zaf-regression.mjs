@@ -158,7 +158,7 @@ for (const token of ["enforceRateLimit", "pi-auth", "failClosed: true", "verifyP
   if (!piLoginRoute.includes(token)) throw new Error("Pi login route regression: " + token);
 }
 const piSmoke = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
-for (const token of ["new ReadableStream", 'duplex: "half"', "oversizedPiLogin.status !== 413"]) {
+for (const token of ["new ReadableStream", 'duplex: "half"', "oversizedPiLogin.status !== 413", "Pi session storage probe", "expectedLogoutStatus", "Pi logout with a session cookie"]) {
   if (!piSmoke.includes(token)) throw new Error("Pi streamed body smoke coverage regression: " + token);
 }
 const piSessionRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/session/route.ts"), "utf8");
