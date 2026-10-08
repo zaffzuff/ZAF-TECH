@@ -203,7 +203,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         {results.slice(0, 8).map(result => (
           <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
-              <span className="truncate text-[11px] font-medium text-foreground">{result.title}</span>
+              <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">{result.title}</span>
               <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
             </div>
             <div className="mt-0.5 truncate text-[9px] text-muted-foreground">{result.detail}</div>
@@ -667,7 +667,7 @@ export function ZafTechApp() {
                 {radarChanges?.changes?.length ? radarChanges.changes.slice(0, 6).map(change => (
                   <div key={`${change.type}-${change.title}`} className="rounded-lg border border-border p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-[11px] font-semibold text-foreground">{change.title}</div>
+                      <div className="min-w-0 break-words text-[11px] font-semibold text-foreground">{change.title}</div>
                       <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">
                         {ecosystemChangeLabel(change.category, locale)}
                       </span>
@@ -700,7 +700,7 @@ export function ZafTechApp() {
                 {(radarData?.signals ?? []).map(signal => (
                   <div key={signal.id} className="rounded-lg border border-border p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-[11px] font-semibold text-foreground">{radarSignalTitle(signal.id, locale)}</div>
+                      <div className="min-w-0 break-words text-[11px] font-semibold text-foreground">{radarSignalTitle(signal.id, locale)}</div>
                       <span className="rounded-full border border-border px-2 py-0.5 text-[9px] text-muted-foreground">{displayStatus(signal.state, locale)}</span>
                     </div>
                     <div className="mt-2 flex items-end justify-between gap-3">
@@ -745,7 +745,7 @@ export function ZafTechApp() {
               <div className="mt-3 space-y-2">
                 {ecosystem?.sources.filter(source => source.status !== "online" && source.status !== "available").slice(0, 3).map(source => (
                   <div key={source.url} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-                    <span className="text-[10px] text-muted-foreground">{source.label}</span>
+                    <span className="min-w-0 flex-1 break-words text-[10px] text-muted-foreground">{source.label}</span>
                     <span className="text-[10px] font-medium text-foreground">{displayStatus(source.status, locale)}</span>
                   </div>
                 ))}
@@ -782,7 +782,7 @@ export function ZafTechApp() {
             {ledgerObservation ? (
               <div className="mt-3 rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-xs font-semibold text-foreground">{tr("Linked Ledger Observation", "Bağlantılı Ledger Gözlemi")}</div>
+                  <div className="min-w-0 text-xs font-semibold text-foreground">{tr("Linked Ledger Observation", "Bağlantılı Ledger Gözlemi")}</div>
                   <button type="button" onClick={() => { setLedgerObservation(null); const params = new URLSearchParams(window.location.search); params.delete("ledger"); window.history.replaceState(null, "", "/?" + params.toString()); }} className="text-[10px] text-muted-foreground underline underline-offset-2">{tr("Clear", "Temizle")}</button>
                 </div>
                 <div className="mt-2 break-all font-mono text-[10px] text-muted-foreground">Ledger {ledgerObservation.sequence} · {ledgerObservation.hash ?? "—"}</div>
@@ -804,7 +804,7 @@ export function ZafTechApp() {
             </div>
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <div className="text-xs font-semibold text-foreground">{tr("Network Activity Detail", "Ağ Aktivite Detayı")}</div>
                   <p className="mt-1 text-[10px] text-muted-foreground">{tr("Observed Mainnet activity metrics from the current ledger sample.", "Mevcut ledger örneğinden gözlemlenen Mainnet aktivite metrikleri.")}</p>
                 </div>
@@ -831,8 +831,8 @@ export function ZafTechApp() {
                 <div className="mt-3 space-y-2">
                   {(snapshot?.metrics.operationTypeDistribution ?? []).slice(0, 6).map(item => (
                     <div key={item.type} className="flex items-center justify-between gap-3 text-[10px]">
-                      <span className="text-muted-foreground">{item.type}</span>
-                      <span className="font-medium text-foreground">{number(item.count, 0, locale)} · {item.percentage.toFixed(1)}%</span>
+                      <span className="min-w-0 break-words text-muted-foreground">{item.type}</span>
+                      <span className="shrink-0 font-medium text-foreground">{number(item.count, 0, locale)} · {item.percentage.toFixed(1)}%</span>
                     </div>
                   ))}
                   {!snapshot?.metrics.operationTypeDistribution?.length ? <div className="text-[10px] text-muted-foreground">{tr("No operation distribution is available.", "Operasyon dağılımı bulunmuyor.")}</div> : null}
@@ -844,8 +844,8 @@ export function ZafTechApp() {
                 <div className="mt-3 space-y-2">
                   {(snapshot?.metrics.protocolVersionDistribution ?? []).slice(0, 6).map(item => (
                     <div key={item.version} className="flex items-center justify-between gap-3 text-[10px]">
-                      <span className="text-muted-foreground">v{item.version}</span>
-                      <span className="font-medium text-foreground">{number(item.count, 0, locale)} · {item.percentage.toFixed(1)}%</span>
+                      <span className="min-w-0 break-words text-muted-foreground">v{item.version}</span>
+                      <span className="shrink-0 font-medium text-foreground">{number(item.count, 0, locale)} · {item.percentage.toFixed(1)}%</span>
                     </div>
                   ))}
                   {!snapshot?.metrics.protocolVersionDistribution?.length ? <div className="text-[10px] text-muted-foreground">{tr("No protocol distribution is available.", "Protokol dağılımı bulunmuyor.")}</div> : null}
@@ -1276,7 +1276,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
         return (
           <div className="mt-3 rounded-xl border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <div className="text-xs font-semibold text-foreground">{tr("Protocol Observation", "Protokol Gözlemi")}</div>
                 <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Protocol versions actually observed in persisted Mainnet snapshots. A transition is shown only when the stored protocol value changed between observations.", "Kayıtlı Mainnet snapshot'larında gerçekten gözlemlenen protokol sürümleri. Geçiş yalnızca kayıtlı gözlemler arasındaki protokol değeri değiştiğinde gösterilir.")}</p>
               </div>
@@ -1357,7 +1357,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="text-xs font-semibold text-foreground">{tr("Real Change Detection", "Gerçek Değişim Tespiti")}</div>
             <p className="mt-1 text-[10px] text-muted-foreground">
               {observationChanges?.hasBaseline
@@ -1373,7 +1373,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
           {observationChanges?.changes.slice(0, 8).map((change) => (
             <div key={change.type + "-" + change.title} className="rounded-lg border border-border p-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="text-[11px] font-semibold text-foreground">{change.title}</div>
+                <div className="min-w-0 break-words text-[11px] font-semibold text-foreground">{change.title}</div>
                 {change.percent != null ? <span className="text-[10px] font-medium text-foreground">{change.percent > 0 ? "+" : ""}{change.percent.toFixed(1)}%</span> : null}
               </div>
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? change.detailTr : translate(locale, change.detail, change.detailTr)}</p>
@@ -1387,7 +1387,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="text-xs font-semibold text-foreground">{tr("Detected Changes", "Tespit Edilen Değişiklikler")}</div>
             <p className="mt-1 text-[10px] text-muted-foreground">
               {changes?.hasBaseline
@@ -1400,7 +1400,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
         <div className="mt-3 space-y-2">
           {changes?.changes.slice(0, 8).map(change => (
             <div key={`${change.type}-${change.title}`} className="rounded-lg border border-border p-3">
-              <div className="text-[11px] font-semibold text-foreground">{change.title}</div>
+              <div className="min-w-0 break-words text-[11px] font-semibold text-foreground">{change.title}</div>
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? change.detailTr : translate(locale, change.detail, change.detailTr)}</p>
               {(change.previous != null || change.current != null) ? (
                 <div className="mt-2 text-[10px] text-muted-foreground">
