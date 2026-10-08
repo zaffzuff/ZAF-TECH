@@ -126,6 +126,9 @@ if (!piRuntime.includes("https://api.testnet.minepi.com") || !piRuntime.includes
 if (!piRuntime.includes("environment === \"sandbox\" ? network === \"testnet\" : network === \"mainnet\"")) {
   throw new Error("Pi runtime compatibility guard regression");
 }
+for (const token of ['function isTrustedPiPlatformApiBaseUrl', 'url.protocol === "https:"', 'url.hostname === "api.minepi.com"', 'url.pathname === "/v2"', "platformApiCompatible"]) {
+  if (!piRuntime.includes(token)) throw new Error("Trusted Pi Platform API guard regression: " + token);
+}
 const piAuth = fs.readFileSync(path.join(root, "lib/zaf/pi/auth.ts"), "utf8");
 for (const token of ["verifyPiAccessToken", "/me", "Authorization", "Bearer", "PI_RUNTIME_MISMATCH", "INVALID_ACCESS_TOKEN", "AbortSignal.timeout"]) {
   if (!piAuth.includes(token)) throw new Error("Pi authentication verification regression: " + token);
