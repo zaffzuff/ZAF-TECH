@@ -17,6 +17,14 @@ export async function POST(request: Request) {
   );
   if (rateLimit) return rateLimit;
 
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(contentLength) && contentLength > 16_384) {
+    return NextResponse.json(
+      { error: "Request body is too large.", code: "INVALID_REQUEST" },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
