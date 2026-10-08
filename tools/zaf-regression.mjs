@@ -92,6 +92,18 @@ for (const token of ["SearchPanel", "/api/zaf/search", "Global Search", "deepLin
   if (!app.includes(token)) throw new Error("Search/deep-link regression: " + token);
 }
 
+const styles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+for (const token of [
+  "Desktop brand lockup",
+  ".zaf-desktop-header > div:first-child",
+  "width: 88px;",
+  "height: 88px;",
+  "text-align: right;",
+  "white-space: nowrap;",
+]) {
+  if (!styles.includes(token)) throw new Error("Desktop brand lockup regression: " + token);
+}
+
 const radar = fs.readFileSync(path.join(root, "lib/zaf/radar.ts"), "utf8");
 for (const token of ["getRadarObservation", "getRollingObservationBaseline", "sampleConfidence", "transaction-pace", "operation-pace", "source-coverage"]) {
   if (!radar.includes(token)) throw new Error("Radar regression: " + token);
