@@ -1155,8 +1155,8 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
         {history?.points.length ? (
           <div className="mt-3 rounded-lg border border-border p-3">
             <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
-              <span>{tr("Observed Transaction Pace", "Gözlemlenen İşlem Temposu")}</span>
-              <span>{tr("Representative stored points", "Temsilci kayıtlı noktalar")}: {sampleHistoryPoints(history.points).length}</span>
+              <span className="min-w-0 break-words">{tr("Observed Transaction Pace", "Gözlemlenen İşlem Temposu")}</span>
+              <span className="shrink-0 text-right">{tr("Representative stored points", "Temsilci kayıtlı noktalar")}: {sampleHistoryPoints(history.points).length}</span>
             </div>
             <div className="mt-3 flex h-24 items-end gap-1 overflow-x-auto">
               {sampleHistoryPoints([...history.points].reverse()).map((point, index, points) => {
