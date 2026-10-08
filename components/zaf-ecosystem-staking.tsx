@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale } from "@/lib/zaf/i18n";
+import { ZafComingSoon } from "@/components/zaf-coming-soon";
 
 type StakingResponse = {
   generatedAt: string;
@@ -60,7 +61,7 @@ export function ZafEcosystemStaking({ locale, tr }: { locale: Locale; tr: (en: s
           {tr("Pi documents that Ecosystem Directory Staking affects an app or service's directory ranking. The current developer staking-data API is app-specific and initially whitelist-gated, so ZAF TECH does not assume it can query a complete ecosystem-wide stake feed.", "Pi belgelerine göre Ecosystem Directory Staking bir uygulama veya hizmetin dizin sıralamasını etkiler. Mevcut geliştirici staking-data API'si uygulamaya özeldir ve başlangıçta whitelist gerektirir; bu nedenle ZAF TECH tüm ekosistemi kapsayan bir stake akışını varmış gibi kabul etmez.")}
         </p>
         <div className="mt-3 rounded-lg border border-border bg-background p-3 text-[10px] leading-relaxed text-muted-foreground">
-          {tr("Coming soon target: per-app total stake, effective stake, ranking, ranking change and historical staking trend will appear here once a public, verifiable source is available.", "Yaklaşan hedef: herkese açık ve doğrulanabilir bir kaynak oluştuğunda uygulama bazında toplam stake, effective stake, sıralama, sıralama değişimi ve tarihsel staking trendi burada gösterilecek.")}
+          <ZafComingSoon locale={locale} title={tr("Per-App Staking Observation", "Uygulama Bazlı Staking Gözlemi")} detail={tr("Per-app stake, effective stake, ranking changes and historical staking trends will be enabled when a public, verifiable source is available.", "Uygulama bazlı stake, effective stake, sıralama değişimleri ve tarihsel staking trendleri herkese açık, doğrulanabilir bir kaynak bulunduğunda etkinleştirilecektir.")} />
         </div>
       </div>
 
