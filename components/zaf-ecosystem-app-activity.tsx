@@ -123,7 +123,7 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
           <div className="text-xs font-semibold text-foreground">{tr("Not Present In Latest Source Response", "Son Kaynak Yanıtında Bulunmayanlar")}</div>
           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("These apps were present in the previous stored response but are not present in the latest one. This can reflect source filtering, rendering changes or temporary availability; it is not a removal claim.", "Bu uygulamalar önceki kayıtlı yanıtta vardı ancak son yanıtta bulunmuyor. Bu; kaynak filtresi, görüntüleme değişikliği veya geçici erişilebilirlik kaynaklı olabilir; kaldırılma iddiası değildir.")}</p>
           <div className="mt-3 space-y-1.5">
-            {data.notPresentInLatest.slice(0, 20).map(app => <div key={app.url} className="flex items-center justify-between gap-3 rounded-lg border border-border p-2.5"><span className="truncate text-[10px] text-foreground">{app.name}</span><span className="shrink-0 text-[9px] text-muted-foreground">{age(app.lastSeenAt, locale)}</span></div>)}
+            {data.notPresentInLatest.slice(0, 20).map(app => <div key={app.url} className="flex items-center justify-between gap-3 rounded-lg border border-border p-2.5"><span className="min-w-0 flex-1 truncate text-[10px] text-foreground">{app.name}</span><span className="shrink-0 text-[9px] text-muted-foreground">{age(app.lastSeenAt, locale)}</span></div>)}
           </div>
         </div>
       ) : null}
