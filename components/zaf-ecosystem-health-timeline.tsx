@@ -51,7 +51,7 @@ export function ZafEcosystemHealthTimeline({ locale, snapshot, radar }: { locale
           </div>
           <div className="min-w-0 flex-1 rounded-lg border border-border p-3">
             <div className="flex items-start justify-between gap-3">
-              <div className="text-[10px] font-semibold text-foreground">{signal.label}</div>
+              <div className="min-w-0 break-words text-[10px] font-semibold text-foreground">{signal.label}</div>
               <div className="shrink-0 text-[9px] text-muted-foreground">{fmtDate(signal.time, locale)}</div>
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">{signal.detail}</div>
