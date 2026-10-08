@@ -1,4 +1,3 @@
-
 import { ensureZafSchema, getZafDb, isZafDatabaseConfigured } from "@/lib/zaf/db";
 
 export type EcosystemSnapshotRecord = {
@@ -16,9 +15,9 @@ export async function saveEcosystemSnapshot(record: EcosystemSnapshotRecord) {
   const sql = getZafDb();
   if (!sql) return false;
 
-  try {
-    if (!(await ensureZafSchema())) return false;
+  if (!(await ensureZafSchema())) return false;
 
+  try {
     const latest = await sql`
       SELECT generated_at AS "generatedAt"
       FROM zaf_ecosystem_snapshots
@@ -49,8 +48,9 @@ export async function getEcosystemSnapshotHistory(limit = 50) {
   const sql = getZafDb();
   if (!sql) return [];
 
+  if (!(await ensureZafSchema())) return [];
+
   try {
-    if (!(await ensureZafSchema())) return [];
     const safeLimit = Math.min(Math.max(limit, 1), 200);
     return await sql`
       SELECT id, generated_at AS "generatedAt",
@@ -61,5 +61,7 @@ export async function getEcosystemSnapshotHistory(limit = 50) {
       ORDER BY generated_at DESC
       LIMIT ${safeLimit}
     `;
+  } catch {
+    return [];
   }
 }
