@@ -193,9 +193,11 @@ for (const token of ["getRadarObservation", "getRollingObservationBaseline", "sa
 }
 
 const observationHistory = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
-for (const token of ["function median", "getRollingObservationBaseline", "DOUBLE PRECISION", "daily_transactions"]) {
+const dbSchema = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+for (const token of ["function median", "getRollingObservationBaseline", "daily_transactions"]) {
   if (!observationHistory.includes(token)) throw new Error("Observation history regression: " + token);
 }
+if (!dbSchema.includes("DOUBLE PRECISION")) throw new Error("Central DB schema regression: DOUBLE PRECISION");
 
 for (const token of ["30-minute rolling median", "Rolling baseline", "30 dakikalık hareketli medyana göre"]) {
   if (!app.includes(token)) throw new Error("Radar UI interpretation regression: " + token);
