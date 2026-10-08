@@ -3178,6 +3178,7 @@ const translations: Record<Locale, Record<string, string>> = {
     "Advanced Testnet Asset Observation": "Расширенное наблюдение за активами Testnet",
     "Token discovery, issuer profiles, trustlines, liquidity-pool relations, Launchpad relations and historical asset observations will be enabled as reliable public sources become available.": "Поиск токенов, профили эмитентов, trustline, связи с пулами ликвидности и Launchpad, а также исторические наблюдения активов будут доступны по мере появления надёжных публичных источников.",
     "Coming Soon target": "Ближайшая цель",
+    "Coming soon target": "Ближайшая цель",
   },
   fr: {
     "Current Day": "Jour Actuel",
