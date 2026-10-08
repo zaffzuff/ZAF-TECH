@@ -157,6 +157,10 @@ const piLoginRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/route.ts")
 for (const token of ["enforceRateLimit", "pi-auth", "failClosed: true", "verifyPiAccessToken", "createPiSession", "setPiSessionCookie", "SESSION_UNAVAILABLE", "MAX_PI_AUTH_BODY_BYTES", "getReader()", "totalBytes > MAX_PI_AUTH_BODY_BYTES", "status: 413"]) {
   if (!piLoginRoute.includes(token)) throw new Error("Pi login route regression: " + token);
 }
+const piSmoke = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
+for (const token of ["new ReadableStream", 'duplex: "half"', "oversizedPiLogin.status !== 413"]) {
+  if (!piSmoke.includes(token)) throw new Error("Pi streamed body smoke coverage regression: " + token);
+}
 const piSessionRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/session/route.ts"), "utf8");
 for (const token of ["pi-session", "getPiSession", "authenticated: false", "authenticated: true"]) {
   if (!piSessionRoute.includes(token)) throw new Error("Pi session route regression: " + token);
