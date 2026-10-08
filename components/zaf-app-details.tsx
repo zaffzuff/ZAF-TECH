@@ -260,7 +260,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                             const previous = trendPoints[index - 1];
                             return (
                               <div key={"transition-" + point.checkedAt + "-" + index} className="flex items-center justify-between gap-3 rounded-md border border-border/70 px-2.5 py-2 text-[9px]">
-                                <span className="text-muted-foreground">
+                                <span className="min-w-0 break-words text-muted-foreground">
                                   {new Date(point.checkedAt).toLocaleString(intlLocale(locale), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                                 </span>
                                 <span className="font-medium text-foreground">
