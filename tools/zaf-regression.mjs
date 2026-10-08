@@ -350,6 +350,11 @@ if (!observationHistoryRoute.includes("10000")) throw new Error("Historical obse
 
 
 
+const smokeHarness = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
+for (const token of ["fetchWithTimeout", "AbortSignal.timeout", "Smoke server did not become ready"]) {
+  if (!smokeHarness.includes(token)) throw new Error("Deterministic smoke harness regression: " + token);
+}
+
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
 
