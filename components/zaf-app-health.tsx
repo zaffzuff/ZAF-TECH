@@ -237,7 +237,7 @@ export function ZafAppHealth({locale}:{locale:Locale}){
           <div className="mt-1 truncate text-[10px] text-muted-foreground">{historyUrl}</div>
           {historyLoading?<div className="mt-3 text-[10px] text-muted-foreground">{tr("Loading History…","Geçmiş Yükleniyor…")}</div>:history?.length?<div className="mt-3 space-y-1.5">
             {history.slice(0,10).map((item,index)=><div key={item.checkedAt+"-"+index} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-[10px]">
-              <span className="text-foreground">{new Date(item.checkedAt).toLocaleString(intlLocale(locale))}</span>
+              <span className="min-w-0 break-words text-foreground">{new Date(item.checkedAt).toLocaleString(intlLocale(locale))}</span>
               <span className="shrink-0 text-muted-foreground">{item.reachable?tr("Reachable","Erişilebilir"):tr("Offline","Çevrimdışı")} · {item.responseTimeMs} ms</span>
             </div>)}
           {trendLoading?<div className="mt-3 text-[10px] text-muted-foreground">{tr("Loading Trend…","Trend Yükleniyor…")}</div>:<AppTrend points={trend ?? []} summary={trendSummary} locale={locale} tr={tr}/>}
