@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 
 const root = process.cwd();
-const port = Number(process.env.SMOKE_PORT ?? 3100);
+const port = Number(process.env.SMOKE_PORT ?? (3200 + (process.pid % 500)));
 const baseUrl = process.env.SMOKE_BASE_URL ?? `http://127.0.0.1:${port}`;
 const external = Boolean(process.env.SMOKE_LIVE);
 
@@ -26,10 +26,15 @@ const requiredHeaders = [
 ];
 
 let server = null;
+let serverError = null;
 
 async function waitForServer() {
   const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {
+    if (serverError) throw serverError;
+    if (server?.exitCode != null) {
+      throw new Error(`Smoke server exited before becoming ready (code ${server.exitCode}).`);
+    }
     try {
       const response = await fetch(baseUrl, { redirect: "manual" });
       if (response.status === 200) return;
@@ -61,9 +66,15 @@ try {
         stdio: "pipe",
       },
     );
+    server.on("error", error => { serverError = error; });
     server.stdout?.on("data", data => process.stdout.write(String(data)));
     server.stderr?.on("data", data => process.stderr.write(String(data)));
     await waitForServer();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    if (serverError) throw serverError;
+    if (server.exitCode != null) {
+      throw new Error(`Smoke server exited after becoming ready (code ${server.exitCode}).`);
+    }
   }
 
   const rootResponse = await request("/");
