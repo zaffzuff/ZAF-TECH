@@ -66,6 +66,21 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), 
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
 }
+if (packageJson.scripts?.smoke !== "node tools/zaf-smoke.mjs") {
+  throw new Error("Smoke script is not wired into package.json");
+}
+if (!fs.existsSync(path.join(root, "tools/zaf-smoke.mjs"))) {
+  throw new Error("Smoke test harness is missing");
+}
+
+const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+if (!Array.isArray(vercelConfig.crons) || !vercelConfig.crons.some(cron => cron.path === "/api/apps/health/cron" && cron.schedule === "0 3 * * *")) {
+  throw new Error("Scheduled App Health cron configuration regression");
+}
+const cronRoute = fs.readFileSync(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
+if (!cronRoute.includes("CRON_SECRET") || !cronRoute.includes('authorization') || !cronRoute.includes("Unauthorized")) {
+  throw new Error("Scheduled App Health cron authorization regression");
+}
 
 const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 const i18n = fs.readFileSync(path.join(root, "lib/zaf/i18n.ts"), "utf8");
