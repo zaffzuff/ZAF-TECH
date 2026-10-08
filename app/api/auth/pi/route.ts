@@ -9,6 +9,50 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const MAX_PI_AUTH_BODY_BYTES = 16_384;
+
+type JsonBodyResult =
+  | { ok: true; body: unknown }
+  | { ok: false; tooLarge: boolean };
+
+async function readJsonBodyLimited(request: Request): Promise<JsonBodyResult> {
+  const reader = request.body?.getReader();
+  if (!reader) return { ok: false, tooLarge: false };
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_PI_AUTH_BODY_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        return { ok: false, tooLarge: true };
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { ok: false, tooLarge: false };
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return { ok: true, body: JSON.parse(new TextDecoder().decode(bytes)) as unknown };
+  } catch {
+    return { ok: false, tooLarge: false };
+  }
+}
+
 export async function POST(request: Request) {
   const rateLimit = await enforceRateLimit(
     request,
@@ -18,22 +62,27 @@ export async function POST(request: Request) {
   if (rateLimit) return rateLimit;
 
   const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (Number.isFinite(contentLength) && contentLength > 16_384) {
+  if (Number.isFinite(contentLength) && contentLength > MAX_PI_AUTH_BODY_BYTES) {
     return NextResponse.json(
       { error: "Request body is too large.", code: "INVALID_REQUEST" },
       { status: 413, headers: { "Cache-Control": "no-store" } },
     );
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
+  const parsed = await readJsonBodyLimited(request);
+  if (!parsed.ok && parsed.tooLarge) {
+    return NextResponse.json(
+      { error: "Request body is too large.", code: "INVALID_REQUEST" },
+      { status: 413, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+  if (!parsed.ok) {
     return NextResponse.json(
       { error: "Invalid JSON body.", code: "INVALID_REQUEST" },
       { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
+  const body = parsed.body;
 
   const accessToken = isRecord(body) && typeof body.accessToken === "string"
     ? body.accessToken.trim()
