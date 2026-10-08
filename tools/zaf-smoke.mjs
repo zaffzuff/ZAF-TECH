@@ -60,6 +60,19 @@ async function request(path) {
   };
 }
 
+function stopSmokeServer(child) {
+  if (!child || child.exitCode != null) return;
+  if (process.platform === "win32") {
+    spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+    return;
+  }
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
+    child.kill("SIGTERM");
+  }
+}
+
 try {
   if (process.env.SMOKE_BASE_URL) {
     await waitForServer();
@@ -71,6 +84,7 @@ try {
         cwd: root,
         env: { ...process.env, PORT: String(port) },
         stdio: "pipe",
+        detached: process.platform !== "win32",
       },
     );
     server.on("error", error => { serverError = error; });
@@ -106,5 +120,5 @@ try {
 
   console.log(`ZAF TECH smoke checks passed (base: ${baseUrl}).`);
 } finally {
-  if (server && !server.killed) server.kill("SIGTERM");
+  stopSmokeServer(server);
 }
