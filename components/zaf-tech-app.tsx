@@ -649,8 +649,8 @@ export function ZafTechApp() {
             <div className="flex shrink-0 items-center gap-1">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
-              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={theme === "light" ? tr("Switch to dark theme", "Koyu temaya geç") : tr("Switch to light theme", "Açık temaya geç")} title={theme === "light" ? tr("Dark theme", "Koyu tema") : tr("Light theme", "Açık tema")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground" ><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
-              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh observations", "Gözlemleri yenile")} title={tr("Refresh observations", "Gözlemleri yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
+              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground" ><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
+              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
