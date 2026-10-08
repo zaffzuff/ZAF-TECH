@@ -154,7 +154,7 @@ for (const file of [
   if (!source.includes('Cache-Control')) throw new Error("Pi auth cache-control regression: " + file);
 }
 const piLoginRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/route.ts"), "utf8");
-for (const token of ["enforceRateLimit", "pi-auth", "failClosed: true", "verifyPiAccessToken", "createPiSession", "setPiSessionCookie", "SESSION_UNAVAILABLE"]) {
+for (const token of ["enforceRateLimit", "pi-auth", "failClosed: true", "verifyPiAccessToken", "createPiSession", "setPiSessionCookie", "SESSION_UNAVAILABLE", "MAX_PI_AUTH_BODY_BYTES", "getReader()", "totalBytes > MAX_PI_AUTH_BODY_BYTES", "status: 413"]) {
   if (!piLoginRoute.includes(token)) throw new Error("Pi login route regression: " + token);
 }
 const piSessionRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/session/route.ts"), "utf8");
@@ -162,7 +162,7 @@ for (const token of ["pi-session", "getPiSession", "authenticated: false", "auth
   if (!piSessionRoute.includes(token)) throw new Error("Pi session route regression: " + token);
 }
 const piLogoutRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/logout/route.ts"), "utf8");
-for (const token of ["pi-logout", "deletePiSession", "clearPiSessionCookie"]) {
+for (const token of ["pi-logout", "deletePiSession", "clearPiSessionCookie", "SESSION_UNAVAILABLE", "status: 503"]) {
   if (!piLogoutRoute.includes(token)) throw new Error("Pi logout route regression: " + token);
 }
 const piConfigRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/config/route.ts"), "utf8");
