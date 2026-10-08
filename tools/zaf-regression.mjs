@@ -68,6 +68,43 @@ if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
 }
 
 const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+const i18n = fs.readFileSync(path.join(root, "lib/zaf/i18n.ts"), "utf8");
+const ruStart = i18n.indexOf("  ru: {");
+const ruEnd = i18n.indexOf("\n  },\n", ruStart);
+if (ruStart < 0 || ruEnd < 0) throw new Error("Russian translation block is missing");
+const ruBlock = i18n.slice(ruStart, ruEnd);
+const componentFiles = fs.readdirSync(path.join(root, "components"))
+  .filter(file => file.endsWith(".tsx"))
+  .map(file => fs.readFileSync(path.join(root, "components", file), "utf8"));
+const missingRussianKeys = new Set();
+for (const source of componentFiles) {
+  for (const match of source.matchAll(/tr\(\s*"([^"]+)"/g)) {
+    const key = match[1];
+    const linesInRu = ruBlock.split("\n");
+    if (!linesInRu.some(line => line.trimStart().startsWith(JSON.stringify(key) + ":"))) missingRussianKeys.add(key);
+  }
+}
+if (missingRussianKeys.size) {
+  throw new Error("Russian translation regression: missing keys: " + [...missingRussianKeys].slice(0, 12).join(" | "));
+}
+
+function scanTextFiles(dir) {
+  const result = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) result.push(...scanTextFiles(full));
+    else if (/\.(tsx?|mjs|css)$/.test(entry.name)) result.push(full);
+  }
+  return result;
+}
+for (const base of ["components", "app", "lib/zaf"]) {
+  for (const file of scanTextFiles(path.join(root, base))) {
+    const source = fs.readFileSync(file, "utf8");
+    for (const term of ["İstihbarat", "istihbarat"]) {
+      if (source.includes(term)) throw new Error("Forbidden Turkish terminology remains in " + file + ": " + term);
+    }
+  }
+}
 const forbiddenVisibleTerms = [
   "Pi Ecosystem Intelligence",
   "Pi Ekosistem İstihbaratı",
