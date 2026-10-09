@@ -456,6 +456,16 @@ const rows: TranslationRow[] = [
   ["Falling","En descenso","下降","In calo","En baisse","Fallend","Em queda"],
   ["Stable","Estable","稳定","Stabile","Stable","Stabil","Estável"],
   ["Insufficient Data","Datos insuficientes","数据不足","Dati insufficienti","Données insuffisantes","Unzureichende Daten","Dados insuficientes"],
+  ["Ecosystem Sections","Secciones del ecosistema","生态系统分区","Sezioni dell’ecosistema","Sections de l’écosystème","Ökosystembereiche","Secções do ecossistema"],
+  ["App count changed","Cambió el número de aplicaciones","应用数量发生变化","Il numero di app è cambiato","Le nombre d’applications a changé","App-Anzahl geändert","O número de aplicações mudou"],
+  ["Source status changed","Cambió el estado de la fuente","来源状态发生变化","Lo stato della fonte è cambiato","L’état de la source a changé","Quellenstatus geändert","O estado da fonte mudou"],
+  ["Newly observed","Observado por primera vez","新观察到","Appena osservato","Nouvellement observé","Neu beobachtet","Recentemente observado"],
+  ["No longer observed","Ya no se observa","不再观察到","Non più osservato","N’est plus observé","Nicht mehr beobachtet","Já não observado"],
+  ["DeFi status changed","Cambió el estado de DeFi","DeFi 状态发生变化","Lo stato DeFi è cambiato","L’état DeFi a changé","DeFi-Status geändert","O estado DeFi mudou"],
+  ["Change","Cambio","变化","Modifica","Changement","Änderung","Alteração"],
+  ["App","Aplicación","应用","App","Application","App","Aplicação"],
+  ["Signal","Señal","信号","Segnale","Signal","Signal","Sinal"],
+  ["Ledger","Ledger","Ledger","Ledger","Ledger","Ledger","Ledger"],
 ];
 
 const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"];
