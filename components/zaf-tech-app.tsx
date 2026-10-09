@@ -105,14 +105,15 @@ function radarSignalTitle(id: string, locale: Locale) {
   return labels[id]?.[index] ?? id;
 }
 function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number]["category"], locale: Locale) {
-  const labels = {
-    app_count: locale === "tr" ? "Uygulama sayısı değişti" : "App count changed",
-    source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
-    signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
-    signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
-    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
-  } as const;
-  return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
+  const labels: Record<NonNullable<EcosystemChangePayload["changes"][number]["category"]>, [string, string]> = {
+    app_count: ["App count changed", "Uygulama sayısı değişti"],
+    source_status: ["Source status changed", "Kaynak durumu değişti"],
+    signal_added: ["Newly observed", "Yeni gözlemlendi"],
+    signal_removed: ["No longer observed", "Artık gözlemlenmiyor"],
+    defi_status: ["DeFi status changed", "DeFi durumu değişti"],
+  };
+  const pair = labels[category ?? "signal_added"];
+  return translate(locale, pair[0], pair[1]);
 }
 
 function radarSignalValue(id: string, value: number | string | null, locale: Locale) {
@@ -160,7 +161,7 @@ function searchTypeLabel(type: SearchResult["type"], locale: Locale) {
     signal: ["Signal", "Sinyal"],
     ledger: ["Ledger", "Ledger"],
   };
-  return labels[type][locale === "tr" ? 1 : 0];
+  return translate(locale, labels[type][0], labels[type][1]);
 }
 
 function SearchIcon({ size = 16 }: { size?: number }) {
