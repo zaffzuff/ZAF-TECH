@@ -1,3 +1,5 @@
+import { supplementalUiTranslations } from "./ui-translations";
+
 export type Locale = "en" | "es" | "tr" | "zh" | "it" | "fr" | "de" | "pt" | "ru";
 
 export const localeLabels: Record<Locale, string> = {
@@ -3582,17 +3584,6 @@ const translations: Record<Locale, Record<string, string>> = {
 
 };
 
-function spanishCopy(value: string) {
-  if (value.length < 70) return value;
-  const tokens: string[] = [];
-  const protectedValue = value.replace(/ZAF TECH|Pi Network|Pi Mainnet|Pi Horizon|Pi Browser|Pi Desktop|Pi Node|Mainnet|Testnet|Docker|WSL|CPU|RAM|HTTPS|HTTP|URL|DATABASE_URL|SCP|SoloHost|Launchpad|DEX|AMM|Node|GitHub/g, token => {
-    const index = tokens.length;
-    tokens.push(token);
-    return `@@${index}@@`;
-  });
-  const sentence = protectedValue.toLocaleLowerCase("es-ES").replace(/^./, char => char.toLocaleUpperCase("es-ES"));
-  return sentence.replace(/@@(\d+)@@/g, (_, index) => tokens[Number(index)]);
-}
 
 export function intlLocale(locale: Locale): string {
   if (locale === "tr") return "tr-TR";
@@ -3608,14 +3599,8 @@ export function intlLocale(locale: Locale): string {
 
 export function t(locale: Locale, key: string, trText?: string): string {
   if (locale === "tr") return trText ?? translations.tr[key] ?? key;
-  if (locale === "es") return spanishCopy(translations.es[key] ?? key);
-  if (locale === "zh") return translations.zh[key] ?? key;
-  if (locale === "it") return translations.it[key] ?? key;
-  if (locale === "fr") return translations.fr[key] ?? key;
-  if (locale === "de") return translations.de[key] ?? key;
-  if (locale === "pt") return translations.pt[key] ?? key;
-  if (locale === "ru") return translations.ru[key] ?? key;
-  return key;
+  if (locale === "en") return key;
+  return translations[locale][key] ?? supplementalUiTranslations[key]?.[locale as Exclude<Locale, "en" | "tr">] ?? key;
 }
 
 export const translate = t;
