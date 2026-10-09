@@ -1381,25 +1381,39 @@
 }
 
 
-/* Bright metallic bronze active states shared by desktop and mobile navigation. */
+/* Extra-light champagne-bronze with a brighter reflective finish on web and mobile.
+   The scoped tokens keep this palette consistent in both dark and light themes. */
+.zaf-main-shell {
+  --ty-bronze: oklch(0.95 0.14 76);
+  --ty-bronze-soft: oklch(0.95 0.08 78);
+}
+
 .zaf-main-shell button.bg-foreground.text-background {
   background-color: var(--ty-bronze) !important;
   background-image: linear-gradient(
-    132deg,
-    oklch(0.96 0.095 84) 0%,
-    oklch(0.87 0.13 72) 34%,
-    var(--ty-bronze) 58%,
-    oklch(0.77 0.14 62) 78%,
-    oklch(0.9 0.11 78) 100%
+    112deg,
+    oklch(0.99 0.055 90) 0%,
+    oklch(0.96 0.11 82) 13%,
+    oklch(0.92 0.15 75) 27%,
+    oklch(0.985 0.075 88) 39%,
+    oklch(0.89 0.16 67) 52%,
+    oklch(0.97 0.12 81) 66%,
+    oklch(0.92 0.155 72) 82%,
+    oklch(0.99 0.065 89) 100%
   ) !important;
-  border-color: oklch(0.73 0.13 68) !important;
-  color: oklch(0.18 0.018 55) !important;
+  border-color: oklch(0.84 0.14 70) !important;
+  color: oklch(0.2 0.025 45) !important;
   box-shadow:
-    0 3px 10px oklch(0.62 0.12 68 / 0.22),
-    inset 0 1px 0 oklch(0.99 0.045 86 / 0.8),
-    inset 0 -1px 0 oklch(0.42 0.1 60 / 0.2) !important;
+    0 4px 14px oklch(0.72 0.13 69 / 0.28),
+    inset 0 1px 0 oklch(0.995 0.035 90 / 0.95),
+    inset 0 -1px 0 oklch(0.72 0.13 68 / 0.3) !important;
 }
 
 .zaf-main-shell .zaf-desktop-secondary-nav .bg-primary.opacity-100 {
-  background: linear-gradient(90deg, oklch(0.91 0.12 78), var(--ty-bronze), oklch(0.8 0.14 62)) !important;
+  background: linear-gradient(
+    90deg,
+    oklch(0.97 0.13 82),
+    var(--ty-bronze),
+    oklch(0.9 0.15 68)
+  ) !important;
 }
