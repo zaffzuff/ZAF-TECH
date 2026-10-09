@@ -147,6 +147,12 @@ const supplementalTranslations = fs.readFileSync(path.join(root, "lib/zaf/ui-tra
 if (!supplementalTranslations.includes('const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"]')) {
   throw new Error("Supplemental translation catalog is missing supported locales");
 }
+const russianCatalogStart = supplementalTranslations.indexOf("export const supplementalRussianUiTranslations:");
+const russianCatalogEnd = supplementalTranslations.indexOf("\\n};", russianCatalogStart);
+if (russianCatalogStart < 0 || russianCatalogEnd < 0) {
+  throw new Error("Supplemental Russian translation catalog is missing");
+}
+const russianSupplementalTranslations = supplementalTranslations.slice(russianCatalogStart, russianCatalogEnd);
 
 const componentFiles = fs.readdirSync(path.join(root, "components"))
   .filter(file => file.endsWith(".tsx"))
@@ -174,11 +180,11 @@ for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
   const missing = [];
   for (const key of pairedUiKeys) {
     const inPrimaryDictionary = localeBlock.includes(JSON.stringify(key) + ":");
-    const inSupplementalCatalog = locale !== "ru" && supplementalTranslations.includes("  [" + JSON.stringify(key) + ",");
+    const inSupplementalCatalog = locale === "ru" ? russianSupplementalTranslations.includes(JSON.stringify(key) + ":") : supplementalTranslations.includes("  [" + JSON.stringify(key) + ",");
     if (!inPrimaryDictionary && !inSupplementalCatalog) missing.push(key);
   }
   if (missing.length) {
-    throw new Error(`UI localization regression (${locale}): missing ${missing.length} keys: ${missing.slice(0, 12).join(" | ")}`);
+    throw new Error(`UI localization regression (${locale}): missing ${missing.length} keys: ${missing.slice(0, 40).join(" | ")}`);
   }
 }
 
