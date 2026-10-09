@@ -6,14 +6,21 @@ import type { ZafSnapshot } from "@/lib/zaf/types";
 import { ZafNodeIntelligence } from "@/components/zaf-node-intelligence";
 import { ZafNodeHistory } from "@/components/zaf-node-history";
 
-function spanishCopy(value:string){
-  if(value.length<70)return value;
-  const tokens:string[]=[];
-  const protectedValue=value.replace(/ZAF TECH|Pi Network|Pi Browser|Pi Desktop|Pi Node|Pi2Day|OpenClaw|Atlassian MCP Server|SoloHost|Docker|WSL|CPU|RAM|HTTPS|HTTP|URL|Node/g,token=>{const i=tokens.length;tokens.push(token);return `@@${i}@@`;});
-  const sentence=protectedValue.toLocaleLowerCase("es-ES").replace(/^./,char=>char.toLocaleUpperCase("es-ES"));
-  return sentence.replace(/@@(\\d+)@@/g,(_,i)=>tokens[Number(i)]);
-}
+const spanishOverrides: Record<string, string> = {
+  "The September 9, 2026 update improved discovery, reliability, and developer tooling.": "La actualización del 9 de septiembre de 2026 mejoró el descubrimiento, la fiabilidad y las herramientas para desarrolladores.",
+  "Apps run on the user's own computer, with mobile access through Pi Browser.": "Las aplicaciones se ejecutan en el propio ordenador del usuario, con acceso móvil a través de Pi Browser.",
+  "Version 0.6.3 introduced ranking by current running counts.": "La versión 0.6.3 incorporó la clasificación por número actual de ejecuciones.",
+  "On August 14, 2026, an initial distributed-computing test was completed with five volunteer Node runners. On August 27, OpenClaw and Atlassian MCP Server were featured.": "El 14 de agosto de 2026 se completó una primera prueba de computación distribuida con cinco operadores de Node voluntarios. El 27 de agosto se destacaron OpenClaw y Atlassian MCP Server.",
+  "An end-to-end distributed-computing test was completed through SoloHost.": "Se completó una prueba integral de computación distribuida a través de SoloHost.",
+  "The initial test described in the August 14, 2026 official update.": "La prueba inicial descrita en la actualización oficial del 14 de agosto de 2026.",
+  "Node operators can opt in to make available computing capacity usable by Terze Parti workloads.": "Los operadores de Node pueden optar por poner su capacidad de cómputo disponible a disposición de cargas de trabajo de terceros.",
+  "The official update describes Pi compensation by Terze Parti clients for suitable workloads.": "La actualización oficial describe una compensación en Pi por parte de clientes de terceros para cargas de trabajo adecuadas.",
+  "There is no verified live feed for global compute capacity, active workloads, or real-time compute earnings, so ZAF TECH does not fabricate them.": "No existe un flujo en directo verificado sobre la capacidad de cómputo global, las cargas activas o las ganancias de cómputo en tiempo real, por lo que ZAF TECH no inventa esos datos.",
+};
 
+function spanishCopy(value:string) {
+  return spanishOverrides[value] ?? value;
+}
 type Resources = {
   host?: { cpuPercent?: number|null; memory?: { usedBytes?: number|null; totalBytes?: number|null; usedPercent?: number|null }; disk?: { drive?: string; usedPercent?: number|null }; network?: { receivedBytes?: number|null; sentBytes?: number|null } }|null;
   docker?: { cpuPercent?: number|null; memory?: { usedBytes?: number|null; limitBytes?: number|null }; network?: { receivedBytes?: number|null; sentBytes?: number|null }; blockIO?: { readBytes?: number|null; writeBytes?: number|null } }|null;
