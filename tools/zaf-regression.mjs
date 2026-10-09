@@ -148,7 +148,7 @@ if (!supplementalTranslations.includes('const localeOrder: SupplementalLocale[] 
   throw new Error("Supplemental translation catalog is missing supported locales");
 }
 const russianCatalogStart = supplementalTranslations.indexOf("export const supplementalRussianUiTranslations:");
-const russianCatalogEnd = supplementalTranslations.indexOf("\\n};", russianCatalogStart);
+const russianCatalogEnd = supplementalTranslations.indexOf("\n};", russianCatalogStart);
 if (russianCatalogStart < 0 || russianCatalogEnd < 0) {
   throw new Error("Supplemental Russian translation catalog is missing");
 }
