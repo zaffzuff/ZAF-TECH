@@ -32,8 +32,8 @@
   --ty-gold-soft: oklch(0.28 0.05 86);
   --ty-silver: oklch(0.84 0.008 265);
   --ty-silver-soft: oklch(0.3 0.006 265);
-  --ty-bronze: oklch(0.81 0.095 67);
-  --ty-bronze-soft: oklch(0.3 0.045 67);
+  --ty-bronze: oklch(0.87 0.13 72);
+  --ty-bronze-soft: oklch(0.32 0.065 72);
 
   /* Functional status — solid muted pills, one color family per meaning */
   --ty-active: oklch(0.75 0.1 158);
@@ -103,8 +103,8 @@
   --ty-gold-soft: oklch(0.94 0.04 86);
   --ty-silver: oklch(0.42 0.008 265);
   --ty-silver-soft: oklch(0.91 0.006 265);
-  --ty-bronze: oklch(0.66 0.09 67);
-  --ty-bronze-soft: oklch(0.93 0.035 67);
+  --ty-bronze: oklch(0.77 0.125 70);
+  --ty-bronze-soft: oklch(0.94 0.055 72);
   --ty-active: oklch(0.55 0.14 158);
   --ty-active-soft: oklch(0.93 0.05 158);
   --ty-beta: oklch(0.62 0.13 78);
@@ -1381,14 +1381,25 @@
 }
 
 
-/* Bronze is the consistent active/primary-action color across desktop and mobile.
-   Keep foreground text dark for contrast in both the light and dark palettes. */
+/* Bright metallic bronze active states shared by desktop and mobile navigation. */
 .zaf-main-shell button.bg-foreground.text-background {
   background-color: var(--ty-bronze) !important;
-  border-color: var(--ty-bronze) !important;
-  color: oklch(0.18 0.012 265) !important;
+  background-image: linear-gradient(
+    132deg,
+    oklch(0.96 0.095 84) 0%,
+    oklch(0.87 0.13 72) 34%,
+    var(--ty-bronze) 58%,
+    oklch(0.77 0.14 62) 78%,
+    oklch(0.9 0.11 78) 100%
+  ) !important;
+  border-color: oklch(0.73 0.13 68) !important;
+  color: oklch(0.18 0.018 55) !important;
+  box-shadow:
+    0 3px 10px oklch(0.62 0.12 68 / 0.22),
+    inset 0 1px 0 oklch(0.99 0.045 86 / 0.8),
+    inset 0 -1px 0 oklch(0.42 0.1 60 / 0.2) !important;
 }
 
 .zaf-main-shell .zaf-desktop-secondary-nav .bg-primary.opacity-100 {
-  background-color: var(--ty-bronze) !important;
+  background: linear-gradient(90deg, oklch(0.91 0.12 78), var(--ty-bronze), oklch(0.8 0.14 62)) !important;
 }
