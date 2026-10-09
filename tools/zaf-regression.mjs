@@ -160,7 +160,7 @@ for (const source of componentFiles) {
 
 for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
   const localeStart = i18n.indexOf(`  ${locale}: {`);
-  const localeEnd = i18n.indexOf("\\n  },", localeStart);
+  const localeEnd = i18n.indexOf("\n  },", localeStart);
   if (localeStart < 0 || localeEnd < 0) throw new Error("Translation block is missing: " + locale);
   const localeBlock = i18n.slice(localeStart, localeEnd);
   const missing = [];
