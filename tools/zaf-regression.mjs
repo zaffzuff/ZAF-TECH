@@ -156,7 +156,15 @@ for (const source of componentFiles) {
   for (const match of source.matchAll(/\btr\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"/g)) {
     pairedUiKeys.add(match[1].replace(/\\\\/g, "\\"));
   }
+  // Some complex surfaces have local helpers named tx(en, tr) instead of tr(en, tr).
+  for (const match of source.matchAll(/\btx\(\s*(?:locale\s*,\s*)?"([^"]+)"\s*,\s*"([^"]+)"/g)) {
+    pairedUiKeys.add(match[1]);
+  }
 }
+for (const key of [
+  "App count changed", "Source status changed", "Newly observed", "No longer observed",
+  "DeFi status changed", "Change", "Ecosystem Sections", "App", "Source", "Signal", "Ledger",
+]) pairedUiKeys.add(key);
 
 for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
   const localeStart = i18n.indexOf(`  ${locale}: {`);
