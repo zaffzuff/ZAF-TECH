@@ -1,4 +1,4 @@
-import { supplementalUiTranslations } from "./ui-translations";
+import { supplementalRussianUiTranslations, supplementalUiTranslations } from "./ui-translations";
 
 export type Locale = "en" | "es" | "tr" | "zh" | "it" | "fr" | "de" | "pt" | "ru";
 
@@ -3600,7 +3600,7 @@ export function intlLocale(locale: Locale): string {
 export function t(locale: Locale, key: string, trText?: string): string {
   if (locale === "tr") return trText ?? translations.tr[key] ?? key;
   if (locale === "en") return key;
-  return translations[locale][key] ?? supplementalUiTranslations[key]?.[locale as Exclude<Locale, "en" | "tr">] ?? key;
+  return translations[locale][key] ?? supplementalUiTranslations[key]?.[locale as Exclude<Locale, "en" | "tr">] ?? (locale === "ru" ? supplementalRussianUiTranslations[key] : undefined) ?? key;
 }
 
 export const translate = t;
