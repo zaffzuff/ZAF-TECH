@@ -1381,39 +1381,166 @@
 }
 
 
-/* Extra-light champagne-bronze with a brighter reflective finish on web and mobile.
-   The scoped tokens keep this palette consistent in both dark and light themes. */
+/* Bright metallic bronze active states — ultra-light champagne variant.
+   The surface is intentionally near-white, with only a faint bronze undertone and reflective highlights. */
 .zaf-main-shell {
-  --ty-bronze: oklch(0.95 0.14 76);
-  --ty-bronze-soft: oklch(0.95 0.08 78);
+  --ty-bronze: oklch(0.988 0.025 78);
+  --ty-bronze-soft: oklch(0.978 0.018 78);
+
+  /* Original custom SVG icon language, unified as cool silver linework on all sections. */
+  --zaf-icon-trend: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='1.75'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2017%20L10%2011%20L14%2014%20L20%207'/%3E%3Cpath%20d='M15%207%20H20%20V12'/%3E%3C/svg%3E");
+  --zaf-icon-network: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='5'%20cy='6'%20r='2'/%3E%3Ccircle%20cx='18.5'%20cy='5.5'%20r='2.5'/%3E%3Ccircle%20cx='12'%20cy='18'%20r='3'/%3E%3Cpath%20d='M7%207L10.5%2015M16.7%207.5L13.3%2015.3M7.3%206.2L16%205.7'/%3E%3C/svg%3E");
+  --zaf-icon-radar: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='1.65'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='8.5'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='4.7'/%3E%3Cpath%20d='M12%2012L18.2%205.8M12%203.5V2M20.5%2012H22'/%3E%3C/svg%3E");
+  --zaf-icon-spark: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%202.8L14.2%209.8L21.2%2012L14.2%2014.2L12%2021.2L9.8%2014.2L2.8%2012L9.8%209.8Z'/%3E%3C/svg%3E");
+  --zaf-icon-shield: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%203L20%206V11.5C20%2016.2%2016.8%2019.5%2012%2021C7.2%2019.5%204%2016.2%204%2011.5V6Z'/%3E%3Cpath%20d='M8.5%2012.1L10.8%2014.3L15.8%209.3'/%3E%3C/svg%3E");
+  --zaf-icon-code: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='white'%20stroke-width='1.8'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M8.5%208L4.5%2012L8.5%2016M15.5%208L19.5%2012L15.5%2016M13.7%205L10.3%2019'/%3E%3C/svg%3E");
 }
 
+/* Near-white champagne metal: bright highlights, a minimal warm undertone, and a soft reflective edge. */
 .zaf-main-shell button.bg-foreground.text-background {
   background-color: var(--ty-bronze) !important;
   background-image: linear-gradient(
     112deg,
-    oklch(0.99 0.055 90) 0%,
-    oklch(0.96 0.11 82) 13%,
-    oklch(0.92 0.15 75) 27%,
-    oklch(0.985 0.075 88) 39%,
-    oklch(0.89 0.16 67) 52%,
-    oklch(0.97 0.12 81) 66%,
-    oklch(0.92 0.155 72) 82%,
-    oklch(0.99 0.065 89) 100%
+    oklch(0.998 0.012 88) 0%,
+    oklch(0.992 0.022 82) 15%,
+    oklch(0.978 0.035 76) 30%,
+    oklch(0.999 0.008 86) 42%,
+    oklch(0.965 0.045 70) 54%,
+    oklch(0.992 0.022 82) 68%,
+    oklch(0.977 0.04 74) 82%,
+    oklch(0.998 0.012 88) 100%
   ) !important;
-  border-color: oklch(0.84 0.14 70) !important;
-  color: oklch(0.2 0.025 45) !important;
+  border-color: oklch(0.9 0.035 77) !important;
+  color: oklch(0.2 0.012 65) !important;
   box-shadow:
-    0 4px 14px oklch(0.72 0.13 69 / 0.28),
-    inset 0 1px 0 oklch(0.995 0.035 90 / 0.95),
-    inset 0 -1px 0 oklch(0.72 0.13 68 / 0.3) !important;
+    0 4px 16px oklch(0.82 0.035 75 / 0.22),
+    inset 0 1px 0 oklch(1 0.006 85 / 0.98),
+    inset 0 -1px 0 oklch(0.84 0.045 72 / 0.24) !important;
 }
 
 .zaf-main-shell .zaf-desktop-secondary-nav .bg-primary.opacity-100 {
   background: linear-gradient(
     90deg,
-    oklch(0.97 0.13 82),
+    oklch(0.994 0.018 84),
     var(--ty-bronze),
-    oklch(0.9 0.15 68)
+    oklch(0.97 0.04 72)
   ) !important;
+  border-color: oklch(0.9 0.035 77) !important;
+  box-shadow:
+    0 2px 10px oklch(0.82 0.035 75 / 0.18),
+    inset 0 1px 0 oklch(1 0.006 85 / 0.95);
+}
+
+/* Silver finish for the existing hand-drawn main navigation SVGs, including active states. */
+.zaf-main-shell .zaf-nav-icon {
+  filter:
+    grayscale(1)
+    saturate(0)
+    brightness(1.22)
+    contrast(0.96)
+    drop-shadow(0 1px 3px oklch(0.7 0.008 265 / 0.2));
+}
+
+.zaf-main-shell .zaf-desktop-primary-item[aria-pressed="true"] .zaf-nav-icon,
+.zaf-main-shell .zaf-mobile-primary-item[aria-pressed="true"] .zaf-nav-icon {
+  filter:
+    grayscale(1)
+    saturate(0)
+    brightness(1.35)
+    drop-shadow(0 0 6px oklch(0.9 0.008 265 / 0.4))
+    drop-shadow(0 2px 5px oklch(0.02 0.01 265 / 0.22));
+}
+
+/* Pulse-inspired custom line icons across all page cards.
+   Six original icon marks rotate through metric and information cards; Pulse and Trust keep their own icon placements. */
+.zaf-main-shell .zaf-unified-card,
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card) {
+  position: relative;
+}
+
+.zaf-main-shell .zaf-unified-card::after,
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card)::after,
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card)::after {
+  content: "";
+  position: absolute;
+  top: .78rem;
+  right: .8rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  background: linear-gradient(135deg, oklch(0.99 0.004 265), oklch(0.72 0.01 265) 58%, oklch(0.88 0.008 265));
+  -webkit-mask-image: var(--zaf-card-icon-mask, var(--zaf-icon-network));
+  mask-image: var(--zaf-card-icon-mask, var(--zaf-icon-network));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: .78;
+  filter: drop-shadow(0 1px 2px oklch(0.02 0.01 265 / .25));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.zaf-main-shell .zaf-unified-card > *,
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card) > *,
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card) > * {
+  position: relative;
+  z-index: 1;
+}
+
+.zaf-main-shell .zaf-unified-card .zaf-unified-card-value {
+  padding-right: 1.5rem;
+}
+
+.zaf-main-shell .zaf-unified-card:nth-child(6n + 1),
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 1),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 1) {
+  --zaf-card-icon-mask: var(--zaf-icon-trend);
+}
+
+.zaf-main-shell .zaf-unified-card:nth-child(6n + 2),
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 2),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 2) {
+  --zaf-card-icon-mask: var(--zaf-icon-network);
+}
+
+.zaf-main-shell .zaf-unified-card:nth-child(6n + 3),
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 3),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 3) {
+  --zaf-card-icon-mask: var(--zaf-icon-radar);
+}
+
+.zaf-main-shell .zaf-unified-card:nth-child(6n + 4),
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 4),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 4) {
+  --zaf-card-icon-mask: var(--zaf-icon-spark);
+}
+
+.zaf-main-shell .zaf-unified-card:nth-child(6n + 5),
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 5),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n + 5) {
+  --zaf-card-icon-mask: var(--zaf-icon-shield);
+}
+
+.zaf-main-shell .zaf-unified-card:nth-child(6n),
+.zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n),
+.zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card):nth-child(6n) {
+  --zaf-card-icon-mask: var(--zaf-icon-code);
+}
+
+@media (max-width: 767px) {
+  .zaf-main-shell .zaf-unified-card::after,
+  .zaf-main-shell div.rounded-xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card)::after,
+  .zaf-main-shell div.rounded-2xl.border.border-border.bg-card:not(.zaf-pulse-card):not(.zaf-trust-card)::after {
+    top: .7rem;
+    right: .7rem;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .zaf-main-shell .zaf-unified-card .zaf-unified-card-value {
+    padding-right: 1.3rem;
+  }
 }
