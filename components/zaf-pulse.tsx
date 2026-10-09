@@ -61,7 +61,7 @@ function signalTitle(signal: RadarSignal, locale: Locale) {
     "protocol": ["Protocol Observation", "Protokol Gözlemi"],
   };
   const pair = labels[signal.id];
-  return pair ? tx(locale, pair[0], pair[1]) : signal.title;
+  return pair ? tx(locale, pair[0], pair[1]) : translate(locale, signal.title, signal.title);
 }
 
 function changeLabel(value: number | null, locale: Locale) {
