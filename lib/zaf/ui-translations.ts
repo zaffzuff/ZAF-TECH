@@ -83,7 +83,7 @@ const rows: TranslationRow[] = [
   ["Closed","Cerrado","已关闭","Chiuso","Fermé","Geschlossen","Fechado"],
   ["Network Activity Detail","Detalle de actividad de red","网络活动详情","Dettaglio dell’attività di rete","Détail de l’activité réseau","Details zur Netzwerkaktivität","Detalhe da atividade de rede"],
   ["Observed Mainnet activity metrics from the current ledger sample.","Métricas de actividad observada en Mainnet a partir de la muestra actual de ledgers.","来自当前 ledger 样本的 Mainnet 活动观察指标。","Metriche dell’attività Mainnet osservata dal campione corrente di ledger.","Mesures de l’activité Mainnet observée à partir de l’échantillon actuel de ledgers.","Beobachtete Mainnet-Aktivitätsmetriken aus der aktuellen Ledger-Stichprobe.","Métricas da atividade observada na Mainnet a partir da amostra atual de ledgers."],
-  ["Transaction Change","Cambio de transacciones","交易变化","Variazione delle transazioni","Variation des transactions","Transaktionsänderung","Variação das transações"]
+  ["Transaction Change","Cambio de transacciones","交易变化","Variazione delle transazioni","Variation des transactions","Transaktionsänderung","Variação das transações"],
   ["Vs Previous Observation","Frente a la observación anterior","与上次观察相比","Rispetto all’osservazione precedente","Par rapport à l’observation précédente","Gegenüber der vorherigen Beobachtung","Face à observação anterior"],
   ["Operation Change","Cambio de operaciones","操作变化","Variazione delle operazioni","Variation des opérations","Änderung der Vorgänge","Variação das operações"],
   ["Success Rate","Tasa de éxito","成功率","Tasso di successo","Taux de réussite","Erfolgsrate","Taxa de sucesso"],
