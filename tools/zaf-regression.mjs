@@ -120,6 +120,23 @@ if (!piRuntime.includes("https://api.testnet.minepi.com") || !piRuntime.includes
 if (!piRuntime.includes("const compatible = !(sdkSandbox && network === \"mainnet\");")) {
   throw new Error("Pi SDK Sandbox/network compatibility guard regression");
 }
+const piAuthRoute = fs.readFileSync(path.join(root, "app/api/zaf/pi/auth/route.ts"), "utf8");
+for (const token of ["pi-auth-verify", "/me", "Authorization", "Bearer", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
+  if (!piAuthRoute.includes(token)) throw new Error("Pi authentication verification regression: " + token);
+}
+if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
+  throw new Error("Pi username-only authentication must not require payment credentials or scope");
+}
+const piSignIn = fs.readFileSync(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
+for (const token of ["https://sdk.minepi.com/pi-sdk.js", "Pi.init", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com"]) {
+  if (!piSignIn.includes(token)) throw new Error("Pi Sign-In UI regression: " + token);
+}
+const zafAppSource = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sign-in";') ||
+    !zafAppSource.includes('<ZafPiSignIn locale={locale} />')) {
+  throw new Error("Pi Sign-In must be mounted in the main ZAF TECH interface");
+}
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
