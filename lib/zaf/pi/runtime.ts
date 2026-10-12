@@ -2,11 +2,22 @@ export const PI_SDK_VERSION = "2.0";
 export const PI_SDK_SCRIPT_URL = "https://sdk.minepi.com/pi-sdk.js";
 export const PI_PLATFORM_API_DEFAULT = "https://api.minepi.com/v2";
 
-export const PI_RUNTIME_ENVIRONMENTS = ["sandbox", "production"] as const;
-export type PiRuntimeEnvironment = (typeof PI_RUNTIME_ENVIRONMENTS)[number];
-
+/**
+ * The app's blockchain network is selected in the Pi Developer Portal and
+ * cannot be changed for a registered app. Keep it separate from the SDK mode:
+ * Sandbox is a browser/testing environment, not another name for Testnet.
+ */
 export const PI_NETWORKS = ["testnet", "mainnet"] as const;
 export type PiNetwork = (typeof PI_NETWORKS)[number];
+
+/**
+ * "sandbox" is for an app opened through Pi's Sandbox environment.
+ * "hosted" is for the app's configured URL opened as a normal Pi app.
+ *
+ * Both Testnet and Mainnet apps can be hosted. Only Testnet may use Sandbox.
+ */
+export const PI_SDK_MODES = ["sandbox", "hosted"] as const;
+export type PiSdkMode = (typeof PI_SDK_MODES)[number];
 
 const HORIZON_DEFAULTS: Record<PiNetwork, string> = {
   testnet: "https://api.testnet.minepi.com",
@@ -14,8 +25,8 @@ const HORIZON_DEFAULTS: Record<PiNetwork, string> = {
 };
 
 export type PiRuntimeConfig = {
-  environment: PiRuntimeEnvironment;
   network: PiNetwork;
+  sdkMode: PiSdkMode;
   sdkSandbox: boolean;
   sdkVersion: string;
   sdkScriptUrl: string;
@@ -26,32 +37,33 @@ export type PiRuntimeConfig = {
   configurationError: string | null;
 };
 
-function normalizeEnvironment(value: string | undefined): PiRuntimeEnvironment {
-  return value?.trim().toLowerCase() === "production" ? "production" : "sandbox";
+function normalizeNetwork(value: string | undefined): PiNetwork {
+  return value?.trim().toLowerCase() === "mainnet" ? "mainnet" : "testnet";
 }
 
-function normalizeNetwork(value: string | undefined, environment: PiRuntimeEnvironment): PiNetwork {
-  if (value?.trim().toLowerCase() === "mainnet") return "mainnet";
-  if (value?.trim().toLowerCase() === "testnet") return "testnet";
-  return environment === "production" ? "mainnet" : "testnet";
+function normalizeSdkMode(value: string | undefined): PiSdkMode {
+  return value?.trim().toLowerCase() === "sandbox" ? "sandbox" : "hosted";
 }
 
 function cleanBaseUrl(value: string) {
-  return value.replace(/\/+$/, "");
+  return value.replace(/\\/+$/, "");
 }
 
 export function getPiRuntimeConfig(): PiRuntimeConfig {
-  const environment = normalizeEnvironment(process.env.PI_ENVIRONMENT);
-  const network = normalizeNetwork(process.env.PI_NETWORK, environment);
-  const compatible = environment === "sandbox" ? network === "testnet" : network === "mainnet";
+  const network = normalizeNetwork(process.env.PI_NETWORK);
+  const sdkMode = normalizeSdkMode(process.env.PI_SDK_MODE);
+  const sdkSandbox = sdkMode === "sandbox";
+
+  // Sandbox uses Testnet. A hosted Testnet app is valid with sandbox:false.
+  const compatible = !(sdkSandbox && network === "mainnet");
   const configurationError = compatible
     ? null
-    : `Pi runtime mismatch: ${environment} must use ${environment === "sandbox" ? "testnet" : "mainnet"}.`;
+    : "Pi SDK Sandbox mode cannot be used with a Mainnet app.";
 
   return {
-    environment,
     network,
-    sdkSandbox: environment === "sandbox",
+    sdkMode,
+    sdkSandbox,
     sdkVersion: PI_SDK_VERSION,
     sdkScriptUrl: PI_SDK_SCRIPT_URL,
     platformApiBaseUrl: cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT),
@@ -62,10 +74,20 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
   };
 }
 
-export function assertPiRuntimeCompatible(config = getPiRuntimeConfig()): asserts config is PiRuntimeConfig & { compatible: true } {
-  if (!config.compatible) throw new Error(config.configurationError ?? "Pi runtime configuration is incompatible.");
+export function assertPiRuntimeCompatible(
+  config = getPiRuntimeConfig(),
+): asserts config is PiRuntimeConfig & { compatible: true } {
+  if (!config.compatible) {
+    throw new Error(config.configurationError ?? "Pi runtime configuration is incompatible.");
+  }
 }
 
-export function isPiProductionReady(config = getPiRuntimeConfig()) {
-  return config.environment === "production" && config.network === "mainnet" && config.compatible && config.apiKeyConfigured;
+/** True when the configured runtime targets the Mainnet app outside Sandbox. */
+export function isPiMainnetRuntimeReady(config = getPiRuntimeConfig()) {
+  return config.network === "mainnet" && config.sdkMode === "hosted" && config.compatible;
+}
+
+/** Payment routes need the app's server-side API key in addition to a Mainnet runtime. */
+export function isPiPaymentReady(config = getPiRuntimeConfig()) {
+  return isPiMainnetRuntimeReady(config) && config.apiKeyConfigured;
 }
