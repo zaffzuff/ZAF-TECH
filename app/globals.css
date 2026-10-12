@@ -1584,3 +1584,11 @@
     line-height: 1;
   }
 }
+
+/* Keep only the branded top header visible while the page content scrolls. */
+.zaf-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--background);
+}
