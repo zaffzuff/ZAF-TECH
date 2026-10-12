@@ -1,4 +1,4 @@
-name: Build ZAF TECH Web App
+name: Build ZAF Tech Web App
 
 on:
   push:
