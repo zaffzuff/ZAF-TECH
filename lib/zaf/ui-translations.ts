@@ -496,7 +496,7 @@ const rows: TranslationRow[] = [
   ["Verified username:","Nombre de usuario verificado:","已验证用户名：","Nome utente verificato:","Nom d’utilisateur vérifié :","Verifizierter Benutzername:","Nome de utilizador verificado:"],
   ["Pi account verified.","Cuenta Pi verificada.","Pi 账户已验证。","Account Pi verificato.","Compte Pi vérifié.","Pi-Konto verifiziert.","Conta Pi verificada."],
   ["Pi sign-in could not be verified. Please try again.","No se pudo verificar el inicio de sesión con Pi. Inténtalo de nuevo.","无法验证 Pi 登录。请重试。","Impossibile verificare l'accesso con Pi. Riprova.","La connexion Pi n’a pas pu être vérifiée. Réessayez.","Die Pi-Anmeldung konnte nicht verifiziert werden. Bitte erneut versuchen.","Não foi possível verificar o início de sessão com Pi. Tenta novamente."],
-  ["Open ZAF TECH inside Pi Browser and try again.","Abre ZAF TECH dentro de Pi Browser e inténtalo de nuevo.","请在 Pi Browser 中打开 ZAF TECH 并重试。","Apri ZAF TECH in Pi Browser e riprova.","Ouvrez ZAF TECH dans Pi Browser et réessayez.","Öffne ZAF TECH in Pi Browser und versuche es erneut.","Abre o ZAF TECH no Pi Browser e tenta novamente."],
+  ["Open ZAF Tech inside Pi Browser and try again.","Abre ZAF TECH dentro de Pi Browser e inténtalo de nuevo.","请在 Pi Browser 中打开 ZAF TECH 并重试。","Apri ZAF TECH in Pi Browser e riprova.","Ouvrez ZAF TECH dans Pi Browser et réessayez.","Öffne ZAF TECH in Pi Browser und versuche es erneut.","Abre o ZAF TECH no Pi Browser e tenta novamente."],
 ];
 
 const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"];
