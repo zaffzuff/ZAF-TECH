@@ -20,6 +20,7 @@ import { ZafDefiObservatory } from "@/components/zaf-defi-observatory";
 import { ZafLaunchpadObservatory } from "@/components/zaf-launchpad-observatory";
 import { ZafEcosystemGraph } from "@/components/zaf-ecosystem-graph";
 import { ZafDeveloperTools } from "@/components/zaf-developer-tools";
+import { ZafPiSignIn } from "@/components/zaf-pi-sign-in";
 import { ZafWalletIntelligence } from "@/components/zaf-wallet-intelligence";
 import { ZafPulse } from "@/components/zaf-pulse";
 import { ZafTrust } from "@/components/zaf-trust";
@@ -660,6 +661,7 @@ export function ZafTechApp() {
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Read-only", "Salt-okunur")}</span>
             <span className={`rounded-full border px-2.5 py-1 ${loading ? "border-border text-muted-foreground" : sourceOnline ? "border-ty-active/40 text-foreground" : "border-border text-muted-foreground"}`}>{loading ? tr("Checking Source…", "Kaynak Kontrol Ediliyor…") : sourceOnline ? tr("Ecosystem Source Online", "Ekosistem Kaynağı Çevrimiçi") : tr("Source Unavailable", "Kaynak Kullanılamıyor")}</span>
           </div>
+          <ZafPiSignIn locale={locale} />
           <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
           <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-muted-foreground">
             <span><span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${loading ? "bg-muted-foreground" : loadError ? "bg-destructive" : "bg-ty-active"}`} />{loading ? tr("Checking Observations", "Gözlemler Kontrol Ediliyor") : loadError ? tr("Observation Error", "Gözlem Hatası") : tr("Live Observations", "Canlı Gözlemler")}</span>
