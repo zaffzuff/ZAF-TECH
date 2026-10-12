@@ -1,4 +1,4 @@
-name: Build ZAF TECH Node Connector
+name: Build ZAF Tech Node Connector
 
 # Builds are manual-only to avoid consuming Actions minutes for every connector change.
 on:
@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: Prepare ZAF TECH logo
+      - name: Prepare ZAF Tech logo
         shell: powershell
         run: |
           choco install imagemagick.app -y --no-progress
