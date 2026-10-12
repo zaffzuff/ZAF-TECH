@@ -1,22 +1,13 @@
 name: Release ZAF TECH Node Connector
 
+# Releases are manual-only to avoid building/publishing on every connector change.
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - "tools/zaf-node-connector.mjs"
-      - "tools/zaf-node-connector.cjs"
-      - "tools/zaf-node-connector-package/**"
-      - "tools/zaf-node-connector-tray/**"
-      - ".github/workflows/build-node-connector.yml"
-      - ".github/workflows/release-node-connector.yml"
   workflow_dispatch:
     inputs:
       tag:
         description: "Release tag to build and upload"
         required: true
-        default: "v1.6.6"
+        default: "v1.6.7"
         type: string
 
 permissions:
@@ -75,7 +66,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_TAG: ${{ inputs.tag }}
         run: |
-          $tag = if ($env:INPUT_TAG) { $env:INPUT_TAG } elseif ($env:GITHUB_REF_NAME -eq "master") { "v1.6.6" } else { $env:GITHUB_REF_NAME }
+          $tag = if ($env:INPUT_TAG) { $env:INPUT_TAG } elseif ($env:GITHUB_REF_NAME -eq "master") { "v1.6.7" } else { $env:GITHUB_REF_NAME }
           if (-not $tag) { throw "Release tag could not be determined." }
 
           $releasesJson = gh release list --repo "$env:GITHUB_REPOSITORY" --limit 100 --json tagName | ConvertFrom-Json
@@ -98,7 +89,7 @@ jobs:
           gh release upload $tag "ZAF-TECH-Node-Connector-SHA256SUMS.txt" --repo "$env:GITHUB_REPOSITORY" --clobber
           if ($LASTEXITCODE -ne 0) { throw "gh release checksum upload failed with exit code $LASTEXITCODE" }
 
-          $releaseNotes = "## ZAF TECH Node Connector $tag`n`nWindows distribution release for the ZAF TECH local Pi Node Connector.`n`n### What is included`n`n* Windows x64 standalone Node Connector executable`n* Windows installer with ZAF TECH branding`n* Windows startup and tray integration`n* Local-only connector architecture`n* Read-only Pi Node, Stellar Core, Docker and WSL diagnostics`n* Live host and Node container resource telemetry`n* Availability and Node history collection`n* Protocol compatibility reporting for Protocol 27 and 28`n* SHA-256 checksum for release verification`n`n### Security and Privacy`n`nThe Connector runs locally and listens only on 127.0.0.1:39100. It does not expose Docker or the Pi Node to the internet.`n`nIt does not request wallet passwords, passphrases, seed phrases, or private keys; send Pi transactions; control the wallet; modify Pi Node configuration; start, stop, or restart the Pi Node; provide remote Docker access; or upload Node diagnostics to a central server by itself.`n`n### Compatibility`n`nThis release is $tag. Supported Pi protocols: 27 and 28.`n`n### Verification`n`nA SHA-256 checksum is provided with the release.`n`n### Release assets`n`n* ZAF-TECH-Node-Connector-Setup.exe - Windows x64 installer`n* ZAF-TECH-Node-Connector-SHA256SUMS.txt - SHA-256 checksum`n`n### Attribution`n`nZAF TECH Node Connector is created and maintained by zaffzuff for the ZAF TECH project."
+          $releaseNotes = "## ZAF TECH Node Connector $tag`n`nWindows distribution release for the ZAF TECH local Pi Node Connector.`n`n### What is included`n`n* Windows x64 standalone Node Connector executable`n* Windows installer with ZAF TECH branding`n* Windows startup and tray integration`n* Local-only connector architecture`n`n* Read-only Pi Node, Stellar Core, Docker and WSL diagnostics`n* Live host and Node container resource telemetry`n* Availability and Node history collection`n* Protocol compatibility reporting for Protocol 27 and 28`n* SHA-256 checksum for release verification`n`n### Security and Privacy`n`nThe Connector runs locally and listens only on 127.0.0.1:39100. It does not expose Docker or the Pi Node to the internet.`n`nIt does not request wallet passwords, passphrases, seed phrases, or private keys; send Pi transactions; control the wallet; modify Pi Node configuration; start, stop, or restart the Pi Node; provide remote Docker access; or upload Node diagnostics to a central server by itself.`n`n### Compatibility`n`nThis release is $tag. Supported Pi protocols: 27 and 28.`n`n### Verification`n`nA SHA-256 checksum is provided with the release.`n`n### Release assets`n`n* ZAF-TECH-Node-Connector-Setup.exe - Windows x64 installer`n* ZAF-TECH-Node-Connector-SHA256SUMS.txt - SHA-256 checksum`n`n### Attribution`n`nZAF TECH Node Connector is maintained for the ZAF TECH project."
           gh release edit $tag --repo "$env:GITHUB_REPOSITORY" --title "ZAF TECH Node Connector $tag" --notes "$releaseNotes"
           if ($LASTEXITCODE -ne 0) { throw "gh release edit failed with exit code $LASTEXITCODE" }
 
