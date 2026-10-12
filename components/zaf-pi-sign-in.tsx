@@ -76,9 +76,14 @@ function initializePiSdk() {
   // Sandbox mode is determined by Pi's Sandbox host, not by the registered
   // blockchain network. A hosted Testnet app may correctly use sandbox:false.
   const configuredMode = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase();
+  // Pi Sandbox authorizes the configured Development URL, then redirects back
+  // to that host (e.g. zaf-tech.vercel.app), so the hostname alone cannot
+  // identify Sandbox mode. Mark the registered Development URL with
+  // ?pi_sandbox=true to carry the mode through the redirect.
+  const requestedByUrl = new URLSearchParams(window.location.search).get("pi_sandbox") === "true";
   const sandbox = configuredMode
     ? configuredMode === "sandbox"
-    : window.location.hostname === "sandbox.minepi.com";
+    : requestedByUrl || window.location.hostname === "sandbox.minepi.com";
   if (initializedSandboxMode !== sandbox) {
     pi.init({ version: "2.0", sandbox });
     initializedSandboxMode = sandbox;
