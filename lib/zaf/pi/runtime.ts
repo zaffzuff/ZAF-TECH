@@ -46,7 +46,7 @@ function normalizeSdkMode(value: string | undefined): PiSdkMode {
 }
 
 function cleanBaseUrl(value: string) {
-  return value.replace(/\\/+$/, "");
+  return value.replace(/\/+$/, "");
 }
 
 export function getPiRuntimeConfig(): PiRuntimeConfig {
