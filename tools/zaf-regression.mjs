@@ -45,6 +45,12 @@ const required = [
   "lib/zaf/app-health-score.ts",
   "components/zaf-node-intelligence.tsx",
   "components/zaf-node-history.tsx",
+  "lib/zaf/pi/auth.ts",
+  "lib/zaf/pi/session.ts",
+  "app/api/auth/pi/route.ts",
+  "app/api/auth/pi/session/route.ts",
+  "app/api/auth/pi/logout/route.ts",
+  "app/api/auth/pi/config/route.ts",
 ];
 
 for (const file of required) {
@@ -119,6 +125,56 @@ if (!piRuntime.includes("https://api.testnet.minepi.com") || !piRuntime.includes
 }
 if (!piRuntime.includes("environment === \"sandbox\" ? network === \"testnet\" : network === \"mainnet\"")) {
   throw new Error("Pi runtime compatibility guard regression");
+}
+for (const token of ['function isTrustedPiPlatformApiBaseUrl', 'url.protocol === "https:"', 'url.hostname === "api.minepi.com"', 'url.pathname === "/v2"', "platformApiCompatible"]) {
+  if (!piRuntime.includes(token)) throw new Error("Trusted Pi Platform API guard regression: " + token);
+}
+const piAuth = fs.readFileSync(path.join(root, "lib/zaf/pi/auth.ts"), "utf8");
+for (const token of ["verifyPiAccessToken", "/me", "Authorization", "Bearer", "PI_RUNTIME_MISMATCH", "INVALID_ACCESS_TOKEN", "AbortSignal.timeout"]) {
+  if (!piAuth.includes(token)) throw new Error("Pi authentication verification regression: " + token);
+}
+if (piAuth.includes("PI_API_KEY")) throw new Error("Pi access-token verifier must not depend on the Server API key");
+
+const piSession = fs.readFileSync(path.join(root, "lib/zaf/pi/session.ts"), "utf8");
+for (const token of ["PI_SESSION_COOKIE", "randomBytes", "hashSessionToken", "createPiSession", "getPiSession", "deletePiSession", "cleanupExpiredPiSessions", "httpOnly: true", "sameSite: \"lax\"", "maxAge: PI_SESSION_MAX_AGE_SECONDS"]) {
+  if (!piSession.includes(token)) throw new Error("Pi session security regression: " + token);
+}
+
+for (const token of ["0003_pi_auth_sessions", "CREATE TABLE IF NOT EXISTS zaf_pi_sessions", "session_hash TEXT PRIMARY KEY", "zaf_pi_sessions_pi_uid_idx", "zaf_pi_sessions_expires_at_idx"]) {
+  if (!dbRateLimit.includes(token)) throw new Error("Pi session migration regression: " + token);
+}
+const piSessionMigration = dbRateLimit.slice(dbRateLimit.indexOf("id: \"0003_pi_auth_sessions\""));
+if (piSessionMigration.includes("access_token TEXT")) throw new Error("Pi access token must never be persisted in session schema");
+
+for (const file of [
+  "app/api/auth/pi/route.ts",
+  "app/api/auth/pi/session/route.ts",
+  "app/api/auth/pi/logout/route.ts",
+  "app/api/auth/pi/config/route.ts",
+]) {
+  const source = fs.readFileSync(path.join(root, file), "utf8");
+  if (!source.includes("export async function")) throw new Error("Pi auth route regression: " + file);
+  if (!source.includes('Cache-Control')) throw new Error("Pi auth cache-control regression: " + file);
+}
+const piLoginRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/route.ts"), "utf8");
+for (const token of ["enforceRateLimit", "pi-auth", "failClosed: true", "verifyPiAccessToken", "createPiSession", "setPiSessionCookie", "SESSION_UNAVAILABLE", "MAX_PI_AUTH_BODY_BYTES", "getReader()", "totalBytes > MAX_PI_AUTH_BODY_BYTES", "status: 413"]) {
+  if (!piLoginRoute.includes(token)) throw new Error("Pi login route regression: " + token);
+}
+const piSmoke = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
+for (const token of ["new ReadableStream", 'duplex: "half"', "oversizedPiLogin.status !== 413", "Pi session storage probe", "expectedLogoutStatus", "Pi logout with a session cookie"]) {
+  if (!piSmoke.includes(token)) throw new Error("Pi streamed body smoke coverage regression: " + token);
+}
+const piSessionRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/session/route.ts"), "utf8");
+for (const token of ["pi-session", "getPiSession", "authenticated: false", "authenticated: true"]) {
+  if (!piSessionRoute.includes(token)) throw new Error("Pi session route regression: " + token);
+}
+const piLogoutRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/logout/route.ts"), "utf8");
+for (const token of ["pi-logout", "deletePiSession", "clearPiSessionCookie", "SESSION_UNAVAILABLE", "status: 503"]) {
+  if (!piLogoutRoute.includes(token)) throw new Error("Pi logout route regression: " + token);
+}
+const piConfigRoute = fs.readFileSync(path.join(root, "app/api/auth/pi/config/route.ts"), "utf8");
+for (const token of ["getPiRuntimeConfig", "sdkVersion", "sdkScriptUrl", "sandbox", "compatible"]) {
+  if (!piConfigRoute.includes(token)) throw new Error("Pi auth config route regression: " + token);
 }
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {

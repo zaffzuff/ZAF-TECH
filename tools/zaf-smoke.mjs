@@ -60,6 +60,15 @@ async function request(path) {
   };
 }
 
+async function requestWithOptions(path, options = {}) {
+  const response = await fetchWithTimeout(baseUrl + path, { redirect: "manual", ...options });
+  return {
+    status: response.status,
+    headers: Object.fromEntries(response.headers.entries()),
+    text: await response.text(),
+  };
+}
+
 function stopSmokeServer(child) {
   if (!child || child.exitCode != null) return;
   if (process.platform === "win32") {
@@ -111,6 +120,75 @@ try {
     if (response.status !== check.status) {
       throw new Error(`${check.path} expected ${check.status}, received ${response.status}: ${response.text.slice(0, 220)}`);
     }
+  }
+
+  const piConfig = await request("/api/auth/pi/config");
+  if (piConfig.status !== 200) throw new Error(`/api/auth/pi/config expected 200, received ${piConfig.status}`);
+  let piConfigBody;
+  try { piConfigBody = JSON.parse(piConfig.text); } catch { throw new Error("Pi auth config did not return JSON"); }
+  if (piConfigBody.sdkVersion !== "2.0" || piConfigBody.sdkScriptUrl !== "https://sdk.minepi.com/pi-sdk.js") {
+    throw new Error("Pi auth config returned an unexpected SDK configuration");
+  }
+  if (!["sandbox", "production"].includes(piConfigBody.environment) || !["testnet", "mainnet"].includes(piConfigBody.network)) {
+    throw new Error("Pi auth config returned an invalid environment matrix");
+  }
+
+  const piSession = await request("/api/auth/pi/session");
+  if (piSession.status !== 401) throw new Error(`/api/auth/pi/session expected 401 without a session, received ${piSession.status}`);
+
+  const piLogin = await requestWithOptions("/api/auth/pi", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (piLogin.status !== 400) throw new Error(`/api/auth/pi empty body expected 400, received ${piLogin.status}: ${piLogin.text.slice(0, 220)}`);
+
+  // A streamed request deliberately omits Content-Length. The server must
+  // enforce the same body limit while reading the stream, not only by header.
+  const oversizedPiBody = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(JSON.stringify({ accessToken: "x".repeat(20_000) })));
+      controller.close();
+    },
+  });
+  const oversizedPiLogin = await requestWithOptions("/api/auth/pi", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: oversizedPiBody,
+    duplex: "half",
+  });
+  if (oversizedPiLogin.status !== 413) {
+    throw new Error(`/api/auth/pi streamed oversized body expected 413, received ${oversizedPiLogin.status}: ${oversizedPiLogin.text.slice(0, 220)}`);
+  }
+
+  const piLogout = await requestWithOptions("/api/auth/pi/logout", { method: "POST" });
+  if (piLogout.status !== 200) throw new Error(`/api/auth/pi/logout expected 200, received ${piLogout.status}`);
+  if (!/zaf_pi_session=.*Max-Age=0/i.test(piLogout.headers["set-cookie"] ?? "")) {
+    throw new Error("Pi logout did not clear the session cookie");
+  }
+
+  // Probe storage with a syntactically valid but unknown cookie. If storage is
+  // unavailable, session lookup and logout must both fail closed; if storage
+  // is available, the unknown session must remain unauthenticated and logout
+  // must be idempotent. The browser cookie must be cleared in either case.
+  const sessionCookie = "zaf_pi_session=smoke-invalid-session-token";
+  const piSessionStorageProbe = await requestWithOptions("/api/auth/pi/session", {
+    headers: { cookie: sessionCookie },
+  });
+  if (![401, 503].includes(piSessionStorageProbe.status)) {
+    throw new Error(`Pi session storage probe expected 401 or 503, received ${piSessionStorageProbe.status}`);
+  }
+
+  const piLogoutWithCookie = await requestWithOptions("/api/auth/pi/logout", {
+    method: "POST",
+    headers: { cookie: sessionCookie },
+  });
+  const expectedLogoutStatus = piSessionStorageProbe.status === 503 ? 503 : 200;
+  if (piLogoutWithCookie.status !== expectedLogoutStatus) {
+    throw new Error(`Pi logout storage failure expected ${expectedLogoutStatus}, received ${piLogoutWithCookie.status}`);
+  }
+  if (!/zaf_pi_session=.*Max-Age=0/i.test(piLogoutWithCookie.headers["set-cookie"] ?? "")) {
+    throw new Error("Pi logout with a session cookie did not clear the local cookie");
   }
 
   if (external) {

@@ -40,13 +40,34 @@ function cleanBaseUrl(value: string) {
   return value.replace(/\/+$/, "");
 }
 
+function isTrustedPiPlatformApiBaseUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:"
+      && url.hostname === "api.minepi.com"
+      && !url.port
+      && !url.username
+      && !url.password
+      && url.pathname === "/v2"
+      && !url.search
+      && !url.hash;
+  } catch {
+    return false;
+  }
+}
+
 export function getPiRuntimeConfig(): PiRuntimeConfig {
   const environment = normalizeEnvironment(process.env.PI_ENVIRONMENT);
   const network = normalizeNetwork(process.env.PI_NETWORK, environment);
-  const compatible = environment === "sandbox" ? network === "testnet" : network === "mainnet";
-  const configurationError = compatible
-    ? null
-    : `Pi runtime mismatch: ${environment} must use ${environment === "sandbox" ? "testnet" : "mainnet"}.`;
+  const networkCompatible = environment === "sandbox" ? network === "testnet" : network === "mainnet";
+  const platformApiBaseUrl = cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT);
+  const platformApiCompatible = isTrustedPiPlatformApiBaseUrl(platformApiBaseUrl);
+  const compatible = networkCompatible && platformApiCompatible;
+  const configurationError = !networkCompatible
+    ? `Pi runtime mismatch: ${environment} must use ${environment === "sandbox" ? "testnet" : "mainnet"}.`
+    : !platformApiCompatible
+      ? "Pi Platform API must use the trusted HTTPS endpoint https://api.minepi.com/v2."
+      : null;
 
   return {
     environment,
@@ -54,7 +75,7 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
     sdkSandbox: environment === "sandbox",
     sdkVersion: PI_SDK_VERSION,
     sdkScriptUrl: PI_SDK_SCRIPT_URL,
-    platformApiBaseUrl: cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT),
+    platformApiBaseUrl,
     horizonBaseUrl: cleanBaseUrl(process.env.PI_HORIZON_BASE_URL?.trim() || HORIZON_DEFAULTS[network]),
     apiKeyConfigured: Boolean(process.env.PI_API_KEY),
     compatible,
