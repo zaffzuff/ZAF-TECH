@@ -1,6 +1,6 @@
-#define MyAppName "ZAF-TECH Pi Node Connector"
-#define MyAppVersion "1.6.6"
-#define MyAppPublisher "ZAF TECH — zaffzuff"
+#define MyAppName "Pi Node Connector"
+#define MyAppVersion "1.6.7"
+#define MyAppPublisher "ZAF TECH"
 #define MyAppExeName "ZAF-TECH-Node-Connector.exe"
 
 [Setup]
@@ -8,8 +8,8 @@ AppId={{8B7F5C4D-8A2A-4D7B-9F7B-2E0B0D4C7A31}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-AppComments=Created by zaffzuff for ZAF TECH. ZAF-TECH Pi Node Connector runs as a Windows system tray application.
-AppCopyright=Copyright © 2026 zaffzuff / ZAF TECH
+AppComments=ZAF TECH Pi Node Connector runs as a Windows system tray application.
+AppCopyright=Copyright © 2026 ZAF TECH
 DefaultDirName={localappdata}\ZAF TECH\Node Connector
 DefaultGroupName=ZAF TECH
 DisableProgramGroupPage=yes
@@ -36,11 +36,11 @@ Source: "zaf-tech-logo.png"; DestDir: "{app}"; Flags: ignoreversion
 Name: "startup"; Description: "Start ZAF TECH Node Connector automatically with Windows"; GroupDescription: "Startup options:"; Flags: checkedonce
 
 [Icons]
-Name: "{group}\ZAF-TECH Pi Node Connector"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\zaf-tech-logo.ico"
-Name: "{group}\Uninstall ZAF TECH Node Connector"; Filename: "{uninstallexe}"
+Name: "{group}\Pi Node Connector"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\zaf-tech-logo.ico"
+Name: "{group}\Uninstall Pi Node Connector"; Filename: "{uninstallexe}"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "ZAF TECH Node Connector"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: startup
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Start ZAF TECH Node Connector now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Start Pi Node Connector now"; Flags: nowait postinstall skipifsilent
