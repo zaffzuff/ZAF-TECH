@@ -490,6 +490,13 @@ const rows: TranslationRow[] = [
   ["Observed changes in the calculated health state across stored checks.","Cambios observados en el estado de salud calculado entre las comprobaciones guardadas.","已存储检查中计算出的健康状态变化。","Variazioni osservate nello stato di salute calcolato tra i controlli salvati.","Changements observés de l’état de santé calculé entre les vérifications enregistrées.","Beobachtete Änderungen des berechneten Gesundheitsstatus zwischen gespeicherten Prüfungen.","Alterações observadas no estado de saúde calculado entre verificações guardadas."],
   ["First → Latest Status","Desde el primer estado hasta el más reciente","从首次状态到最新状态","Dal primo all’ultimo stato","Du premier au dernier état","Vom ersten zum neuesten Status","Do primeiro ao estado mais recente"],
   ["ZAF TECH does not claim Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet status or application health until the relevant property has been independently verified by an observable check. Category is a ZAF TECH classification based on the public name/URL signal and is not an official Pi category.","ZAF TECH no afirma el estado de Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet ni la salud de una aplicación hasta que una comprobación observable verifique de forma independiente la propiedad correspondiente. La categoría es una clasificación de ZAF TECH basada en el nombre o URL públicos, no una categoría oficial de Pi.","在相关属性经过可观测检查的独立验证之前，ZAF TECH 不会对 Pi Authentication、Pi Payments、PiNet、Mainnet/Testnet 状态或应用健康状况作出断言。类别是 ZAF TECH 根据公开名称/URL 信号所作的分类，并非 Pi 官方类别。","ZAF TECH non dichiara lo stato di Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet o la salute dell’app finché la proprietà pertinente non è verificata in modo indipendente da un controllo osservabile. La categoria è una classificazione ZAF TECH basata sul nome/URL pubblico, non una categoria ufficiale Pi.","ZAF TECH ne se prononce pas sur Pi Authentication, Pi Payments, PiNet, l’état Mainnet/Testnet ou la santé d’une application tant que la propriété concernée n’a pas été vérifiée indépendamment par un contrôle observable. La catégorie est une classification ZAF TECH fondée sur le nom ou l’URL public, et non une catégorie officielle de Pi.","ZAF TECH macht keine Aussage über Pi Authentication, Pi Payments, PiNet, den Mainnet-/Testnet-Status oder den Zustand einer Anwendung, bis die jeweilige Eigenschaft durch eine beobachtbare Prüfung unabhängig bestätigt wurde. Die Kategorie ist eine ZAF-TECH-Klassifizierung anhand des öffentlichen Namens-/URL-Signals und keine offizielle Pi-Kategorie.","A ZAF TECH não declara o estado de Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet ou a saúde de uma aplicação até que a propriedade relevante seja verificada de forma independente por uma verificação observável. A categoria é uma classificação da ZAF TECH baseada no nome/URL público e não uma categoria oficial da Pi."],
+  ["Sign in with Pi","Iniciar sesión con Pi","使用 Pi 登录","Accedi con Pi","Se connecter avec Pi","Mit Pi anmelden","Iniciar sessão com Pi"],
+  ["Connecting to Pi…","Conectando con Pi…","正在连接 Pi…","Connessione a Pi…","Connexion à Pi…","Verbindung zu Pi wird hergestellt…","A ligar à Pi…"],
+  ["Pi Account Verified","Cuenta Pi verificada","Pi 账户已验证","Account Pi verificato","Compte Pi vérifié","Pi-Konto verifiziert","Conta Pi verificada"],
+  ["Verified username:","Nombre de usuario verificado:","已验证用户名：","Nome utente verificato:","Nom d’utilisateur vérifié :","Verifizierter Benutzername:","Nome de utilizador verificado:"],
+  ["Pi account verified.","Cuenta Pi verificada.","Pi 账户已验证。","Account Pi verificato.","Compte Pi vérifié.","Pi-Konto verifiziert.","Conta Pi verificada."],
+  ["Pi sign-in could not be verified. Please try again.","No se pudo verificar el inicio de sesión con Pi. Inténtalo de nuevo.","无法验证 Pi 登录。请重试。","Impossibile verificare l'accesso con Pi. Riprova.","La connexion Pi n’a pas pu être vérifiée. Réessayez.","Die Pi-Anmeldung konnte nicht verifiziert werden. Bitte erneut versuchen.","Não foi possível verificar o início de sessão com Pi. Tenta novamente."],
+  ["Open ZAF Tech inside Pi Browser and try again.","Abre ZAF TECH dentro de Pi Browser e inténtalo de nuevo.","请在 Pi Browser 中打开 ZAF TECH 并重试。","Apri ZAF TECH in Pi Browser e riprova.","Ouvrez ZAF TECH dans Pi Browser et réessayez.","Öffne ZAF TECH in Pi Browser und versuche es erneut.","Abre o ZAF TECH no Pi Browser e tenta novamente."],
 ];
 
 const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"];
@@ -561,4 +568,12 @@ export const supplementalRussianUiTranslations: Record<string, string> = {
   "Falling": "Снижается",
   "Stable": "Стабильно",
   "Insufficient Data": "Недостаточно данных",
+
+  "Sign in with Pi": "Войти через Pi",
+  "Connecting to Pi…": "Подключение к Pi…",
+  "Pi Account Verified": "Аккаунт Pi подтверждён",
+  "Verified username:": "Подтверждённое имя пользователя:",
+  "Pi account verified.": "Аккаунт Pi подтверждён.",
+  "Pi sign-in could not be verified. Please try again.": "Не удалось подтвердить вход через Pi. Повторите попытку.",
+  "Open ZAF Tech inside Pi Browser and try again.": "Откройте ZAF Tech в Pi Browser и попробуйте снова.",
 };
