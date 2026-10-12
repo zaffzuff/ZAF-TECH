@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch (error) {
-    console.error("[ZAF TECH] Pi identity verification failed", error instanceof Error ? error.name : "unknown");
+    console.error("[ZAF Tech] Pi identity verification failed", error instanceof Error ? error.name : "unknown");
     return NextResponse.json({ error: "Pi verification is temporarily unavailable." }, {
       status: 502,
       headers: { "Cache-Control": "no-store" },
