@@ -3,8 +3,30 @@ name: Build ZAF TECH Web App
 on:
   push:
     branches: ["master"]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.mjs"
+      - "postcss.config.mjs"
+      - "tsconfig.json"
+      - "vercel.json"
   pull_request:
     branches: ["master"]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "lib/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "next.config.mjs"
+      - "postcss.config.mjs"
+      - "tsconfig.json"
+      - "vercel.json"
   workflow_dispatch:
 
 jobs:
