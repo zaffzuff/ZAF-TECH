@@ -128,7 +128,7 @@ if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
   throw new Error("Pi username-only authentication must not require payment credentials or scope");
 }
 const piSignIn = fs.readFileSync(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
-for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE"]) {
+for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE", "function withTimeout", "12_000", "25_000"]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Sign-In UI regression: " + token);
 }
 const zafAppSource = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
