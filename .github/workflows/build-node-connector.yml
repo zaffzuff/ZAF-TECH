@@ -1,14 +1,8 @@
 name: Build ZAF TECH Node Connector
 
+# Builds are manual-only to avoid consuming Actions minutes for every connector change.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/zaf-node-connector.mjs"
-      - "tools/zaf-node-connector.cjs"
-      - "tools/zaf-node-connector-package/**"
-      - "tools/zaf-node-connector-tray/**"
-      - ".github/workflows/build-node-connector.yml"
 
 jobs:
   windows:
