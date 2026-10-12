@@ -118,7 +118,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       setMessage(
         verificationStarted
           ? tr("Pi sign-in could not be verified. Please try again.", "Pi girişi doğrulanamadı. Lütfen tekrar dene.")
-          : tr("Open ZAF TECH inside Pi Browser and try again.", "ZAF TECH'i Pi Browser içinde açıp tekrar dene."),
+          : tr("Open ZAF Tech inside Pi Browser and try again.", "ZAF TECH'i Pi Browser içinde açıp tekrar dene."),
       );
     } finally {
       setBusy(false);
