@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { translate } from "@/lib/zaf/i18n";
 import type { Locale } from "@/lib/zaf/i18n";
 
 export type ZafSection = "overview" | "discover" | "network" | "intelligence" | "wallet";
@@ -281,7 +282,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   );
 
   return (
-    <nav className="zaf-navigation mt-4 border-t border-border pt-3" aria-label={locale === "tr" ? "Ekosistem Bölümleri" : "Ecosystem Sections"}>
+    <nav className="zaf-navigation mt-4 border-t border-border pt-3" aria-label={translate(locale, "Ecosystem Sections", "Ekosistem Bölümleri")}>
       <div className="hidden lg:block">
         <div className="zaf-desktop-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
           {sections.map(([id, title]) => {

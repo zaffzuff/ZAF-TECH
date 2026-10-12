@@ -105,14 +105,15 @@ function radarSignalTitle(id: string, locale: Locale) {
   return labels[id]?.[index] ?? id;
 }
 function ecosystemChangeLabel(category: EcosystemChangePayload["changes"][number]["category"], locale: Locale) {
-  const labels = {
-    app_count: locale === "tr" ? "Uygulama sayısı değişti" : "App count changed",
-    source_status: locale === "tr" ? "Kaynak durumu değişti" : "Source status changed",
-    signal_added: locale === "tr" ? "Yeni gözlemlendi" : "Newly observed",
-    signal_removed: locale === "tr" ? "Artık gözlemlenmiyor" : "No longer observed",
-    defi_status: locale === "tr" ? "DeFi durumu değişti" : "DeFi status changed",
-  } as const;
-  return labels[category ?? "signal_added"] ?? (locale === "tr" ? "Değişiklik" : "Change");
+  const labels: Record<NonNullable<EcosystemChangePayload["changes"][number]["category"]>, [string, string]> = {
+    app_count: ["App count changed", "Uygulama sayısı değişti"],
+    source_status: ["Source status changed", "Kaynak durumu değişti"],
+    signal_added: ["Newly observed", "Yeni gözlemlendi"],
+    signal_removed: ["No longer observed", "Artık gözlemlenmiyor"],
+    defi_status: ["DeFi status changed", "DeFi durumu değişti"],
+  };
+  const pair = labels[category ?? "signal_added"];
+  return translate(locale, pair[0], pair[1]);
 }
 
 function radarSignalValue(id: string, value: number | string | null, locale: Locale) {
@@ -160,7 +161,7 @@ function searchTypeLabel(type: SearchResult["type"], locale: Locale) {
     signal: ["Signal", "Sinyal"],
     ledger: ["Ledger", "Ledger"],
   };
-  return labels[type][locale === "tr" ? 1 : 0];
+  return translate(locale, labels[type][0], labels[type][1]);
 }
 
 function SearchIcon({ size = 16 }: { size?: number }) {
@@ -642,15 +643,15 @@ export function ZafTechApp() {
             <div className="flex min-w-0 items-center gap-2.5">
               <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={40} height={40} className="h-12 w-12 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="text-2xl font-bold tracking-tight ty-brand-text">ZAF TECH</div>
+                <div className="whitespace-nowrap text-[clamp(1.1rem,4.8vw,1.5rem)] font-bold tracking-tight ty-brand-text">ZAF TECH</div>
                 <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-1">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
-              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card p-2 text-xs text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
-              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card p-2 text-xs text-foreground disabled:opacity-50">{refreshing ? tr("Working", "Çalışıyor") : tr("Refresh", "Yenile")}</button>
+              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground" ><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
+              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2 text-[11px]">

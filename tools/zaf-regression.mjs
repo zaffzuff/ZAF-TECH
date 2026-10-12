@@ -142,23 +142,71 @@ if (!cronRoute.includes("CRON_SECRET") || !cronRoute.includes('authorization') |
 
 const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 const i18n = fs.readFileSync(path.join(root, "lib/zaf/i18n.ts"), "utf8");
-const ruStart = i18n.indexOf("  ru: {");
-const ruEnd = i18n.indexOf("\n  },\n", ruStart);
-if (ruStart < 0 || ruEnd < 0) throw new Error("Russian translation block is missing");
-const ruBlock = i18n.slice(ruStart, ruEnd);
+if (i18n.includes("spanishCopy")) throw new Error("Pseudo-localization fallback must not return");
+const supplementalTranslations = fs.readFileSync(path.join(root, "lib/zaf/ui-translations.ts"), "utf8");
+if (!supplementalTranslations.includes('const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"]')) {
+  throw new Error("Supplemental translation catalog is missing supported locales");
+}
+const russianCatalogStart = supplementalTranslations.indexOf("export const supplementalRussianUiTranslations:");
+const russianCatalogEnd = supplementalTranslations.indexOf("\n};", russianCatalogStart);
+if (russianCatalogStart < 0 || russianCatalogEnd < 0) {
+  throw new Error("Supplemental Russian translation catalog is missing");
+}
+const russianSupplementalTranslations = supplementalTranslations.slice(russianCatalogStart, russianCatalogEnd);
+
 const componentFiles = fs.readdirSync(path.join(root, "components"))
   .filter(file => file.endsWith(".tsx"))
   .map(file => fs.readFileSync(path.join(root, "components", file), "utf8"));
-const missingRussianKeys = new Set();
+const pairedUiKeys = new Set();
 for (const source of componentFiles) {
-  for (const match of source.matchAll(/tr\(\s*"([^"]+)"/g)) {
-    const key = match[1];
-    const linesInRu = ruBlock.split("\n");
-    if (!linesInRu.some(line => line.trimStart().startsWith(JSON.stringify(key) + ":"))) missingRussianKeys.add(key);
+  for (const match of source.matchAll(/\btr\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"/g)) {
+    pairedUiKeys.add(match[1].replace(/\\\\/g, "\\"));
+  }
+  // Some complex surfaces have local helpers named tx(en, tr) instead of tr(en, tr).
+  for (const match of source.matchAll(/\btx\(\s*(?:locale\s*,\s*)?"([^"]+)"\s*,\s*"([^"]+)"/g)) {
+    pairedUiKeys.add(match[1]);
   }
 }
-if (missingRussianKeys.size) {
-  throw new Error("Russian translation regression: missing keys: " + [...missingRussianKeys].slice(0, 12).join(" | "));
+for (const key of [
+  "App count changed", "Source status changed", "Newly observed", "No longer observed",
+  "DeFi status changed", "Change", "Ecosystem Sections", "App", "Source", "Signal", "Ledger",
+]) pairedUiKeys.add(key);
+
+for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
+  const localeStart = i18n.indexOf(`  ${locale}: {`);
+  const localeEnd = i18n.indexOf("\n  },", localeStart);
+  if (localeStart < 0 || localeEnd < 0) throw new Error("Translation block is missing: " + locale);
+  const localeBlock = i18n.slice(localeStart, localeEnd);
+  const missing = [];
+  for (const key of pairedUiKeys) {
+    const inPrimaryDictionary = localeBlock.includes(JSON.stringify(key) + ":");
+    const inSupplementalCatalog = locale === "ru" ? russianSupplementalTranslations.includes(JSON.stringify(key) + ":") : supplementalTranslations.includes("  [" + JSON.stringify(key) + ",");
+    if (!inPrimaryDictionary && !inSupplementalCatalog) missing.push(key);
+  }
+  if (missing.length) {
+    throw new Error(`UI localization regression (${locale}): missing ${missing.length} keys: ${missing.slice(0, 40).join(" | ")}`);
+  }
+}
+
+const nodeCompute = fs.readFileSync(path.join(root, "components/zaf-node-compute.tsx"), "utf8");
+for (const token of [
+  "const spanishOverrides: Record<string, string>",
+  "La actualización del 9 de septiembre de 2026 mejoró el descubrimiento",
+  "Los operadores de Node pueden optar por poner su capacidad de cómputo",
+  "return spanishOverrides[value] ?? value",
+]) {
+  if (!nodeCompute.includes(token)) throw new Error("Node/Compute Spanish localization regression: " + token);
+}
+
+const visualTokens = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+for (const token of [
+  "--ty-bronze: oklch(0.87 0.13 72)",
+  "--ty-bronze: oklch(0.77 0.125 70)",
+  "Bright metallic bronze active states",
+  "linear-gradient(",
+  ".zaf-main-shell button.bg-foreground.text-background",
+]) {
+  if (!visualTokens.includes(token)) throw new Error("Bronze active-state styling regression: " + token);
 }
 
 function scanTextFiles(dir) {

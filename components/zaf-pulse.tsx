@@ -1,5 +1,6 @@
 "use client";
 
+import { translate } from "@/lib/zaf/i18n";
 import type { Locale } from "@/lib/zaf/i18n";
 import type { RadarObservation, RadarSignal } from "@/lib/zaf/radar";
 import type { ZafSnapshot } from "@/lib/zaf/types";
@@ -26,7 +27,7 @@ type EcosystemPulseData = {
 };
 
 function tx(locale: Locale, en: string, tr: string) {
-  return locale === "tr" ? tr : en;
+  return translate(locale, en, tr);
 }
 
 function observationTime(value: string | null | undefined, locale: Locale) {
@@ -40,17 +41,14 @@ function observationTime(value: string | null | undefined, locale: Locale) {
 }
 
 function activityLabel(value: string, locale: Locale) {
-  if (locale === "tr") {
-    if (value === "rising") return "Yükseliyor";
-    if (value === "falling") return "Düşüyor";
-    if (value === "stable") return "Sabit";
-    if (value === "insufficient-data") return "Yetersiz Veri";
-  }
-  if (value === "rising") return "Rising";
-  if (value === "falling") return "Falling";
-  if (value === "stable") return "Stable";
-  if (value === "insufficient-data") return "Insufficient Data";
-  return value;
+  const labels: Record<string, [string, string]> = {
+    rising: ["Rising", "Yükseliyor"],
+    falling: ["Falling", "Düşüyor"],
+    stable: ["Stable", "Sabit"],
+    "insufficient-data": ["Insufficient Data", "Yetersiz Veri"],
+  };
+  const pair = labels[value];
+  return pair ? tx(locale, pair[0], pair[1]) : value;
 }
 
 function signalTitle(signal: RadarSignal, locale: Locale) {
@@ -62,7 +60,8 @@ function signalTitle(signal: RadarSignal, locale: Locale) {
     "source-coverage": ["Public Source Coverage", "Herkese Açık Kaynak Kapsamı"],
     "protocol": ["Protocol Observation", "Protokol Gözlemi"],
   };
-  return labels[signal.id]?.[locale === "tr" ? 1 : 0] ?? signal.title;
+  const pair = labels[signal.id];
+  return pair ? tx(locale, pair[0], pair[1]) : translate(locale, signal.title, signal.title);
 }
 
 function changeLabel(value: number | null, locale: Locale) {
@@ -264,7 +263,7 @@ export function ZafPulse({
               <span className="zaf-signal-ring" />
               <div className="min-w-0">
                 <div className="ty-clamp-2 text-xs font-medium text-foreground">{change.title}</div>
-                <div className="mt-1 ty-clamp-2 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? change.detailTr : change.detail}</div>
+                <div className="mt-1 ty-clamp-2 text-[10px] leading-relaxed text-muted-foreground">{translate(locale, change.detail, change.detailTr)}</div>
               </div>
             </div>
           )) : <div className="zaf-pulse-empty">{tx(locale, "No stored snapshot difference is available yet.", "Henüz karşılaştırılabilir kayıtlı snapshot farkı bulunmuyor.")}</div>}
