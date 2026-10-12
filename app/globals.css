@@ -1431,23 +1431,26 @@
     inset 0 1px 0 oklch(1 0.006 85 / 0.95);
 }
 
-/* Silver finish for the existing hand-drawn main navigation SVGs, including active states. */
+/* Visible reflective bronze finish for all custom primary-navigation icons. */
 .zaf-main-shell .zaf-nav-icon {
   filter:
-    grayscale(1)
-    saturate(0)
-    brightness(1.22)
-    contrast(0.96)
-    drop-shadow(0 1px 3px oklch(0.7 0.008 265 / 0.2));
+    sepia(1)
+    saturate(1.85)
+    hue-rotate(5deg)
+    brightness(0.93)
+    contrast(1.12)
+    drop-shadow(0 1px 2px oklch(0.44 0.1 65 / 0.36));
 }
 
 .zaf-main-shell .zaf-desktop-primary-item[aria-pressed="true"] .zaf-nav-icon,
 .zaf-main-shell .zaf-mobile-primary-item[aria-pressed="true"] .zaf-nav-icon {
   filter:
-    grayscale(1)
-    saturate(0)
-    brightness(1.35)
-    drop-shadow(0 0 6px oklch(0.9 0.008 265 / 0.4))
+    sepia(1)
+    saturate(2.05)
+    hue-rotate(5deg)
+    brightness(1.03)
+    contrast(1.14)
+    drop-shadow(0 0 6px oklch(0.78 0.13 70 / 0.48))
     drop-shadow(0 2px 5px oklch(0.02 0.01 265 / 0.22));
 }
 
@@ -1542,5 +1545,42 @@
 
   .zaf-main-shell .zaf-unified-card .zaf-unified-card-value {
     padding-right: 1.3rem;
+  }
+}
+
+
+/* Small-screen safeguard: keep theme and refresh controls icon-only, even if the compact header falls back to desktop markup. */
+@media (max-width: 1199px) {
+  .zaf-main-shell .zaf-desktop-header > div:last-child > button:nth-last-child(2),
+  .zaf-main-shell .zaf-desktop-header > div:last-child > button:last-child {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  .zaf-main-shell .zaf-desktop-header > div:last-child > button:nth-last-child(2)::before {
+    content: "◐";
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .zaf-main-shell .zaf-desktop-header > div:last-child > button:last-child::before {
+    content: "↻";
+    font-size: 21px;
+    line-height: 1;
+  }
+
+  .zaf-main-shell .zaf-mobile-header-icon {
+    font-size: 0 !important;
+  }
+
+  .zaf-main-shell .zaf-mobile-header-icon > span[aria-hidden="true"] {
+    font-size: 19px !important;
+    line-height: 1;
   }
 }
