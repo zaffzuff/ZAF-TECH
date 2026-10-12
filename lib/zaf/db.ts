@@ -89,6 +89,25 @@ const MIGRATIONS: Migration[] = [
         ON zaf_rate_limits (updated_at DESC)`,
     ],
   },
+  {
+    id: "0003_pi_auth_sessions",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS zaf_pi_sessions (
+        session_hash TEXT PRIMARY KEY,
+        pi_uid TEXT NOT NULL,
+        username TEXT NULL,
+        environment TEXT NOT NULL CHECK (environment IN ('sandbox', 'production')),
+        network TEXT NOT NULL CHECK (network IN ('testnet', 'mainnet')),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        expires_at TIMESTAMPTZ NOT NULL,
+        last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )`,
+      `CREATE INDEX IF NOT EXISTS zaf_pi_sessions_pi_uid_idx
+        ON zaf_pi_sessions (pi_uid)`,
+      `CREATE INDEX IF NOT EXISTS zaf_pi_sessions_expires_at_idx
+        ON zaf_pi_sessions (expires_at)`,
+    ],
+  },
 ];
 
 export function isZafDatabaseConfigured() {
