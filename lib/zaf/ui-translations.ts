@@ -575,5 +575,5 @@ export const supplementalRussianUiTranslations: Record<string, string> = {
   "Verified username:": "Подтверждённое имя пользователя:",
   "Pi account verified.": "Аккаунт Pi подтверждён.",
   "Pi sign-in could not be verified. Please try again.": "Не удалось подтвердить вход через Pi. Повторите попытку.",
-  "Open ZAF TECH inside Pi Browser and try again.": "Откройте ZAF TECH в Pi Browser и попробуйте снова.",
+  "Open ZAF Tech inside Pi Browser and try again.": "Откройте ZAF Tech в Pi Browser и попробуйте снова.",
 };
