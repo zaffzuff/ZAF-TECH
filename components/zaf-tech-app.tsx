@@ -497,6 +497,7 @@ function ObservatoryExplorerView({ apps, sources, snapshot, locale, tr }: {
 export function ZafTechApp() {
   const [locale, setLocale] = useState<Locale>("en");
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [themeReady, setThemeReady] = useState(false);
   const [section, setSection] = useState<ZafSection>("overview");
   const [subtab, setSubtab] = useState("Pulse");
   const [snapshot, setSnapshot] = useState<ZafSnapshot | null>(null);
@@ -574,13 +575,31 @@ export function ZafTechApp() {
   }, [deepLinkReady, section, subtab]);
 
   useEffect(() => {
-    const t = window.localStorage.getItem("zaf-tech-theme-v1");
-    if (t === "light" || t === "dark") setTheme(t);
+    const key = "zaf-tech-theme-v1";
+    const saved = window.localStorage.getItem(key);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    setTheme(saved === "light" || saved === "dark" ? saved : media.matches ? "dark" : "light");
+    setThemeReady(true);
+
+    const syncSystemTheme = (event: MediaQueryListEvent) => {
+      const preference = window.localStorage.getItem(key);
+      if (preference !== "light" && preference !== "dark") {
+        setTheme(event.matches ? "dark" : "light");
+      }
+    };
+    media.addEventListener("change", syncSystemTheme);
+    return () => media.removeEventListener("change", syncSystemTheme);
   }, []);
   useEffect(() => {
+    if (!themeReady) return;
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.classList.toggle("light", theme === "light");
-    window.localStorage.setItem("zaf-tech-theme-v1", theme);
+  }, [theme, themeReady]);
+
+  const toggleTheme = useCallback(() => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    window.localStorage.setItem("zaf-tech-theme-v1", nextTheme);
+    setTheme(nextTheme);
   }, [theme]);
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -636,7 +655,7 @@ export function ZafTechApp() {
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} compact />
               <LanguageSelector locale={locale} onChange={setLocale} />
-              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
+              <button type="button" onClick={toggleTheme} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
               <ZafPiSignIn locale={locale} />
             </div>
@@ -652,7 +671,7 @@ export function ZafTechApp() {
             <div className="flex shrink-0 items-center gap-1">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
-              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
+              <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
               <ZafPiSignIn locale={locale} />
             </div>
