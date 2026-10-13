@@ -638,6 +638,7 @@ export function ZafTechApp() {
               <LanguageSelector locale={locale} onChange={setLocale} />
               <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
+              <ZafPiSignIn locale={locale} />
             </div>
           </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-2">
@@ -653,6 +654,7 @@ export function ZafTechApp() {
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
               <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
+              <ZafPiSignIn locale={locale} />
             </div>
           </div>
           <div className="zaf-header-status-row flex flex-wrap items-center gap-2 py-2 text-[11px]">
@@ -660,7 +662,6 @@ export function ZafTechApp() {
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Read-only", "Salt-okunur")}</span>
             <span className={`rounded-full border px-2.5 py-1 ${loading ? "border-border text-muted-foreground" : sourceOnline ? "border-ty-active/40 text-foreground" : "border-border text-muted-foreground"}`}>{loading ? tr("Checking Source…", "Kaynak Kontrol Ediliyor…") : sourceOnline ? tr("Ecosystem Source Online", "Ekosistem Kaynağı Çevrimiçi") : tr("Source Unavailable", "Kaynak Kullanılamıyor")}</span>
-            <ZafPiSignIn locale={locale} />
           </div>
         </header>
         <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
