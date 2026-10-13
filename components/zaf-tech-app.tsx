@@ -624,13 +624,13 @@ export function ZafTechApp() {
   return (
     <div className="min-h-screen bg-background">
       <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
-        <header className="zaf-sticky-header border-b border-border pb-5 pt-7">
-          <div className="zaf-desktop-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="zaf-sticky-header border-b border-border">
+          <div className="zaf-desktop-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
-              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={44} height={44} className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16" priority />
+              <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={44} height={44} className="h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="text-[1.8rem] font-bold tracking-tight ty-brand-text sm:text-[2rem]">ZAF TECH</div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
+                <div className="text-[1.45rem] font-bold tracking-tight ty-brand-text">ZAF Tech</div>
+                <p className="text-[11px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
@@ -640,36 +640,36 @@ export function ZafTechApp() {
               <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
             </div>
           </div>
-          <div className="zaf-mobile-header flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={40} height={40} className="h-12 w-12 shrink-0 object-contain" priority />
+          <div className="zaf-mobile-header flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={36} height={36} className="h-9 w-9 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="whitespace-nowrap text-[clamp(1.1rem,4.8vw,1.5rem)] font-bold tracking-tight ty-brand-text">ZAF TECH</div>
-                <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
+                <div className="whitespace-nowrap text-[clamp(1rem,4.5vw,1.25rem)] font-bold tracking-tight ty-brand-text">ZAF Tech</div>
+                <p className="truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
-              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground" ><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
+              <button type="button" onClick={() => setTheme(theme === "light" ? "dark" : "light")} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+          <div className="zaf-header-status-row flex flex-wrap items-center gap-2 py-2 text-[11px]">
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Pi Network", "Pi Network")}</span>
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Read-only", "Salt-okunur")}</span>
             <span className={`rounded-full border px-2.5 py-1 ${loading ? "border-border text-muted-foreground" : sourceOnline ? "border-ty-active/40 text-foreground" : "border-border text-muted-foreground"}`}>{loading ? tr("Checking Source…", "Kaynak Kontrol Ediliyor…") : sourceOnline ? tr("Ecosystem Source Online", "Ekosistem Kaynağı Çevrimiçi") : tr("Source Unavailable", "Kaynak Kullanılamıyor")}</span>
-          </div>
-          <ZafPiSignIn locale={locale} />
-          <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
-          <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-muted-foreground">
-            <span><span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${loading ? "bg-muted-foreground" : loadError ? "bg-destructive" : "bg-ty-active"}`} />{loading ? tr("Checking Observations", "Gözlemler Kontrol Ediliyor") : loadError ? tr("Observation Error", "Gözlem Hatası") : tr("Live Observations", "Canlı Gözlemler")}</span>
-            <span>{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
+            <ZafPiSignIn locale={locale} />
           </div>
         </header>
+        <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
+        <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-muted-foreground">
+          <span><span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${loading ? "bg-muted-foreground" : loadError ? "bg-destructive" : "bg-ty-active"}`} />{loading ? tr("Checking Observations", "Gözlemler Kontrol Ediliyor") : loadError ? tr("Observation Error", "Gözlem Hatası") : tr("Live Observations", "Canlı Gözlemler")}</span>
+          <span>{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
+        </div>
 
-        {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
+        {loading ?        {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
         {!loading && loadError ? (
           <div className="mt-5 rounded-xl border border-border bg-card p-5 text-center sm:mt-7">
             <div className="text-sm font-semibold text-foreground">{tr("Unable To Load Current Data", "Güncel Veriler Yüklenemedi")}</div>
