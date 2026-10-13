@@ -82,7 +82,7 @@ export function ZafEcosystemStaking({ locale, tr }: { locale: Locale; tr: (en: s
               <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-[10px] font-medium text-foreground underline underline-offset-2">{tr("Open Official Source", "Resmi Kaynağı Aç")}</a>
             </div>
           ))}
-          {!data?.publishedEvidence.length ? <div className="text-[10px] text-muted-foreground">{tr("No published staking evidence loaded.", "Yüklenmiş yayınlanmış staking kanıtı yok.")}</div> : null}
+          {!data?.publishedEvidence.length ? <ZafComingSoon locale={locale} title={tr("Published Staking Evidence", "Yayınlanmış Staking Kanıtları")} detail={tr("This evidence list will be populated when verifiable published staking records are available.","Doğrulanabilir yayınlanmış staking kayıtları bulunduğunda bu kanıt listesi doldurulacak.")} /> : null}
         </div>
       </div>
 
@@ -90,6 +90,7 @@ export function ZafEcosystemStaking({ locale, tr }: { locale: Locale; tr: (en: s
         <div className="text-xs font-semibold text-foreground">{tr("Next Observable Targets", "Sonraki Gözlemlenebilir Hedefler")}</div>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {(data?.nextDataTargets ?? []).map(target => <div key={target} className="rounded-lg border border-border p-3 text-[10px] text-muted-foreground">{target}</div>)}
+          {!data?.nextDataTargets.length ? <ZafComingSoon locale={locale} title={tr("Next Observable Targets", "Sonraki Gözlemlenebilir Hedefler")} detail={tr("Additional staking observation targets will appear as reliable public data sources become available.","Güvenilir herkese açık veri kaynakları kullanılabilir oldukça ek staking gözlem hedefleri burada görünecek.")} /> : null}
         </div>
       </div>
 
