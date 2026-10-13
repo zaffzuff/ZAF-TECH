@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
+import { ZafComingSoon } from "@/components/zaf-coming-soon";
 
 type AppObservation = {
   name: string;
@@ -63,6 +64,9 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
     };
   }, []);
 
+  const hasComparisonBaseline = Boolean(data?.previousSnapshotAt);
+  const hasHistory = Boolean(data?.configured && (data?.historicalSnapshotCount ?? 0) > 0);
+
   return (
     <section className="mt-5 sm:mt-7">
       <div className="mb-3">
@@ -72,16 +76,20 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{data?.currentCount ?? "—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Currently Observed", "Şu An Gözlemlenen")}</div></div>
-        <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{data?.newApps.length ?? "—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("New vs Previous", "Öncekiye Göre Yeni")}</div></div>
-        <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{data?.notPresentInLatest.length ?? "—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Not In Latest", "Son Gözlemde Yok")}</div></div>
-        <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{data?.historicalSnapshotCount ?? "—"}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Historical Snapshots", "Tarihsel Snapshot")}</div></div>
+        <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{hasComparisonBaseline ? data?.newApps.length : <strong className="text-[10px]">{tr("Coming Soon", "Coming Soon")}</strong>}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("New vs Previous", "Öncekiye Göre Yeni")}</div></div>
+        <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{hasComparisonBaseline ? data?.notPresentInLatest.length : <strong className="text-[10px]">{tr("Coming Soon", "Coming Soon")}</strong>}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Not In Latest", "Son Gözlemde Yok")}</div></div>
+        <div className="rounded-xl border border-border bg-card p-3"><div className="text-xl font-bold ty-nums text-foreground">{hasHistory ? data?.historicalSnapshotCount : <strong className="text-[10px]">{tr("Coming Soon", "Coming Soon")}</strong>}</div><div className="mt-1 text-[10px] font-medium text-foreground">{tr("Historical Snapshots", "Tarihsel Snapshot")}</div></div>
       </div>
 
-      {data?.previousSnapshotAt ? (
-        <div className="mt-3 rounded-xl border border-border bg-background p-3 text-[10px] text-muted-foreground">
-          {tr("Compared with previous persisted snapshot", "Önceki kayıtlı snapshot ile karşılaştırılıyor")}: {date(data.previousSnapshotAt, locale)}
+      {!hasComparisonBaseline ? (
+        <div className="mt-3">
+          <ZafComingSoon locale={locale} title={tr("Snapshot Comparison", "Snapshot Karşılaştırması")} detail={tr("New and missing app observations need a previous persisted snapshot. These comparisons will be available when a reliable historical baseline exists.", "Yeni ve eksik uygulama gözlemlerini karşılaştırmak için önceki kayıtlı bir snapshot gerekir. Güvenilir bir tarihsel temel oluştuğunda bu karşılaştırmalar kullanılabilir olacak.")} />
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-3 rounded-xl border border-border bg-background p-3 text-[10px] text-muted-foreground">
+          {tr("Compared with previous persisted snapshot", "Önceki kayıtlı snapshot ile karşılaştırılıyor")}: {date(data?.previousSnapshotAt ?? null, locale)}
+        </div>
+      )}
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Newly Observed Apps", "Yeni Gözlemlenen Uygulamalar")}</div>
@@ -94,7 +102,7 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
               </div>
             </div>
           ))}
-          {!data?.newApps.length ? <div className="text-[10px] text-muted-foreground">{tr("No newly observed apps were detected against the previous snapshot.", "Önceki snapshot'a göre yeni gözlemlenen uygulama tespit edilmedi.")}</div> : null}
+          {!data?.newApps.length ? (hasComparisonBaseline ? <div className="text-[10px] text-muted-foreground">{tr("No newly observed apps were detected against the previous snapshot.", "Önceki snapshot'a göre yeni gözlemlenen uygulama tespit edilmedi.")}</div> : <div className="text-[10px] text-muted-foreground"><strong>Coming Soon</strong></div>) : null}
         </div>
       </div>
 
@@ -114,7 +122,7 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
               </div>
             </div>
           ))}
-          {!data?.apps.length ? <div className="text-[10px] text-muted-foreground">{tr("No persisted app observations are available yet.", "Henüz kayıtlı uygulama gözlemi bulunmuyor.")}</div> : null}
+          {!data?.apps.length ? (hasHistory ? <div className="text-[10px] text-muted-foreground">{tr("No persisted app observations are available yet.", "Henüz kayıtlı uygulama gözlemi bulunmuyor.")}</div> : <div className="text-[10px] text-muted-foreground"><strong>Coming Soon</strong></div>) : null}
         </div>
       </div>
 
