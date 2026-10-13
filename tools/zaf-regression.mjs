@@ -524,7 +524,7 @@ for (const token of [
   "function isCompleteSnapshot",
   "currentIsComplete",
   "currentlyObserved: boolean | null",
-  "do not infer removals from an empty or truncated scrape",
+  "Never infer removals from an empty or truncated scrape.",
 ]) {
   if (!ecosystemAppObservations.includes(token)) throw new Error("Ecosystem app history reliability regression: " + token);
 }
