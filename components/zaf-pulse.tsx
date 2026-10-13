@@ -229,7 +229,7 @@ export function ZafPulse({
               <p className="mt-1 text-[10px] leading-relaxed text-[#596873]">{tx(locale, "Registration · Mining · Wallet · KYC · Security", "Kayıt · Madencilik · Wallet · KYC · Güvenlik")}</p>
             </div>
             <div className="border-t border-[#e3d8c6] pt-3 text-[9px] leading-relaxed text-[#596873]">
-              {(locale === "tr" ? "Bağımsız topluluk kaynağıdır. Resmî Pi Network yayını değildir." : "Independent community resource. Not an official Pi Network publication.").split(/(Pi Network)/gi).map((part, index) => /pi network/i.test(part) ? <span key={index} className="zaf-pi-gradient-text">{part}</span> : part)}
+              {locale === "tr" ? "Bağımsız topluluk kaynağıdır. Resmî Pi Network yayını değildir." : "Independent community resource. Not an official Pi Network publication."}
             </div>
           </div>
         </div>
