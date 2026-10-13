@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 
+function piText(value: string) {
+  return value.split(/(Pi Network)/gi).map((part, index) =>
+    /pi network/i.test(part) ? <span key={index} className="zaf-pi-gradient-text">{part}</span> : part,
+  );
+}
+
 const copy = {
   en: {
     eyebrow: "ZAF TECH / PI NETWORK FIELD GUIDE",
@@ -71,9 +77,9 @@ export default function StartWithPiPage() {
           <div className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full border border-[#d9c6a4]/70" />
           <div className="pointer-events-none absolute -right-2 -top-2 h-36 w-36 rounded-full border border-[#d9c6a4]/70" />
           <div className="relative max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 border-b border-[#b98745] pb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#93672f]">{t.eyebrow}</div>
-            <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{t.title}</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#596873] sm:text-base">{t.intro}</p>
+            <div className="mb-5 inline-flex items-center gap-2 border-b border-[#b98745] pb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#93672f]">{piText(t.eyebrow)}</div>
+            <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{piText(t.title)}</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#596873] sm:text-base">{piText(t.intro)}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <a href="https://minepi.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-[#a8793d] bg-[#b98745] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#9d7138]">{t.cta} <span aria-hidden="true">↗</span></a>
               <div className="border-l border-[#d9c6a4] pl-3 text-[10px] text-[#596873]">{t.inviter}<div className="mt-0.5 text-sm font-semibold text-[#1d2933]">{t.code}</div></div>
@@ -87,14 +93,14 @@ export default function StartWithPiPage() {
         <section className="mt-10">
           <div className="mb-5">
             <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#b98745]">START HERE</div>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{t.stepsTitle}</h2>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{piText(t.stepsTitle)}</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {t.steps.map(([number, title, body]) => (
               <article key={number} className="group border border-border bg-card p-5 transition-colors hover:border-[#c9a978]">
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#d9c6a4] bg-[#f8f2e8] text-xs font-semibold text-[#93672f]">{number}</div>
-                  <div><h3 className="text-sm font-semibold">{title}</h3><p className="mt-2 text-xs leading-relaxed text-muted-foreground">{body}</p></div>
+                  <div><h3 className="text-sm font-semibold">{piText(title)}</h3><p className="mt-2 text-xs leading-relaxed text-muted-foreground">{piText(body)}</p></div>
                 </div>
               </article>
             ))}
@@ -105,13 +111,13 @@ export default function StartWithPiPage() {
           <div className="border border-[#e1b8af] bg-[#fff8f6] p-5 text-[#342321]">
             <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#a43f37]">SECURITY FIRST</div>
             <h2 className="mt-2 text-base font-semibold">{t.safetyTitle}</h2>
-            <p className="mt-2 text-xs leading-relaxed text-[#6c5551]">{t.safetyBody}</p>
+            <p className="mt-2 text-xs leading-relaxed text-[#6c5551]">{piText(t.safetyBody)}</p>
             <a href="https://minepi.com/safety/" target="_blank" rel="noreferrer" className="mt-4 inline-flex text-xs font-semibold text-[#8d352e] underline underline-offset-4">{t.safetyLink} ↗</a>
           </div>
           <div className="border border-border bg-card p-5">
             <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#b98745]">ABOUT THIS GUIDE</div>
             <h2 className="mt-2 text-base font-semibold">{t.aboutTitle}</h2>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.aboutBody}</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{piText(t.aboutBody)}</p>
             <div className="mt-4 flex flex-wrap gap-3 text-xs">
               <a href="https://minepi.com/support/" target="_blank" rel="noreferrer" className="underline underline-offset-4">{t.official} ↗</a>
               <a href="https://developers.minepi.com/docs/build-first-app/Register" target="_blank" rel="noreferrer" className="underline underline-offset-4">Pi developer registration guide ↗</a>
