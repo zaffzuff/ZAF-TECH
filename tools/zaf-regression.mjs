@@ -142,6 +142,36 @@ for (const token of [
 ]) {
   if (!piSignIn.includes(token)) throw new Error("Pi browser OAuth fallback regression: " + token);
 }
+
+const piBrowserDetectionStart = piSignIn.indexOf("async function detectPiBrowser");
+const piBrowserDetectionBranch = piSignIn.indexOf("const insidePiBrowser = await detectPiBrowser(piBeforeInit);");
+const nativePiAuthBranch = piSignIn.indexOf("if (!insidePiBrowser)");
+const oauthRedirectBranch = piSignIn.indexOf("beginPiOAuthSignIn(oauthClientId)");
+const nativeAuthenticateBranch = piSignIn.indexOf('pi.authenticate(["username"]');
+for (const [name, index] of [
+  ["detector", piBrowserDetectionStart],
+  ["detection call", piBrowserDetectionBranch],
+  ["browser branch", nativePiAuthBranch],
+  ["OAuth redirect", oauthRedirectBranch],
+  ["native authentication", nativeAuthenticateBranch],
+]) {
+  if (index < 0) throw new Error("Pi Browser/OAuth routing regression: missing " + name);
+}
+if (!(piBrowserDetectionStart < piBrowserDetectionBranch &&
+      piBrowserDetectionBranch < nativePiAuthBranch &&
+      nativePiAuthBranch < oauthRedirectBranch &&
+      nativePiAuthBranch < nativeAuthenticateBranch)) {
+  throw new Error("Pi Browser must be detected before choosing native SDK or OAuth authentication");
+}
+for (const token of [
+  'userAgent.includes("pibrowser")',
+  'userAgent.includes("pi-browser")',
+  'info?.hostApp === "pi-browser"',
+  "insidePiBrowser",
+]) {
+  if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
+}
+
 const zafAppSource = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sign-in";') ||
     !zafAppSource.includes('<ZafPiSignIn locale={locale} />')) {

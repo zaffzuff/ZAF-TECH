@@ -18,6 +18,7 @@ type PiSdk = {
     scopes: string[],
     onIncompletePaymentFound?: (payment: unknown) => void,
   ) => Promise<PiAuthResult>;
+  getPiHostAppInfo?: () => Promise<{ hostApp?: string }>;
 };
 
 declare global {
@@ -62,6 +63,33 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string)
       },
     );
   });
+}
+
+function isPiBrowserUserAgent() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  return userAgent.includes("pibrowser") ||
+    userAgent.includes("pi-browser") ||
+    userAgent.includes("pi browser");
+}
+
+async function detectPiBrowser(pi: PiSdk): Promise<boolean> {
+  // Prefer explicit Pi host information when the current SDK exposes it.
+  // Some Pi Browser builds use a generic WebView user agent, so retain a
+  // user-agent fallback for those builds.
+  try {
+    if (typeof pi.getPiHostAppInfo === "function") {
+      const info = await withTimeout(
+        Promise.resolve(pi.getPiHostAppInfo()),
+        1_500,
+        "Pi host app detection timed out.",
+      );
+      if (info?.hostApp === "pi-browser") return true;
+      if (typeof info?.hostApp === "string" && info.hostApp.length > 0) return false;
+    }
+  } catch {
+    // Use the user-agent fallback if host information isn't available.
+  }
+  return isPiBrowserUserAgent();
 }
 
 function loadPiSdk() {
@@ -136,24 +164,34 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     setBusy(true);
     setMessage("");
 
-    let phase: "oauth-start" | "sdk-load" | "sdk-init" | "authentication" | "verification" = "sdk-load";
+    let phase: "oauth-start" | "sdk-load" | "browser-detection" | "sdk-init" | "authentication" | "verification" = "sdk-load";
     try {
-      // The OAuth client is provisioned by Pi Developer Portal. When present,
-      // use the OAuth flow so desktop browsers and Pi Browser share one verified login.
-      const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
-      if (oauthClientId) {
-        phase = "oauth-start";
-        beginPiOAuthSignIn(oauthClientId);
-        return;
-      }
-
-      // Without a client ID, keep the native SDK flow for the Pi Browser.
       await withTimeout(
         loadPiSdk(),
         12_000,
         "Pi SDK loading timed out.",
       );
 
+      const piBeforeInit = window.Pi;
+      if (!piBeforeInit) throw new Error("Pi SDK is unavailable.");
+
+      phase = "browser-detection";
+      const insidePiBrowser = await detectPiBrowser(piBeforeInit);
+      const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
+
+      if (!insidePiBrowser) {
+        // Pi OAuth Sign-In explicitly rejects authorization started inside
+        // Pi Browser. Use OAuth only in ordinary desktop/mobile browsers.
+        if (!oauthClientId) {
+          phase = "oauth-start";
+          throw new Error("Pi Sign-In Client ID is not configured.");
+        }
+        phase = "oauth-start";
+        beginPiOAuthSignIn(oauthClientId);
+        return;
+      }
+
+      // Inside Pi Browser, use the native Pi Apps SDK flow instead of OAuth.
       phase = "sdk-init";
       const pi = await withTimeout(
         initializePiSdk(),
@@ -218,6 +256,10 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         "sdk-load": [
           "Pi SDK could not load. Refresh ZAF Tech inside Pi Browser and try again.",
           "Pi SDK yüklenemedi. ZAF Tech'i Pi Browser içinde yenileyip tekrar dene.",
+        ],
+        "browser-detection": [
+          "Could not determine the Pi sign-in environment. Please try again.",
+          "Pi giriş ortamı belirlenemedi. Lütfen tekrar dene.",
         ],
         "sdk-init": [
           "Pi SDK could not initialize. Refresh ZAF Tech inside Pi Browser and try again.",
