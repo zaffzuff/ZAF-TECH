@@ -495,6 +495,7 @@ function ObservatoryExplorerView({ apps, sources, snapshot, locale, tr }: {
 }
 
 export function ZafTechApp() {
+  // Language is intentionally session-only: every fresh app visit starts in English.
   const [locale, setLocale] = useState<Locale>("en");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [themeReady, setThemeReady] = useState(false);
