@@ -10,6 +10,7 @@ const checks = [
   { path: "/", status: 200 },
   { path: "/about", status: 200 },
   { path: "/privacy", status: 200 },
+  { path: "/start-with-pi", status: 200 },
   { path: "/api/zaf/wallet?address=BAD", status: 400 },
   { path: "/api/tools/transaction?id=BAD", status: 400 },
   { path: "/api/apps/check?url=http://127.0.0.1:3000", status: 400 },
@@ -51,8 +52,8 @@ async function waitForServer() {
   throw new Error(`Smoke server did not become ready at ${baseUrl}`);
 }
 
-async function request(path) {
-  const response = await fetchWithTimeout(baseUrl + path, { redirect: "manual" });
+async function request(path, options = {}) {
+  const response = await fetchWithTimeout(baseUrl + path, { redirect: "manual", ...options });
   return {
     status: response.status,
     headers: Object.fromEntries(response.headers.entries()),
@@ -111,6 +112,24 @@ try {
     if (response.status !== check.status) {
       throw new Error(`${check.path} expected ${check.status}, received ${response.status}: ${response.text.slice(0, 220)}`);
     }
+  }
+
+
+  const piAuthResponse = await request("/api/zaf/pi/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (piAuthResponse.status !== 400) {
+    throw new Error(`/api/zaf/pi/auth empty-token guard expected 400, received ${piAuthResponse.status}: ${piAuthResponse.text.slice(0, 220)}`);
+  }
+  if (!(piAuthResponse.headers["cache-control"] ?? "").toLowerCase().includes("no-store")) {
+    throw new Error("Pi authentication error responses must not be cached.");
+  }
+  let piAuthBody = null;
+  try { piAuthBody = JSON.parse(piAuthResponse.text); } catch {}
+  if (piAuthBody?.error !== "A valid Pi access token is required.") {
+    throw new Error("Pi authentication must reject a missing access token before contacting Pi.");
   }
 
   if (external) {
