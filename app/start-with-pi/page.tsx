@@ -79,7 +79,7 @@ export default function StartWithPiPage() {
             <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{piText(t.title)}</h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#596873] sm:text-base">{piText(t.intro)}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <a href="https://minepi.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-[#a8793d] bg-[#b98745] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#9d7138]">{t.cta} <span aria-hidden="true">↗</span></a>
+              <a href="https://minepi.com/zaffzuff" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-[#a8793d] bg-[#b98745] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#9d7138]">{t.cta} <span aria-hidden="true">↗</span></a>
               <div className="border-l border-[#d9c6a4] pl-3 text-[10px] text-[#596873]">{t.inviter}<div className="mt-0.5 text-sm font-semibold text-[#1d2933]">{t.code}</div></div>
             </div>
           </div>
