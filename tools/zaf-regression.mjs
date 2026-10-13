@@ -131,6 +131,17 @@ const piSignIn = fs.readFileSync(path.join(root, "components/zaf-pi-sign-in.tsx"
 for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "await pi.init({ version: \"2.0\", sandbox })", "await withTimeout(\n        initializePiSdk(),", "Pi SDK initialization timed out.", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE", "pi_sandbox", "new URLSearchParams(window.location.search)", "function withTimeout", "sdk-init", "12_000", "25_000"]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Sign-In UI regression: " + token);
 }
+
+for (const token of [
+  "NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID",
+  "https://accounts.pinet.com/oauth/authorize",
+  "response_type",
+  "redirect_uri",
+  "beginPiOAuthSignIn",
+  "PI_SIGNIN_STATE_KEY",
+]) {
+  if (!piSignIn.includes(token)) throw new Error("Pi browser OAuth fallback regression: " + token);
+}
 const zafAppSource = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sign-in";') ||
     !zafAppSource.includes('<ZafPiSignIn locale={locale} />')) {
@@ -170,6 +181,16 @@ for (const token of [
 if (!piSignIn.includes("zaf-pi-status-bubble") ||
     !piSignIn.includes("desktop browsers need Pi Sign-In setup")) {
   throw new Error("Pi Sign-In must show a compact status bubble and browser setup guidance");
+}
+
+
+const piOAuthHelpers = fs.readFileSync(path.join(root, "lib/zaf/pi/oauth.ts"), "utf8");
+for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "getSafePiSignInReturnPath", 'startsWith("//")']) {
+  if (!piOAuthHelpers.includes(token)) throw new Error("Pi OAuth state/redirect safety regression: " + token);
+}
+const piSignInCallback = fs.readFileSync(path.join(root, "app/signin/callback/page.tsx"), "utf8");
+for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/auth", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "window.location.replace"]) {
+  if (!piSignInCallback.includes(token)) throw new Error("Pi OAuth callback regression: " + token);
 }
 
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
+import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_VERIFIED_USERNAME_KEY } from "@/lib/zaf/pi/oauth";
 
 type VerifiedPiUser = { username: string };
 
@@ -27,6 +28,25 @@ declare global {
 
 let sdkLoadPromise: Promise<void> | null = null;
 let initializedSandboxMode: boolean | null = null;
+
+function beginPiOAuthSignIn(clientId: string) {
+  const bytes = new Uint8Array(24);
+  window.crypto.getRandomValues(bytes);
+  const state = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+  const redirectUri = new URL("/signin/callback", window.location.origin).toString();
+  const returnTo = window.location.pathname + window.location.search;
+
+  sessionStorage.setItem(PI_SIGNIN_STATE_KEY, state);
+  sessionStorage.setItem(PI_SIGNIN_RETURN_TO_KEY, returnTo);
+
+  const authorizationUrl = new URL("https://accounts.pinet.com/oauth/authorize");
+  authorizationUrl.searchParams.set("response_type", "token");
+  authorizationUrl.searchParams.set("client_id", clientId);
+  authorizationUrl.searchParams.set("redirect_uri", redirectUri);
+  authorizationUrl.searchParams.set("scope", "username");
+  authorizationUrl.searchParams.set("state", state);
+  window.location.assign(authorizationUrl.toString());
+}
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -102,13 +122,32 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
+  useEffect(() => {
+    try {
+      const username = sessionStorage.getItem(PI_SIGNIN_VERIFIED_USERNAME_KEY)?.trim();
+      if (username && username.length <= 100) setUser({ username });
+    } catch {
+      // Storage may be blocked; sign-in can still work for this page view.
+    }
+  }, []);
+
   async function signIn() {
     if (busy) return;
     setBusy(true);
     setMessage("");
 
-    let phase: "sdk-load" | "sdk-init" | "authentication" | "verification" = "sdk-load";
+    let phase: "oauth-start" | "sdk-load" | "sdk-init" | "authentication" | "verification" = "sdk-load";
     try {
+      // The OAuth client is provisioned by Pi Developer Portal. When present,
+      // use the OAuth flow so desktop browsers and Pi Browser share one verified login.
+      const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
+      if (oauthClientId) {
+        phase = "oauth-start";
+        beginPiOAuthSignIn(oauthClientId);
+        return;
+      }
+
+      // Without a client ID, keep the native SDK flow for the Pi Browser.
       await withTimeout(
         loadPiSdk(),
         12_000,
@@ -156,6 +195,11 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       const username = typeof body?.user?.username === "string" ? body.user.username.trim() : "";
       if (!username) throw new Error("Pi verified the request but returned no username.");
       setUser({ username });
+      try {
+        sessionStorage.setItem(PI_SIGNIN_VERIFIED_USERNAME_KEY, username);
+      } catch {
+        // Username is presentation-only; the access token is never stored.
+      }
       setMessage(tr("Pi account verified.", "Pi hesabı doğrulandı."));
     } catch (error) {
       // Never log the access token or full API request; only log the phase and
@@ -167,6 +211,10 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       setUser(null);
 
       const failureCopy = {
+        "oauth-start": [
+          "Pi Sign-In could not start. Check the Client ID and registered callback URL.",
+          "Pi Sign-In başlatılamadı. Client ID ve kayıtlı dönüş adresini kontrol et.",
+        ],
         "sdk-load": [
           "Pi SDK could not load. Refresh ZAF Tech inside Pi Browser and try again.",
           "Pi SDK yüklenemedi. ZAF Tech'i Pi Browser içinde yenileyip tekrar dene.",
