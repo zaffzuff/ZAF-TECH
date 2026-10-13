@@ -165,12 +165,14 @@ export async function getEcosystemAppObservations(limit = 100) {
         .slice(0, 100)
     : [];
 
+  const currentCount = currentItems.length > 0 ? currentItems.length : currentIsComplete ? 0 : null;
+
   return {
     generatedAt: currentGeneratedAt,
     configured: history.length > 0,
     // Null means the scraper could not establish a reliable current count; it does
     // not mean that the Pi ecosystem currently contains zero apps.
-    currentCount: currentIsComplete ? currentItems.length : currentItems.length > 0 ? currentItems.length : null,
+    currentCount,
     previousSnapshotAt: previousSnapshot?.generatedAt ?? null,
     historicalSnapshotCount: history.length,
     apps,

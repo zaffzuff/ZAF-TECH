@@ -523,6 +523,7 @@ for (const token of [
   "value instanceof Date",
   "function isCompleteSnapshot",
   "currentIsComplete",
+  "const currentCount = currentItems.length > 0 ? currentItems.length : currentIsComplete ? 0 : null",
   "currentlyObserved: boolean | null",
   "Never infer removals from an empty or truncated scrape.",
 ]) {
