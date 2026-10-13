@@ -144,12 +144,14 @@ for (const token of [
 }
 
 const piBrowserDetectionStart = piSignIn.indexOf("async function detectPiBrowser");
-const piBrowserDetectionBranch = piSignIn.indexOf("const insidePiBrowser = await detectPiBrowser(piBeforeInit);");
+const sdkInitializationCall = piSignIn.indexOf("const pi = await withTimeout(", piSignIn.indexOf("async function signIn()"));
+const piBrowserDetectionBranch = piSignIn.indexOf("const insidePiBrowser = await detectPiBrowser(pi);");
 const nativePiAuthBranch = piSignIn.indexOf("if (!insidePiBrowser)");
 const oauthRedirectBranch = piSignIn.indexOf("beginPiOAuthSignIn(oauthClientId)");
 const nativeAuthenticateBranch = piSignIn.indexOf('pi.authenticate(["username"]');
 for (const [name, index] of [
   ["detector", piBrowserDetectionStart],
+  ["SDK initialization call", sdkInitializationCall],
   ["detection call", piBrowserDetectionBranch],
   ["browser branch", nativePiAuthBranch],
   ["OAuth redirect", oauthRedirectBranch],
@@ -157,13 +159,16 @@ for (const [name, index] of [
 ]) {
   if (index < 0) throw new Error("Pi Browser/OAuth routing regression: missing " + name);
 }
-if (!(piBrowserDetectionStart < piBrowserDetectionBranch &&
+if (!(sdkInitializationCall >= 0 &&
+      sdkInitializationCall < piBrowserDetectionBranch &&
+      piBrowserDetectionStart < piBrowserDetectionBranch &&
       piBrowserDetectionBranch < nativePiAuthBranch &&
       nativePiAuthBranch < oauthRedirectBranch &&
       nativePiAuthBranch < nativeAuthenticateBranch)) {
   throw new Error("Pi Browser must be detected before choosing native SDK or OAuth authentication");
 }
 for (const token of [
+  "function safePiErrorDetail",
   'userAgent.includes("pibrowser")',
   'userAgent.includes("pi-browser")',
   'info?.hostApp === "pi-browser"',
@@ -178,39 +183,32 @@ if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sig
   throw new Error("Pi Sign-In must be mounted in the main ZAF Tech interface");
 }
 
-if (!zafAppSource.includes('<div className="zaf-mobile-pi-sign-in">')) {
-  throw new Error("Mobile Pi Sign-In must have a dedicated full-width status row");
+const mobileHeaderStart = zafAppSource.indexOf('<div className="zaf-mobile-header flex');
+const mobileHeaderEnd = zafAppSource.indexOf('<div className="zaf-header-status-row', mobileHeaderStart);
+const mobileHeaderMarkup = mobileHeaderStart >= 0 && mobileHeaderEnd > mobileHeaderStart
+  ? zafAppSource.slice(mobileHeaderStart, mobileHeaderEnd)
+  : "";
+const startPiPosition = mobileHeaderMarkup.indexOf('className="zaf-start-pi-link');
+const mobileSignInPosition = mobileHeaderMarkup.indexOf('<ZafPiSignIn locale={locale} />');
+if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileSignInPosition) {
+  throw new Error("Mobile Sign in with Pi must sit beside Start Pi in the header action group");
 }
 const piSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
 for (const token of [
-  ".zaf-mobile-pi-sign-in {",
-  "width: 100%;",
+  ".zaf-mobile-header .zaf-start-pi-link",
+  ".zaf-mobile-header .zaf-pi-signin-button",
+  "background-color: #f5e8c7;",
+  "background-image: none;",
+  "-webkit-text-fill-color: #6f3f8f;",
+  "max-width: 210px;",
   "overflow-wrap: anywhere;",
-  "white-space: normal;",
 ]) {
-  if (!piSignInStyles.includes(token)) throw new Error("Pi Sign-In mobile overflow protection regression: " + token);
+  if (!piSignInStyles.includes(token)) throw new Error("Mobile Pi Sign-In champagne styling/layout regression: " + token);
 }
 if (!piSignIn.includes("zaf-pi-status-bubble") ||
-    !piSignIn.includes("px-2.5 py-1.5 text-[10px]") ||
-    !piSignIn.includes("[overflow-wrap:anywhere]")) {
-  throw new Error("Pi Sign-In status message must be readable and wrap inside its container");
-}
-
-
-const compactPiSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
-for (const token of [
-  ".zaf-pi-status-bubble",
-  "align-items: flex-start;",
-  "align-self: flex-start;",
-  "width: auto;",
-  "overflow-wrap: anywhere;",
-  "max-width: min(100%, 340px);",
-]) {
-  if (!compactPiSignInStyles.includes(token)) throw new Error("Pi Sign-In compact status layout regression: " + token);
-}
-if (!piSignIn.includes("zaf-pi-status-bubble") ||
-    !piSignIn.includes("desktop browsers need Pi Sign-In setup")) {
-  throw new Error("Pi Sign-In must show a compact status bubble and browser setup guidance");
+    !piSignIn.includes("safePiErrorDetail") ||
+    !piSignIn.includes("Pi Browser authentication failed: ")) {
+  throw new Error("Pi sign-in must show a compact status bubble and sanitized diagnostic detail");
 }
 
 

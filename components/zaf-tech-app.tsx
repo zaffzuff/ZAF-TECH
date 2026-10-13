@@ -676,10 +676,8 @@ export function ZafTechApp() {
               <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
               <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
               <a href="/start-with-pi" className="zaf-start-pi-link rounded-lg border border-violet-300/50 bg-card px-2 py-2 text-[10px] font-semibold shadow-sm" aria-label="Start Pi">Start Pi</a>
+              <ZafPiSignIn locale={locale} />
             </div>
-          </div>
-          <div className="zaf-mobile-pi-sign-in">
-            <ZafPiSignIn locale={locale} />
           </div>
           <div className="zaf-header-status-row flex flex-wrap items-center gap-2 py-2 text-[11px]">
             <span className="rounded-full border border-violet-300/35 px-2.5 py-1 font-semibold"><span className="zaf-pi-gradient-text">{tr("Pi Network", "Pi Network")}</span></span>

@@ -49,6 +49,27 @@ function beginPiOAuthSignIn(clientId: string) {
   window.location.assign(authorizationUrl.toString());
 }
 
+function safePiErrorDetail(error: unknown): string {
+  let message = "";
+  if (error instanceof Error) message = error.message;
+  else if (typeof error === "string") message = error;
+  else if (error && typeof error === "object") {
+    const value = error as { message?: unknown; reason?: unknown; code?: unknown };
+    message = [value.message, value.reason, value.code]
+      .filter((part): part is string | number => typeof part === "string" || typeof part === "number")
+      .map(String)
+      .join(" ");
+  }
+
+  return message
+    .replace(/(?:access[_ -]?token|authorization|bearer)\s*[:=]?\s*\S+/gi, "$1 [redacted]")
+    .replace(/https?:\/\/[^\s]+/gi, "[address]")
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .slice(0, 140);
+}
+
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs);
@@ -172,16 +193,21 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         "Pi SDK loading timed out.",
       );
 
-      const piBeforeInit = window.Pi;
-      if (!piBeforeInit) throw new Error("Pi SDK is unavailable.");
+      phase = "sdk-init";
+      const pi = await withTimeout(
+        initializePiSdk(),
+        12_000,
+        "Pi SDK initialization timed out.",
+      );
 
+      // The Pi SDK requires init() before any other SDK method. Detect the
+      // host only after initialization so Pi Browser auth isn't disrupted.
       phase = "browser-detection";
-      const insidePiBrowser = await detectPiBrowser(piBeforeInit);
+      const insidePiBrowser = await detectPiBrowser(pi);
       const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
 
       if (!insidePiBrowser) {
-        // Pi OAuth Sign-In explicitly rejects authorization started inside
-        // Pi Browser. Use OAuth only in ordinary desktop/mobile browsers.
+        // Pi OAuth Sign-In is for ordinary browsers; Pi Browser uses Pi.authenticate().
         if (!oauthClientId) {
           phase = "oauth-start";
           throw new Error("Pi Sign-In Client ID is not configured.");
@@ -192,13 +218,6 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       }
 
       // Inside Pi Browser, use the native Pi Apps SDK flow instead of OAuth.
-      phase = "sdk-init";
-      const pi = await withTimeout(
-        initializePiSdk(),
-        12_000,
-        "Pi SDK initialization timed out.",
-      );
-
       phase = "authentication";
       const auth = await withTimeout(
         pi.authenticate(["username"], () => undefined),
@@ -242,11 +261,19 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     } catch (error) {
       // Never log the access token or full API request; only log the phase and
       // error class so a Pi Browser failure can be diagnosed without secrets.
-      console.error(
-        "[ZAF Tech] Pi sign-in failed during " + phase,
-        error instanceof Error ? error.name : "UnknownError",
-      );
+      const errorName = error instanceof Error ? error.name : "UnknownError";
+      const errorDetail = safePiErrorDetail(error);
+      // Never log access tokens or full URLs. The short message is sanitized.
+      console.error("[ZAF Tech] Pi sign-in failed during " + phase, errorName, errorDetail);
       setUser(null);
+
+      if (phase === "authentication" && errorDetail) {
+        setMessage(tr(
+          "Pi Browser authentication failed: " + errorDetail,
+          "Pi Browser kimlik doğrulaması başarısız: " + errorDetail,
+        ));
+        return;
+      }
 
       const failureCopy = {
         "oauth-start": [
@@ -266,8 +293,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           "Pi SDK başlatılamadı. ZAF Tech'i Pi Browser içinde yenileyip tekrar dene.",
         ],
         authentication: [
-          "Pi sign-in failed. Pi Browser needs the registered app URL; desktop browsers need Pi Sign-In setup.",
-          "Pi girişi başarısız. Pi Browser için kayıtlı uygulama URL’si, masaüstü için Pi Sign-In kurulumu gerekiyor.",
+          "Pi Browser could not complete authentication. Please allow the sign-in prompt and try again.",
+          "Pi Browser kimlik doğrulamasını tamamlayamadı. Giriş iznini kontrol edip tekrar dene.",
         ],
         verification: [
           "Pi sign-in could not be verified. Please try again.",
@@ -287,7 +314,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         type="button"
         onClick={() => void signIn()}
         disabled={busy}
-        className="inline-flex max-w-full items-center gap-2 rounded-lg border border-ty-active/40 bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-wait disabled:opacity-60"
+        className="zaf-pi-signin-button inline-flex max-w-full items-center gap-2 rounded-lg border border-ty-active/40 bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-wait disabled:opacity-60"
         aria-label={tr("Sign in with Pi", "Pi ile giriş yap")}
       >
         <span aria-hidden="true" className="text-sm font-bold">π</span>
