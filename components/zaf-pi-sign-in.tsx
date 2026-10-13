@@ -28,6 +28,22 @@ declare global {
 let sdkLoadPromise: Promise<void> | null = null;
 let initializedSandboxMode: boolean | null = null;
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error: unknown) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
+
 function loadPiSdk() {
   if (typeof window !== "undefined" && window.Pi) return Promise.resolve();
   if (sdkLoadPromise) return sdkLoadPromise;
@@ -60,9 +76,14 @@ function initializePiSdk() {
   // Sandbox mode is determined by Pi's Sandbox host, not by the registered
   // blockchain network. A hosted Testnet app may correctly use sandbox:false.
   const configuredMode = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase();
+  // Pi Sandbox authorizes the configured Development URL, then redirects back
+  // to that host (e.g. zaf-tech.vercel.app), so the hostname alone cannot
+  // identify Sandbox mode. Mark the registered Development URL with
+  // ?pi_sandbox=true to carry the mode through the redirect.
+  const requestedByUrl = new URLSearchParams(window.location.search).get("pi_sandbox") === "true";
   const sandbox = configuredMode
     ? configuredMode === "sandbox"
-    : window.location.hostname === "sandbox.minepi.com";
+    : requestedByUrl || window.location.hostname === "sandbox.minepi.com";
   if (initializedSandboxMode !== sandbox) {
     pi.init({ version: "2.0", sandbox });
     initializedSandboxMode = sandbox;
@@ -84,9 +105,17 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
     let verificationStarted = false;
     try {
-      await loadPiSdk();
+      await withTimeout(
+        loadPiSdk(),
+        12_000,
+        "Pi SDK loading timed out.",
+      );
       const pi = initializePiSdk();
-      const auth = await pi.authenticate(["username"], () => undefined);
+      const auth = await withTimeout(
+        pi.authenticate(["username"], () => undefined),
+        25_000,
+        "Pi authentication timed out.",
+      );
       if (!auth?.accessToken || typeof auth.accessToken !== "string") {
         throw new Error("Pi did not return an access token.");
       }
