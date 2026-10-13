@@ -1585,12 +1585,47 @@
   }
 }
 
-/* Keep the branded header sticky on desktop only; mobile retains its original flow. */
-@media (min-width: 1024px) {
-  .zaf-sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: var(--background);
+
+/* Compact, always-visible brand header. Navigation stays below the sticky area. */
+.zaf-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--background);
+  box-shadow: 0 5px 16px oklch(0.05 0.01 265 / 0.06);
+}
+.zaf-sticky-header .zaf-desktop-header {
+  padding-top: 10px;
+  padding-bottom: 8px;
+}
+.zaf-header-status-row [data-testid="zaf-pi-sign-in"] {
+  margin-top: 0;
+}
+.zaf-header-status-row [data-testid="zaf-pi-sign-in"] > button {
+  padding: 6px 10px;
+}
+@media (max-width: 1023px) {
+  .zaf-sticky-header .zaf-mobile-header {
+    padding-top: 7px;
+    padding-bottom: 5px;
+  }
+  .zaf-header-status-row {
+    gap: 5px;
+    padding-top: 4px;
+    padding-bottom: 7px;
+    font-size: 10px;
+  }
+  .zaf-header-status-row > span {
+    padding: 3px 7px;
+  }
+  .zaf-header-status-row [data-testid="zaf-pi-sign-in"] > button {
+    padding: 5px 8px;
+    font-size: 10px;
   }
 }
+@media (max-height: 450px) {
+  .zaf-sticky-header {
+    position: static;
+  }
+}
+
