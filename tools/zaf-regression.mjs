@@ -187,14 +187,14 @@ if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sig
 }
 
 const mobileHeaderStart = zafAppSource.indexOf('<div className="zaf-mobile-header flex');
-const mobileHeaderEnd = zafAppSource.indexOf('<div className="zaf-header-status-row', mobileHeaderStart);
-const mobileHeaderMarkup = mobileHeaderStart >= 0 && mobileHeaderEnd > mobileHeaderStart
-  ? zafAppSource.slice(mobileHeaderStart, mobileHeaderEnd)
+const mobileActionsStart = zafAppSource.indexOf('<div className="zaf-mobile-pi-actions">');
+const mobileHeaderMarkup = mobileHeaderStart >= 0 && mobileActionsStart > mobileHeaderStart
+  ? zafAppSource.slice(mobileHeaderStart, mobileActionsStart)
   : "";
-if (mobileHeaderMarkup.includes('className="zaf-start-pi-link')) {
+if (mobileHeaderMarkup.includes('className="zaf-start-pi-link') ||
+    mobileHeaderMarkup.includes('<ZafPiSignIn locale={locale} />')) {
   throw new Error("Mobile Pi action links should not compete with the icon row");
 }
-const mobileActionsStart = zafAppSource.indexOf('<div className="zaf-mobile-pi-actions">');
 const mobileActionsEnd = zafAppSource.indexOf('<div className="zaf-header-status-row', mobileActionsStart);
 const mobileActionsMarkup = mobileActionsStart >= 0 && mobileActionsEnd > mobileActionsStart
   ? zafAppSource.slice(mobileActionsStart, mobileActionsEnd)
