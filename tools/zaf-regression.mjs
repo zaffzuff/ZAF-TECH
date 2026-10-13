@@ -517,6 +517,16 @@ for (const token of ["getDefiSnapshotHistory", "isDefiHistoryConfigured", "no-st
 }
 
 
+const observationEngine = fs.readFileSync(path.join(root, "lib/zaf/observation-engine.ts"), "utf8");
+for (const token of [
+  "ecosystem app directory is reachable",
+  "app-directory coverage is incomplete",
+  "score = Math.max(0, score - 15)",
+]) {
+  if (!observationEngine.includes(token)) throw new Error("Observation confidence coverage regression: " + token);
+}
+
+
 const ecosystemAppObservations = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
 for (const token of [
   "function normalizeTimestamp",

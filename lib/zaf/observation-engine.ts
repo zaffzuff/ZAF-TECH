@@ -41,6 +41,10 @@ function confidenceFor(network: ZafSnapshot | null, ecosystem: EcosystemSnapshot
     const total = ecosystem.sources.length;
     score += total ? Math.round((available / total) * 25) : 0;
     reasons.push(available + "/" + total + " public ecosystem sources responded.");
+    if (ecosystem.apps.totalCount == null && ecosystem.apps.items.length === 0) {
+      score = Math.max(0, score - 15);
+      reasons.push("The ecosystem app directory is reachable, but its records are not exposed in the current response; app-directory coverage is incomplete.");
+    }
   } else reasons.push("Ecosystem observation is unavailable.");
   if (freshness.state === "fresh") score += 15;
   else if (freshness.state === "aging") score += 8;
