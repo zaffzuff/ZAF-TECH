@@ -1,56 +1,75 @@
-# ZAF TECH
+# ZAF Tech
 
-**ZAF TECH** is an independent, read-only Pi Network ecosystem observatory and utility platform.
+**Independent Pi Network ecosystem observatory and utility platform**
 
-It brings together observable ecosystem applications, App Health checks, Mainnet data, wallet information, developer utilities, and local Pi Node infrastructure diagnostics in one interface.
+ZAF Tech is an independent, community-developed project for exploring observable Pi Network ecosystem data, public Mainnet activity, app availability, developer utilities, wallet observations, and local Pi Node diagnostics.
 
-## Current Product
+- **Live website:** [zaf-tech.vercel.app](https://zaf-tech.vercel.app)
+- **Guided Pi onboarding:** [Start with Pi](https://zaf-tech.vercel.app/start-with-pi)
+- **PDF guide:** [Pi Network Starter Guide 2026](https://zaf-tech.vercel.app/ZAF_Tech_Pi_Network_Baslangic_Rehberi_2026.pdf)
+- **Repository:** [zaffzuff/ZAF-TECH](https://github.com/zaffzuff/ZAF-TECH)
 
-ZAF TECH currently focuses on observable, verifiable data rather than subjective ecosystem scoring.
+ZAF Tech is **not affiliated with or endorsed by the Pi Network Core Team**. It is an independent project and does not represent an official Pi Network service.
 
-### Ecosystem
-- Ecosystem dashboard and live observations
-- Pi App Directory
-- App Details
-- App URL checking
-- Observable application status and metadata
-- Ecosystem activity signals
-- Ecosystem statistics and historical trends
-- Mainnet network observations
+## What the platform includes
 
-### App Health
-- Live App Health checks
-- Batch ecosystem health checks
-- Historical App Health records
-- App Health trends
-- Optional PostgreSQL persistence through `DATABASE_URL`
-- Scheduled health-check support
+### Pulse and ecosystem overview
+- A concise overview of observable Pi Mainnet activity and ecosystem changes.
+- Observed transaction and operation pace, sampled transaction success, ledger observations, and source coverage when available.
+- Clear distinction between observed data, missing data, and unverified claims.
 
-### Wallet
-- Wallet overview
-- Observable Pi balance information
-- Locked and claimable Pi observations when available
-- Recent observable wallet transactions
-- Locale-aware number and date formatting
+### Discover and app health
+- Pi ecosystem app directory and app detail views.
+- App URL checks and observable app metadata.
+- App Health checks, history, and trends where supporting observations are available.
+- Ecosystem app activity, staking observations, statistics, change detection, and historical trends.
 
-### Developer Tools
-- Pi-related developer utilities
-- Transaction inspection tools
-- Public Mainnet data queries
-- Read-only data exploration
+### Network, DeFi, and ecosystem signals
+- Public Pi Mainnet observations and ledger-related data.
+- Testnet asset views kept distinct from Mainnet observations.
+- DeFi, DEX, AMM and pools, token, and Launchpad observation areas.
+- Radar, Trust, activity signals, and ecosystem graph views.
 
-### Node & Infrastructure
-- ZAF TECH Node Connector
-- Local read-only Pi Node diagnostics
-- Docker and Stellar Core observations
-- Node compute/resource information
-- Node history and infrastructure observations
-- SoloHost-related local infrastructure visibility
+Data availability depends on accessible sources. A listed app, token, or ecosystem feature is not automatically verified merely because it appears in a directory or observation view.
+
+### Wallet observations and developer utilities
+- Public wallet and transaction observations where supported by accessible sources.
+- Wallet activity and balance-related information without asking users for private wallet credentials.
+- Pi-related developer utilities and public transaction inspection.
+
+**Never enter or share a Pi Wallet passphrase, seed phrase, private key, account password, or verification code with ZAF Tech.** Always verify official destinations before using wallet-related services.
+
+### Guided onboarding and PDF guide
+The [Start with Pi](https://zaf-tech.vercel.app/start-with-pi) page provides a guided introduction to six first steps: opening an invitation, finding the official Pi app, account registration, starting a mining session, installing Pi Browser, and learning Wallet safety.
+
+The page includes a downloadable [Pi Network Starter Guide 2026 (PDF)](https://zaf-tech.vercel.app/ZAF_Tech_Pi_Network_Baslangic_Rehberi_2026.pdf). The guide is educational: it does not promise rewards, KYC approval, or Mainnet migration.
+
+The onboarding flow uses the invitation username `zaffzuff`. Account creation and all account actions must be completed by the user inside official Pi destinations.
+
+### Local Pi Node diagnostics
+The optional **ZAF Tech Node Connector** is a local Windows companion for users who run Pi Node on their own computer. It can report technical observations such as:
+- Docker/container state and restart count.
+- Stellar Core build, protocol, and synchronization state.
+- Ledger information, peers, quorum observations, and local port checks.
+- Local node resource and history information when available.
+
+The Connector is designed for **local, read-only diagnostics**. It does not offer remote control of the node, change node settings, or expose Docker to the public internet. Its local service binds to `127.0.0.1:39100`.
+
+Connector documentation and packaging files are available in [tools/zaf-node-connector-package](https://github.com/zaffzuff/ZAF-TECH/tree/master/tools/zaf-node-connector-package).
+
+## Main routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | ZAF Tech dashboard and ecosystem observatory |
+| `/start-with-pi` | Guided onboarding and downloadable PDF guide |
+| `/ecosystem/[slug]` | Details for an ecosystem app |
+| `/about` | About the project and its scope |
+| `/privacy` | Privacy and data scope |
 
 ## Languages
 
-The interface currently supports:
-
+The main dashboard supports:
 - English
 - Turkish
 - Spanish
@@ -61,54 +80,34 @@ The interface currently supports:
 - Portuguese
 - Russian
 
-The selected language is persisted locally so it remains active while navigating the application.
+The guided onboarding page is currently available in English and Turkish.
 
-## Architecture
+## Data principles and limitations
+
+ZAF Tech prioritizes evidence that can be inspected over unsupported claims.
+
+- Public network values describe sampled observations; they are not necessarily completed calendar-day totals.
+- Activity and trend views are descriptive, not forecasts or guarantees of future performance.
+- Source availability is not equivalent to full content verification.
+- Historical persistence is optional and depends on the database configuration.
+- Node diagnostics are intended to remain local to the user; the Connector itself does not upload node diagnostics to a central server.
+- Features that rely on external sources may be unavailable, incomplete, or delayed.
+
+## Technology stack
 
 - **Next.js 15**
 - **React 19**
 - **TypeScript**
 - **Tailwind CSS**
 - **PostgreSQL-compatible storage** for optional historical persistence
-- **GitHub Actions** for build validation
+- **GitHub Actions** for build and workflow validation
 - **Vercel** for deployment
 - Public Pi Network/Mainnet data sources
-- Local ZAF TECH Node Connector for read-only node diagnostics
+- Local ZAF Tech Node Connector for read-only Pi Node diagnostics
 
-## Data & Verification Principles
+## Local development
 
-ZAF TECH separates observable data from claims that cannot be independently verified.
-
-- Public network observations are presented as sampled data, not as subjective network health scores.
-- Application capabilities are not treated as verified unless an observable check supports them.
-- Historical and trend views describe stored observations; they are not forecasts.
-- The Node Connector is designed for local, read-only diagnostics.
-- Database persistence is optional. Core live checks can operate without a configured PostgreSQL database.
-
-## Data Endpoints
-
-The application currently exposes API routes for areas including:
-
-- Ecosystem observations
-- Ecosystem statistics
-- Ecosystem change detection
-- Ecosystem trends
-- Historical observations
-- App Health
-- App Health history
-- App Health trends
-- App URL checks
-- Wallet observations
-- Developer transaction tools
-
-## Main Routes
-
-- `/` — ZAF TECH ecosystem dashboard
-- `/ecosystem/[slug]` — application details
-- `/about` — project information
-- `/privacy` — privacy and data scope
-
-## Local Development
+Requirements: a compatible Node.js installation and npm.
 
 Install dependencies:
 
@@ -122,60 +121,45 @@ Start the development server:
 npm run dev
 ```
 
-Build the application:
+Create a production build:
 
 ```bash
 npm run build
 ```
 
-Start the production build:
+Run the production build locally:
 
 ```bash
 npm start
 ```
 
-Run the local Node Connector:
+Run the Node Connector:
 
 ```bash
 npm run node:connector
 ```
 
-## Optional Database
+Additional project checks:
 
-Historical persistence uses a PostgreSQL-compatible connection supplied through:
-
-```text
-DATABASE_URL
+```bash
+npm run regression
+npm run smoke
 ```
 
-Without `DATABASE_URL`, the live health-check and observation functionality can still operate, while database-backed historical storage remains unavailable.
+## Optional database configuration
 
-## Node Connector
+Historical persistence uses a PostgreSQL-compatible database configured through the `DATABASE_URL` environment variable.
 
-The ZAF TECH Node Connector is intentionally preserved as part of the project.
+Without `DATABASE_URL`, live observation and health-check features that do not require database-backed history can still operate. Database-dependent historical storage remains unavailable.
 
-It provides a local, read-only bridge for observing Pi Node infrastructure such as Docker containers, Stellar Core status, WSL/network information, node resources, and historical node observations.
+## Deployment
 
-The connector is not a remote control interface and does not expose write operations for the user's local node.
+The project is configured for Vercel deployment. Commits pushed to the connected production branch can trigger a new deployment.
 
-## CI / Deployment
+A successful build alone does not guarantee that every external data source or optional service is available at runtime. Configure any required environment variables and optional database services for the environment where they are used.
 
-GitHub Actions validates the web application build and the Node Connector workflows.
+## Project status
 
-The project is designed for deployment on Vercel.
+ZAF Tech is actively evolving. The current focus is a stable, observation-first platform, clearer ecosystem discovery, guided Pi onboarding, transparent data limitations, and local read-only node diagnostics.
 
-A successful source build does not by itself guarantee that every external runtime dependency is available in production; environment variables and optional database configuration must be supplied where required.
-
-## Independence
-
-ZAF TECH is an independent, community-developed project. It is **not an official Pi Core Team product** and is not presented as an official Pi Network service.
-
-## Project Status
-
-ZAF TECH is actively evolving. Pi ecosystem integration is being developed incrementally, with the current product prioritizing a stable read-only foundation, multilingual support, observable data, App Health, wallet information, developer tools, and Node infrastructure diagnostics.
-
-Pi Login, Pi Payments, and other authenticated/write-capability integrations are not part of the current read-only foundation.
-
-## License
-
-No open-source license has currently been declared for this repository. Unless a license is added, the repository remains subject to the default copyright protections applicable to its contents.
+The repository does not currently declare an open-source license. Unless a license is added, its contents remain subject to the default copyright protections that apply to them.
