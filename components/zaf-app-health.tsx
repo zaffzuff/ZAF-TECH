@@ -256,7 +256,7 @@ export function ZafAppHealth({locale}:{locale:Locale}){
               </div>
             </div>
           ) : null}
-          </div>:<div className="mt-3 text-[10px] text-muted-foreground">{tr("No Stored History Is Available Yet.","Henüz Kaydedilmiş Geçmiş Bulunmuyor.")}</div>}
+          </div>:<div className="mt-3"><ZafComingSoon locale={locale} title={tr("Historical Checks","Geçmiş Kontroller")} detail={tr("Historical checks will appear when persistent health-check storage is configured and records have been collected.","Kalıcı sağlık kontrolü depolaması yapılandırılıp kayıtlar biriktirildiğinde geçmiş kontroller burada görünecek.")} /></div>}
         </div>:null}
       </div>:null}
     </div>
