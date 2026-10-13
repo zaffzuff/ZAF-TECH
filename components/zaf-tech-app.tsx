@@ -624,7 +624,7 @@ export function ZafTechApp() {
   return (
     <div className="min-h-screen bg-background">
       <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
-        <header className="zaf-sticky-header border-b border-border">
+        <header className="zaf-sticky-header">
           <div className="zaf-desktop-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={44} height={44} className="h-11 w-11 shrink-0 object-contain" priority />
