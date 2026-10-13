@@ -669,7 +669,7 @@ export function ZafTechApp() {
           <span>{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
         </div>
 
-        {loading ?        {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
+        {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
         {!loading && loadError ? (
           <div className="mt-5 rounded-xl border border-border bg-card p-5 text-center sm:mt-7">
             <div className="text-sm font-semibold text-foreground">{tr("Unable To Load Current Data", "Güncel Veriler Yüklenemedi")}</div>
