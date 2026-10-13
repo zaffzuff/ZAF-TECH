@@ -1709,3 +1709,23 @@
     position: static;
   }
 }
+
+
+/* Pi identity accent: purple → warm yellow → purple, shared by Pi labels and Start Pi entry point. */
+.zaf-pi-gradient-text,
+.zaf-start-pi-link {
+  background-image: linear-gradient(100deg, #8b5cf6 0%, #facc15 51%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.zaf-start-pi-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-color: color-mix(in srgb, #8b5cf6 35%, var(--border));
+}
+.zaf-start-pi-link:hover {
+  border-color: color-mix(in srgb, #facc15 55%, var(--border));
+}
