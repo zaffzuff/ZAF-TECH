@@ -5,7 +5,6 @@ import type { Locale } from "@/lib/zaf/i18n";
 import { localeLabels, translate } from "@/lib/zaf/i18n";
 
 const locales: Locale[] = ["en", "es", "tr", "zh", "it", "fr", "de", "pt", "ru"];
-const LOCALE_STORAGE_KEY = "zaf-tech-locale-v1";
 
 function FlagIcon({ locale }: { locale: Locale }) {
   const flag = locale === "en" ? "gb" : locale === "es" ? "es" : locale === "tr" ? "tr" : locale === "zh" ? "cn" : locale === "it" ? "it" : locale === "fr" ? "fr" : locale === "de" ? "de" : locale === "pt" ? "pt" : "ru";
@@ -42,11 +41,6 @@ export function LanguageSelector({
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    if (stored && locales.includes(stored as Locale)) onChange(stored as Locale);
-  }, [onChange]);
-
   const ordered = [...locales].sort((a, b) => localeLabels[a].localeCompare(localeLabels[b], "en"));
 
   return (
@@ -78,7 +72,6 @@ export function LanguageSelector({
               aria-selected={locale === option}
               onClick={() => {
                 onChange(option);
-                window.localStorage.setItem(LOCALE_STORAGE_KEY, option);
                 setOpen(false);
               }}
               className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs ${locale === option ? "bg-muted font-semibold text-foreground" : "text-foreground hover:bg-muted"}`}
