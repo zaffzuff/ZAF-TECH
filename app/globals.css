@@ -1629,3 +1629,28 @@
   }
 }
 
+
+
+/* Keep Pi sign-in grouped with the top-right controls, not with network status labels. */
+.zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"],
+.zaf-mobile-header > div:last-child > [data-testid="zaf-pi-sign-in"] {
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+.zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > button,
+.zaf-mobile-header > div:last-child > [data-testid="zaf-pi-sign-in"] > button {
+  white-space: nowrap;
+  padding: 6px 9px;
+  font-size: 11px;
+}
+@media (max-width: 1023px) {
+  .zaf-mobile-header > div:last-child {
+    max-width: 190px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .zaf-mobile-header > div:last-child > [data-testid="zaf-pi-sign-in"] > button {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+}
