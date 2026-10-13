@@ -460,12 +460,39 @@
 }
 
 
-/* Compact mobile header: actions and search live on the top row. */
+/* Keep mobile Pi account feedback in its own row, never inside the action strip. */
 .zaf-mobile-header { display: none; }
+.zaf-mobile-pi-sign-in { display: none; }
 
 @media (max-width: 1023px) {
   .zaf-desktop-header { display: none; }
   .zaf-mobile-header { display: flex; }
+  .zaf-mobile-pi-sign-in {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 0;
+    gap: 0.5rem;
+  }
+  .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] > [role="status"],
+  .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] > [aria-live="polite"] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   .zaf-mobile-header-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
   .zaf-mobile-language > button {
     width: 32px;

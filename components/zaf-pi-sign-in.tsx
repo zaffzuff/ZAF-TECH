@@ -192,7 +192,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div data-testid="zaf-pi-sign-in" className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
+    <div data-testid="zaf-pi-sign-in" className="mt-3 flex min-w-0 max-w-full flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => void signIn()}
@@ -208,7 +208,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           {tr("Verified username:", "Doğrulanan kullanıcı adı:")} @{user.username}
         </span>
       ) : message ? (
-        <span className="min-w-0 text-[10px] leading-relaxed text-muted-foreground" role="status" aria-live="polite">
+        <span className="block min-w-0 max-w-full break-words whitespace-normal rounded-lg border border-border bg-card px-3 py-2 text-[11px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]" role="status" aria-live="polite">
           {message}
         </span>
       ) : null}

@@ -137,6 +137,24 @@ if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sig
   throw new Error("Pi Sign-In must be mounted in the main ZAF Tech interface");
 }
 
+if (!zafAppSource.includes('<div className="zaf-mobile-pi-sign-in">')) {
+  throw new Error("Mobile Pi Sign-In must have a dedicated full-width status row");
+}
+const piSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+for (const token of [
+  ".zaf-mobile-pi-sign-in {",
+  "width: 100%;",
+  "overflow-wrap: anywhere;",
+  "white-space: normal;",
+]) {
+  if (!piSignInStyles.includes(token)) throw new Error("Pi Sign-In mobile overflow protection regression: " + token);
+}
+if (!piSignIn.includes("rounded-lg border border-border bg-card px-3 py-2") ||
+    !piSignIn.includes("[overflow-wrap:anywhere]")) {
+  throw new Error("Pi Sign-In status message must be readable and wrap inside its container");
+}
+
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
