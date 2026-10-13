@@ -8,6 +8,8 @@ const copy = {
     title: "Your Pi journey starts here.",
     intro: "New to Pi Network? This is a clear, safety-first starting point to understand the ecosystem and decide your next step.",
     cta: "Start with my invitation",
+    pdfCta: "Download PDF guide",
+    pdfHint: "A printable Pi Network starter guide",
     flowLabel: "YOUR STARTING PATH",
     flowIntro: "Follow these steps in order. Each step explains what to do and opens the relevant official destination when needed.",
     openInvite: "Open my invitation",
@@ -41,6 +43,8 @@ const copy = {
     title: "Pi yolculuğun burada başlıyor.",
     intro: "Pi Network'e yeni misin? Ekosistemi anlamak ve sonraki adımına bilinçli karar vermek için güvenliği önceleyen bir başlangıç noktası.",
     cta: "Davet bağlantımla başla",
+    pdfCta: "PDF Rehberini İndir",
+    pdfHint: "Pi Network başlangıç rehberini PDF olarak aç veya indir",
     flowLabel: "BAŞLANGIÇ YOLUN",
     flowIntro: "Bu adımları sırayla izle. Her adım ne yapacağını açıklar ve gerektiğinde ilgili resmî bağlantıyı açar.",
     openInvite: "Davet bağlantımı aç",
@@ -49,7 +53,7 @@ const copy = {
     previous: "Önceki adım",
     next: "Sonraki adım",
     stepDone: "Adım tamamlandı",
-    stepNote: "ZAF Tech senin adına hesap oluşturamaz. Kaydı resmî Pi uygulamasında tamamla.
+    stepNote: "ZAF Tech senin adına hesap oluşturamaz. Kaydı resmî Pi uygulamasında tamamla.",
     inviter: "Davet kullanıcı adı",
     code: "zaffzuff",
     stepsTitle: "Adım adım, anlaşılır bir yol haritası",
@@ -110,6 +114,7 @@ export default function StartWithPiPage() {
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#596873] sm:text-base">{t.intro}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <a href="https://minepi.com/zaffzuff" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-[#a8793d] bg-[#b98745] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#9d7138]">{t.cta} <span aria-hidden="true">↗</span></a>
+              <a href="/ZAF_Tech_Pi_Network_Baslangic_Rehberi_2026.pdf" download className="inline-flex items-center gap-2 border border-[#b98745] bg-white/70 px-4 py-3 text-xs font-semibold text-[#765326] transition hover:bg-[#f4ead9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b98745]"><span aria-hidden="true">↓</span>{t.pdfCta}</a>
               <div className="border-l border-[#d9c6a4] pl-3 text-[10px] text-[#596873]">{t.inviter}<div className="mt-0.5 text-sm font-semibold text-[#1d2933]">{t.code}</div></div>
             </div>
           </div>
