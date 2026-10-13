@@ -3,9 +3,7 @@
 import { useState } from "react";
 
 function piText(value: string) {
-  return value.split(/(Pi Network)/gi).map((part, index) =>
-    /pi network/i.test(part) ? <span key={index} className="zaf-pi-gradient-text">{part}</span> : part,
-  );
+  return value;
 }
 
 const copy = {
