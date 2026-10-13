@@ -16,7 +16,28 @@ export const metadata: Metadata = {
 export const viewport = { themeColor: "#f7f8fa", width: "device-width", initialScale: 1, viewportFit: "cover" as const };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className="light bg-background"><head><style>{`
+  return (
+    <html lang="en" className="bg-background">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function () {
+            try {
+              var saved = localStorage.getItem("zaf-tech-theme-v1");
+              var dark = saved === "dark" || (saved !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+              document.documentElement.classList.toggle("dark", dark);
+              document.documentElement.classList.toggle("light", !dark);
+            } catch (_) {
+              var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+              document.documentElement.classList.toggle("dark", dark);
+              document.documentElement.classList.toggle("light", !dark);
+            }
+          })();
+        ` }} />
+        <style>{`
 html { font-family: ${GeistSans.style.fontFamily}; --font-sans: ${GeistSans.variable}; --font-mono: ${GeistMono.variable}; --font-michroma: ${michroma.style.fontFamily}; }
-`}</style></head><body>{children}</body></html>;
+`}</style>
+      </head>
+      <body>{children}</body>
+    </html>
+  );
 }
