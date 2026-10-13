@@ -1585,10 +1585,12 @@
   }
 }
 
-/* Keep only the branded top header visible while the page content scrolls. */
-.zaf-sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  background: var(--background);
+/* Keep the branded header sticky on desktop only; mobile retains its original flow. */
+@media (min-width: 1024px) {
+  .zaf-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--background);
+  }
 }
