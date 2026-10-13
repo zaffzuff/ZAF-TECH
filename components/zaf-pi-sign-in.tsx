@@ -12,7 +12,7 @@ type PiAuthResult = {
 };
 
 type PiSdk = {
-  init: (options: { version: "2.0"; sandbox: boolean }) => void;
+  init: (options: { version: "2.0"; sandbox: boolean }) => Promise<unknown> | void;
   authenticate: (
     scopes: string[],
     onIncompletePaymentFound?: (payment: unknown) => void,
@@ -69,7 +69,7 @@ function loadPiSdk() {
   return sdkLoadPromise;
 }
 
-function initializePiSdk() {
+async function initializePiSdk(): Promise<PiSdk> {
   const pi = window.Pi;
   if (!pi) throw new Error("Pi SDK is unavailable.");
 
@@ -84,10 +84,14 @@ function initializePiSdk() {
   const sandbox = configuredMode
     ? configuredMode === "sandbox"
     : requestedByUrl || window.location.hostname === "sandbox.minepi.com";
+
   if (initializedSandboxMode !== sandbox) {
-    pi.init({ version: "2.0", sandbox });
+    // Current Pi SDK init is asynchronous. Authentication must not start until
+    // its Promise resolves, otherwise Pi.authenticate may fail before /me.
+    await pi.init({ version: "2.0", sandbox });
     initializedSandboxMode = sandbox;
   }
+
   return pi;
 }
 
@@ -103,14 +107,22 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     setBusy(true);
     setMessage("");
 
-    let verificationStarted = false;
+    let phase: "sdk-load" | "sdk-init" | "authentication" | "verification" = "sdk-load";
     try {
       await withTimeout(
         loadPiSdk(),
         12_000,
         "Pi SDK loading timed out.",
       );
-      const pi = initializePiSdk();
+
+      phase = "sdk-init";
+      const pi = await withTimeout(
+        initializePiSdk(),
+        12_000,
+        "Pi SDK initialization timed out.",
+      );
+
+      phase = "authentication";
       const auth = await withTimeout(
         pi.authenticate(["username"], () => undefined),
         25_000,
@@ -120,7 +132,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         throw new Error("Pi did not return an access token.");
       }
 
-      verificationStarted = true;
+      phase = "verification";
       const response = await fetch("/api/zaf/pi/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -145,13 +157,35 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       if (!username) throw new Error("Pi verified the request but returned no username.");
       setUser({ username });
       setMessage(tr("Pi account verified.", "Pi hesabı doğrulandı."));
-    } catch {
-      setUser(null);
-      setMessage(
-        verificationStarted
-          ? tr("Pi sign-in could not be verified. Please try again.", "Pi girişi doğrulanamadı. Lütfen tekrar dene.")
-          : tr("Open ZAF Tech inside Pi Browser and try again.", "ZAF Tech'i Pi Browser içinde açıp tekrar dene."),
+    } catch (error) {
+      // Never log the access token or full API request; only log the phase and
+      // error class so a Pi Browser failure can be diagnosed without secrets.
+      console.error(
+        "[ZAF Tech] Pi sign-in failed during " + phase,
+        error instanceof Error ? error.name : "UnknownError",
       );
+      setUser(null);
+
+      const failureCopy = {
+        "sdk-load": [
+          "Pi SDK could not load. Refresh ZAF Tech inside Pi Browser and try again.",
+          "Pi SDK yüklenemedi. ZAF Tech'i Pi Browser içinde yenileyip tekrar dene.",
+        ],
+        "sdk-init": [
+          "Pi SDK could not initialize. Refresh ZAF Tech inside Pi Browser and try again.",
+          "Pi SDK başlatılamadı. ZAF Tech'i Pi Browser içinde yenileyip tekrar dene.",
+        ],
+        authentication: [
+          "Pi authentication did not complete. Check the app access prompt in Pi Browser and try again.",
+          "Pi kimlik doğrulaması tamamlanmadı. Pi Browser'daki uygulama izin ekranını kontrol edip tekrar dene.",
+        ],
+        verification: [
+          "Pi sign-in could not be verified. Please try again.",
+          "Pi girişi doğrulanamadı. Lütfen tekrar dene.",
+        ],
+      } as const;
+      const [enMessage, trMessage] = failureCopy[phase];
+      setMessage(tr(enMessage, trMessage));
     } finally {
       setBusy(false);
     }
