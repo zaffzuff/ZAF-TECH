@@ -202,6 +202,39 @@ export function ZafPulse({
         </div>
       </div>
 
+      <section className="zaf-start-pi-promo mt-4 overflow-hidden rounded-2xl border border-[#d9c6a4] bg-gradient-to-br from-[#fffdf8] via-[#f8f5ee] to-[#eee5d7] text-[#1d2933] shadow-sm">
+        <div className="grid gap-0 md:grid-cols-[1.35fr_0.65fr]">
+          <div className="p-5 sm:p-7">
+            <div className="mb-3 inline-flex items-center gap-2 border-b border-[#c99a58] pb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#93672f]">
+              {tx(locale, "A guided entry to the Pi ecosystem", "Pi ekosistemine rehberli başlangıç")}
+            </div>
+            <h2 className="max-w-xl text-xl font-semibold tracking-tight sm:text-2xl">
+              {tx(locale, "New to Pi Network?", "Pi Network'e yeni misin?")}
+            </h2>
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[#596873] sm:text-sm">
+              {tx(locale, "Start with the essentials: understand the ecosystem, learn the first steps, and keep your account and wallet safe. A practical guide from ZAF Tech.", "Temel bilgilerle başla: ekosistemi tanı, ilk adımları öğren ve hesabını ve cüzdanını güvende tut. ZAF Tech tarafından hazırlanan pratik bir rehber.")}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <a href="/start-with-pi" className="inline-flex items-center gap-2 border border-[#a8793d] bg-[#b98745] px-4 py-2.5 text-[11px] font-semibold text-white transition hover:bg-[#9d7138]">
+                {tx(locale, "Start your Pi journey", "Pi yolculuğuna başla")} <span aria-hidden="true">↗</span>
+              </a>
+              <span className="text-[10px] text-[#596873]">{tx(locale, "Invitation username", "Davet kullanıcı adı")}: <strong className="font-semibold text-[#1d2933]">zaffzuff</strong></span>
+            </div>
+          </div>
+          <div className="flex flex-col justify-between border-t border-[#d9c6a4] bg-white/60 p-5 md:border-l md:border-t-0 sm:p-7">
+            <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#93672f]">ZAF Tech / Field Guide</div>
+            <div className="my-5">
+              <div className="text-3xl font-semibold leading-none tracking-tight text-[#1d2933]">PI<span className="text-[#b98745]">.</span></div>
+              <div className="mt-2 text-xs font-semibold text-[#1d2933]">{tx(locale, "Begin with clarity.", "Bilinçli bir başlangıç yap.")}</div>
+              <p className="mt-1 text-[10px] leading-relaxed text-[#596873]">{tx(locale, "Registration · Mining · Wallet · KYC · Security", "Kayıt · Madencilik · Wallet · KYC · Güvenlik")}</p>
+            </div>
+            <div className="border-t border-[#e3d8c6] pt-3 text-[9px] leading-relaxed text-[#596873]">
+              {tx(locale, "Independent community resource. Not an official Pi Network publication.", "Bağımsız topluluk kaynağıdır. Resmî Pi Network yayını değildir.")}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="zaf-pulse-grid mt-3">
         <article className="zaf-pulse-card zaf-pulse-card-rising">
           <div className="zaf-pulse-card-head">
