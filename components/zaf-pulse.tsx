@@ -209,7 +209,7 @@ export function ZafPulse({
               {tx(locale, "A guided entry to the Pi ecosystem", "Pi ekosistemine rehberli başlangıç")}
             </div>
             <h2 className="max-w-xl text-xl font-semibold tracking-tight sm:text-2xl">
-              {tx(locale, "New to Pi Network?", "Pi Network'e yeni misin?")}
+              {locale === "tr" ? <><span className="zaf-pi-gradient-text">Pi Network</span>{"'e yeni misin?"}</> : <>New to <span className="zaf-pi-gradient-text">Pi Network</span>?</>}
             </h2>
             <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[#596873] sm:text-sm">
               {tx(locale, "Start with the essentials: understand the ecosystem, learn the first steps, and keep your account and wallet safe. A practical guide from ZAF Tech.", "Temel bilgilerle başla: ekosistemi tanı, ilk adımları öğren ve hesabını ve cüzdanını güvende tut. ZAF Tech tarafından hazırlanan pratik bir rehber.")}
@@ -229,7 +229,7 @@ export function ZafPulse({
               <p className="mt-1 text-[10px] leading-relaxed text-[#596873]">{tx(locale, "Registration · Mining · Wallet · KYC · Security", "Kayıt · Madencilik · Wallet · KYC · Güvenlik")}</p>
             </div>
             <div className="border-t border-[#e3d8c6] pt-3 text-[9px] leading-relaxed text-[#596873]">
-              {tx(locale, "Independent community resource. Not an official Pi Network publication.", "Bağımsız topluluk kaynağıdır. Resmî Pi Network yayını değildir.")}
+              {(locale === "tr" ? "Bağımsız topluluk kaynağıdır. Resmî Pi Network yayını değildir." : "Independent community resource. Not an official Pi Network publication.").split(/(Pi Network)/gi).map((part, index) => /pi network/i.test(part) ? <span key={index} className="zaf-pi-gradient-text">{part}</span> : part)}
             </div>
           </div>
         </div>
