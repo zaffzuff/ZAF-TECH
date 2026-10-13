@@ -155,6 +155,23 @@ if (!piSignIn.includes("rounded-lg border border-border bg-card px-3 py-2") ||
 }
 
 
+const piSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+for (const token of [
+  ".zaf-pi-status-bubble",
+  "align-items: flex-start;",
+  "align-self: flex-start;",
+  "width: auto;",
+  "overflow-wrap: anywhere;",
+  "max-width: min(100%, 340px);",
+]) {
+  if (!piSignInStyles.includes(token)) throw new Error("Pi Sign-In compact status layout regression: " + token);
+}
+if (!piSignIn.includes("zaf-pi-status-bubble") ||
+    !piSignIn.includes("desktop browsers need Pi Sign-In setup")) {
+  throw new Error("Pi Sign-In must show a compact status bubble and browser setup guidance");
+}
+
+
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");

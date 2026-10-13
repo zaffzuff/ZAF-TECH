@@ -460,9 +460,16 @@
 }
 
 
-/* Keep mobile Pi account feedback in its own row, never inside the action strip. */
+/* Keep the login button compact and the status message in a separate, bounded bubble. */
 .zaf-mobile-header { display: none; }
 .zaf-mobile-pi-sign-in { display: none; }
+.zaf-pi-status-bubble {
+  width: fit-content;
+  max-width: min(100%, 340px);
+  box-sizing: border-box;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 
 @media (max-width: 1023px) {
   .zaf-desktop-header { display: none; }
@@ -476,22 +483,22 @@
   .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     width: 100%;
     min-width: 0;
     max-width: 100%;
     margin-top: 0;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
-  .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] > [role="status"],
-  .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] > [aria-live="polite"] {
-    display: block;
-    width: 100%;
-    min-width: 0;
+  .zaf-mobile-pi-sign-in [data-testid="zaf-pi-sign-in"] > button {
+    width: auto;
     max-width: 100%;
-    box-sizing: border-box;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    align-self: flex-start;
+    flex: 0 0 auto;
+  }
+  .zaf-mobile-pi-sign-in .zaf-pi-status-bubble {
+    width: fit-content;
+    max-width: min(100%, 340px);
   }
   .zaf-mobile-header-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; }
   .zaf-mobile-language > button {

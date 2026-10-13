@@ -176,8 +176,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           "Pi SDK başlatılamadı. ZAF Tech'i Pi Browser içinde yenileyip tekrar dene.",
         ],
         authentication: [
-          "Pi authentication did not complete. Check the app access prompt in Pi Browser and try again.",
-          "Pi kimlik doğrulaması tamamlanmadı. Pi Browser'daki uygulama izin ekranını kontrol edip tekrar dene.",
+          "Pi sign-in failed. Pi Browser needs the registered app URL; desktop browsers need Pi Sign-In setup.",
+          "Pi girişi başarısız. Pi Browser için kayıtlı uygulama URL’si, masaüstü için Pi Sign-In kurulumu gerekiyor.",
         ],
         verification: [
           "Pi sign-in could not be verified. Please try again.",
@@ -208,7 +208,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           {tr("Verified username:", "Doğrulanan kullanıcı adı:")} @{user.username}
         </span>
       ) : message ? (
-        <span className="block min-w-0 max-w-full break-words whitespace-normal rounded-lg border border-border bg-card px-3 py-2 text-[11px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]" role="status" aria-live="polite">
+        <span className="zaf-pi-status-bubble block w-fit min-w-0 max-w-full break-words whitespace-normal rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]" role="status" aria-live="polite">
           {message}
         </span>
       ) : null}
