@@ -1711,15 +1711,18 @@
 }
 
 
-/* Pi identity accent: purple → warm yellow → purple, shared by Pi labels and Start Pi entry point. */
-.zaf-pi-gradient-text,
+/* Keep the purple → warm yellow → purple accent exclusive to the Start Pi entry point. */
+.zaf-pi-gradient-text {
+  color: inherit;
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
 .zaf-start-pi-link {
   background-image: linear-gradient(100deg, #8b5cf6 0%, #facc15 51%, #8b5cf6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-.zaf-start-pi-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
