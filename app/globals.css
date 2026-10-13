@@ -1654,3 +1654,58 @@
     font-size: 10px;
   }
 }
+
+
+/* ZAF Tech signature header: restrained champagne edge, cool metallic highlights,
+   and a soft layered surface instead of a generic hard card border. */
+.zaf-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  overflow: visible;
+  border: 1px solid color-mix(in oklab, var(--ty-gold) 25%, var(--border));
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 150% at 0% 0%, color-mix(in oklab, var(--ty-gold-soft) 22%, transparent), transparent 58%),
+    linear-gradient(135deg, color-mix(in oklab, var(--card) 96%, var(--background)), var(--background) 72%);
+  box-shadow:
+    0 8px 24px oklch(0.05 0.01 265 / 0.055),
+    inset 0 1px 0 color-mix(in oklab, white 60%, transparent);
+  background-clip: padding-box;
+}
+.zaf-sticky-header::before {
+  content: "";
+  position: absolute;
+  inset: 0 8% auto 8%;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--ty-gold) 55%, white), transparent);
+  opacity: .75;
+  pointer-events: none;
+}
+.zaf-sticky-header .zaf-desktop-header {
+  padding: 10px 12px 8px;
+}
+.zaf-sticky-header .zaf-mobile-header {
+  padding: 7px 8px 5px;
+}
+.zaf-sticky-header .zaf-header-status-row {
+  margin: 0 10px;
+  padding: 7px 2px 9px;
+  border-top: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+}
+@media (max-width: 1023px) {
+  .zaf-sticky-header {
+    border-radius: 14px;
+  }
+  .zaf-sticky-header .zaf-header-status-row {
+    margin: 0 8px;
+    padding-top: 6px;
+    padding-bottom: 8px;
+  }
+}
+@media (max-height: 450px) {
+  .zaf-sticky-header {
+    position: static;
+  }
+}
