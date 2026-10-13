@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
+import { ZafComingSoon } from "@/components/zaf-coming-soon";
 
 type Result = {
   url: string;
@@ -41,7 +42,7 @@ type TrendSummary = {
 };
 
 function AppTrend({points,summary,locale,tr}:{points:TrendPoint[];summary:TrendSummary|null;locale:Locale;tr:(en:string,tr:string)=>string}){
- if(!points.length) return <div className="mt-3 text-[10px] text-muted-foreground">{tr("No stored trend data is available yet.","Henüz kaydedilmiş trend verisi bulunmuyor.")}</div>;
+ if(!points.length) return <div className="mt-3"><ZafComingSoon locale={locale} title={tr("Response Time Trend","Yanıt Süresi Trendi")} detail={tr("Historical trend cards will become available when this app has enough persisted health checks to show a meaningful trend.","Bu uygulama için anlamlı bir trend gösterecek kadar kayıtlı sağlık kontrolü oluştuğunda tarihsel trend kartları kullanılabilir olacak.")} /></div>;
  const max=Math.max(...points.map(p=>p.responseTimeMs),1);
  return <div className="mt-4 rounded-lg border border-border p-3">
   <div className="text-xs font-semibold text-foreground">{tr("Response Time Trend","Yanıt Süresi Trendi")}</div>
