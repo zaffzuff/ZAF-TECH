@@ -194,6 +194,20 @@ if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileS
   throw new Error("Mobile Sign in with Pi must sit beside Start Pi in the header action group");
 }
 const piSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+
+for (const token of [
+  ".zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link",
+  ".zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button",
+  "height: 32px;",
+  "min-height: 32px;",
+  "background-color: #f5e8c7;",
+  "color: #6f3f8f;",
+  "-webkit-text-fill-color: #6f3f8f;",
+  "border-color: #cbb270;",
+]) {
+  if (!piSignInStyles.includes(token)) throw new Error("Desktop Pi action champagne styling regression: " + token);
+}
+
 for (const token of [
   ".zaf-mobile-header .zaf-start-pi-link",
   ".zaf-mobile-header .zaf-pi-signin-button",

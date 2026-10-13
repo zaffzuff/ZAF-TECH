@@ -1799,3 +1799,56 @@
     overflow-wrap: anywhere;
   }
 }
+
+
+/* Desktop Pi actions: match the mobile champagne palette while retaining a neat, shared baseline. */
+@media (min-width: 1024px) {
+  .zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link,
+  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 10px;
+    gap: 6px;
+    border: 1px solid #d8c58f;
+    border-radius: 9px;
+    background-color: #f5e8c7;
+    background-image: none;
+    background-clip: padding-box;
+    color: #6f3f8f;
+    -webkit-text-fill-color: #6f3f8f;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgb(65 44 18 / 8%);
+    transform: none;
+    transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
+  }
+
+  .zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link:hover,
+  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button:hover:not(:disabled) {
+    background-color: #efe0b3;
+    background-image: none;
+    color: #6f3f8f;
+    -webkit-text-fill-color: #6f3f8f;
+    border-color: #cbb270;
+    transform: none;
+    box-shadow: 0 2px 5px rgb(65 44 18 / 10%);
+  }
+
+  .zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link:focus-visible,
+  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button:focus-visible {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 2px;
+  }
+
+  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button:disabled {
+    cursor: wait;
+    opacity: .65;
+  }
+}
