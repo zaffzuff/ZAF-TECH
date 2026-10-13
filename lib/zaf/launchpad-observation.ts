@@ -40,7 +40,7 @@ export function getLaunchpadObservation(): LaunchpadObservation {
     live: {
       available: false,
       source: null,
-      note: "No direct public Launchpad API or live event feed is wired into ZAF TECH in this phase. Published official evidence is separated from live observations.",
+      note: "No direct public Launchpad API or live event feed is wired into ZAF Tech in this phase. Published official evidence is separated from live observations.",
     },
     currentOfficialStatus: {
       stage: "testnet-iteration",

@@ -242,7 +242,7 @@ export async function getZafWallet(
       lockup: {
         observableClaimablePi,
         items: lockups,
-        note: "These are publicly observable native claimable balances. ZAF TECH does not infer private Pi lockup commitments from unavailable data.",
+        note: "These are publicly observable native claimable balances. ZAF Tech does not infer private Pi lockup commitments from unavailable data.",
       },
       account: {
         sequence: stringOrNull(account.sequence),
