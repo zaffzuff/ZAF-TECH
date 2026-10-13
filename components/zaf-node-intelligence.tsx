@@ -223,7 +223,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
         <NodeMetric label={tr("Local Listeners", "Yerel Dinleyiciler")} value={localNode?.ports ? `${localNode.ports.filter((item) => item.listeningLocally).length}/10` : "—"} detail={tr("Local port listeners only; not an Internet reachability test", "Yalnızca Yerel port dinleyicileri; Internet erişilebilirlik testi değildir")} />
         <NodeMetric label={tr("Ledger Age", "Ledger Yaşı")} value={localNode?.node?.ledger?.age != null ? `${localNode.node.ledger.age}s` : "—"} detail={tr("Age reported by local Stellar Core", "Yerel Stellar Core tarafından bildirilen yaş")} />
         <NodeMetric label={tr("Restart Count", "Yeniden Başlatma")} value={localNode?.node?.restartCount != null ? formatNumber(localNode.node.restartCount, locale) : "—"} detail={tr("Docker restart counter for the detected Node Container", "Algılanan Node Container'ının Docker yeniden başlatma sayacı")} />
-        <NodeMetric label={tr("Mainnet Observation", "Mainnet Gözlemi")} value={formatNumber(data?.metrics.recentLedgerCount ?? null, locale)} detail={tr("Public Pi Mainnet ledger window used by ZAF TECH", "ZAF TECH'in kullandığı herkese açık Pi Mainnet ledger penceresi")} />
+        <NodeMetric label={tr("Mainnet Observation", "Mainnet Gözlemi")} value={formatNumber(data?.metrics.recentLedgerCount ?? null, locale)} detail={tr("Public Pi Mainnet ledger window used by ZAF Tech", "ZAF Tech'in kullandığı herkese açık Pi Mainnet ledger penceresi")} />
       </div>
       <div className="mt-3 rounded-xl border border-border bg-card p-3 sm:mt-4 sm:p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Current Node Alerts", "Mevcut Node Uyarıları")}</div>
@@ -281,8 +281,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             <h3 className="text-sm font-semibold text-foreground">{tr("My Node Identity", "Node Kimliğim")}</h3>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
               {tr(
-                "Enter the public key shown in Pi Desktop. ZAF TECH keeps it only in this browser and uses it as the identity for future Node observation features.",
-                "Pi Desktop'ta gösterilen public key'i girin. ZAF TECH bunu yalnızca bu tarayıcıda saklar ve gelecekteki Node gözlem özellikleri için kimlik olarak kullanır."
+                "Enter the public key shown in Pi Desktop. ZAF Tech keeps it only in this browser and uses it as the identity for future Node observation features.",
+                "Pi Desktop'ta gösterilen public key'i girin. ZAF Tech bunu yalnızca bu tarayıcıda saklar ve gelecekteki Node gözlem özellikleri için kimlik olarak kullanır."
               )}
             </p>
           </div>
@@ -339,8 +339,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
         <div className="mt-3 rounded-lg border border-border bg-background px-3 py-3 text-[10px] leading-relaxed text-muted-foreground">
           <span className="font-medium text-foreground">{tr("What Saving Does Now", "Kaydetmenin Şu An Yaptığı")}: </span>
           {tr(
-            "It creates a persistent Node identity for this ZAF TECH installation. The public Blockexplorer ranking is still the authoritative place for the published Node ranking; ZAF TECH will not invent ranking values when a machine-readable public feed is unavailable.",
-            "Bu işlem bu ZAF TECH kurulumu için kalıcı bir Node kimliği oluşturur. Yayımlanan Node sıralaması için yetkili kaynak hâlâ Blockexplorer'dır; makine tarafından okunabilen herkese açık bir akış yoksa ZAF TECH sıralama değerleri uydurmaz."
+            "It creates a persistent Node identity for this ZAF Tech installation. The public Blockexplorer ranking is still the authoritative place for the published Node ranking; ZAF Tech will not invent ranking values when a machine-readable public feed is unavailable.",
+            "Bu işlem bu ZAF Tech kurulumu için kalıcı bir Node kimliği oluşturur. Yayımlanan Node sıralaması için yetkili kaynak hâlâ Blockexplorer'dır; makine tarafından okunabilen herkese açık bir akış yoksa ZAF Tech sıralama değerleri uydurmaz."
           )}
         </div>
       </div>
@@ -350,8 +350,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
           <h3 className="text-sm font-semibold text-foreground">{tr("Published Node Signals", "Yayımlanan Node Sinyalleri")}</h3>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
             {tr(
-              "Pi's ranking page uses five published performance signals. Their current per-Node values are not exposed to ZAF TECH through a verified machine-readable public API, so these cards remain source-aware rather than fabricated.",
-              "Pi'nin sıralama sayfası beş yayımlanmış performans sinyali kullanır. Güncel Node bazlı değerler ZAF TECH'e doğrulanmış makine tarafından okunabilir bir public API üzerinden sunulmadığı için bu kartlar uydurma değer yerine kaynak durumunu gösterir."
+              "Pi's ranking page uses five published performance signals. Their current per-Node values are not exposed to ZAF Tech through a verified machine-readable public API, so these cards remain source-aware rather than fabricated.",
+              "Pi'nin sıralama sayfası beş yayımlanmış performans sinyali kullanır. Güncel Node bazlı değerler ZAF Tech'e doğrulanmış makine tarafından okunabilir bir public API üzerinden sunulmadığı için bu kartlar uydurma değer yerine kaynak durumunu gösterir."
             )}
           </p>
         </div>
@@ -392,7 +392,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
       <div className="mt-4 rounded-xl border border-border bg-card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{tr("ZAF TECH Node Connector", "ZAF TECH Node Connector")}</h3>
+            <h3 className="text-sm font-semibold text-foreground">{tr("ZAF Tech Node Connector", "ZAF Tech Node Connector")}</h3>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-muted-foreground">
               {tr(
                 "Install the Windows companion to connect this browser to your own local Pi Node. It runs on localhost and reads Node diagnostics without exposing Docker remotely.",
@@ -424,7 +424,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
           </div>
         </div>
         <p className="mt-3 text-[10px] text-muted-foreground">
-          {tr("The download opens the official ZAF TECH GitHub Releases page.", "İndirme bağlantısı resmi ZAF TECH GitHub Releases sayfasını açar.")}
+          {tr("The download opens the official ZAF Tech GitHub Releases page.", "İndirme bağlantısı resmi ZAF Tech GitHub Releases sayfasını açar.")}
         </p>
       </div>
 
@@ -623,8 +623,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
           <div className="mt-3 rounded-lg border border-border bg-background px-3 py-3 text-[10px] leading-relaxed text-muted-foreground">
             <span className="font-medium text-foreground">{tr("Connector Update Required", "Connector Güncellemesi Gerekli")}: </span>
             {tr(
-              "This ZAF TECH version requires Connector v" + MIN_CONNECTOR_VERSION + " or newer. Your local Connector is v" + localNode.connector.version + ". Download the current Windows release before using local diagnostics.",
-              "Bu ZAF TECH sürümü Connector v" + MIN_CONNECTOR_VERSION + " veya daha yenisini gerektiriyor. Yerel Connector sürümünüz v" + localNode.connector.version + ". Yerel teşhisleri kullanmadan önce güncel Windows sürümünü indirin."
+              "This ZAF Tech version requires Connector v" + MIN_CONNECTOR_VERSION + " or newer. Your local Connector is v" + localNode.connector.version + ". Download the current Windows release before using local diagnostics.",
+              "Bu ZAF Tech sürümü Connector v" + MIN_CONNECTOR_VERSION + " veya daha yenisini gerektiriyor. Yerel Connector sürümünüz v" + localNode.connector.version + ". Yerel teşhisleri kullanmadan önce güncel Windows sürümünü indirin."
             )}
           </div>
         ) : null}
@@ -633,8 +633,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
           <div className="mt-3 rounded-lg border border-border bg-background px-3 py-3 text-[10px] leading-relaxed text-muted-foreground">
             <span className="font-medium text-foreground">{tr("Connector Not Detected", "Connector Bulunamadı")}: </span>
             {tr(
-              "Install and start ZAF TECH Node Connector on this Windows computer, then refresh the local Node diagnostics.",
-              "Bu Windows bilgisayara ZAF TECH Node Connector'ı kurup çalıştırın, ardından yerel Node teşhislerini yenileyin."
+              "Install and start ZAF Tech Node Connector on this Windows computer, then refresh the local Node diagnostics.",
+              "Bu Windows bilgisayara ZAF Tech Node Connector'ı kurup çalıştırın, ardından yerel Node teşhislerini yenileyin."
             )}
           </div>
         ) : null}
@@ -668,8 +668,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
       <div className="mt-4 rounded-xl border border-border px-3 py-3 text-[11px] leading-relaxed text-muted-foreground">
         <span className="font-medium text-foreground">{tr("Data Boundary", "Veri Sınırı")}: </span>
         {tr(
-          "ZAF TECH does not infer individual Node location from IP addresses or display a fabricated global Node map. It only presents data that can be tied to a documented public source or an explicit local connector.",
-          "ZAF TECH IP adreslerinden tek tek Node konumu çıkarmaz ve uydurma küresel Node haritası göstermez. Yalnızca belgelenmiş herkese açık bir kaynağa veya açık bir yerel bağlantıya bağlanabilen verileri sunar."
+          "ZAF Tech does not infer individual Node location from IP addresses or display a fabricated global Node map. It only presents data that can be tied to a documented public source or an explicit local connector.",
+          "ZAF Tech IP adreslerinden tek tek Node konumu çıkarmaz ve uydurma küresel Node haritası göstermez. Yalnızca belgelenmiş herkese açık bir kaynağa veya açık bir yerel bağlantıya bağlanabilen verileri sunar."
         )}
       </div>
     </section>

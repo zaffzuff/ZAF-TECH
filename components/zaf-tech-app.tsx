@@ -395,7 +395,7 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
       </div>
       {!filtered.length ? <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[11px] text-muted-foreground">{apps.length ? tr("No applications match the current filters.", "Mevcut filtrelerle eşleşen uygulama yok.") : note}</div> : null}
       <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[10px] leading-relaxed text-muted-foreground">
-        {tr("Category is a ZAF TECH classification based on the public app name/URL signal, not an official Pi category. Activity labels use persisted public ecosystem observations when available. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF TECH sınıflandırmasıdır; resmi Pi kategorisi değildir. Aktivite etiketleri, mevcut olduğunda kayıtlı herkese açık ekosistem gözlemlerini kullanır. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulanana kadar doğrulanmamış olarak kalır.")}
+        {tr("Category is a ZAF Tech classification based on the public app name/URL signal, not an official Pi category. Activity labels use persisted public ecosystem observations when available. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF Tech sınıflandırmasıdır; resmi Pi kategorisi değildir. Aktivite etiketleri, mevcut olduğunda kayıtlı herkese açık ekosistem gözlemlerini kullanır. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulanana kadar doğrulanmamış olarak kalır.")}
       </div>
     </section>
   );
@@ -416,7 +416,7 @@ function ObservatoryExplorerView({ apps, sources, snapshot, locale, tr }: {
     <section className="mt-5 sm:mt-7">
       <div className="mb-3">
         <h2 className="text-sm font-semibold text-foreground">{tr("Ecosystem Explorer", "Ekosistem Explorer")}</h2>
-        <p className="text-[11px] text-muted-foreground">{tr("Explore the public ecosystem sources, current network observations, and applications currently observable by ZAF TECH.", "ZAF TECH tarafından şu anda gözlemlenebilen herkese açık ekosistem kaynaklarını, güncel ağ gözlemlerini ve uygulamaları keşfedin.")}</p>
+        <p className="text-[11px] text-muted-foreground">{tr("Explore the public ecosystem sources, current network observations, and applications currently observable by ZAF Tech.", "ZAF Tech tarafından şu anda gözlemlenebilen herkese açık ekosistem kaynaklarını, güncel ağ gözlemlerini ve uygulamaları keşfedin.")}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -444,7 +444,7 @@ function ObservatoryExplorerView({ apps, sources, snapshot, locale, tr }: {
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Public Ecosystem Sources", "Herkese Açık Ekosistem Kaynakları")}</div>
-        <p className="mt-1 text-[10px] text-muted-foreground">{tr("Each source is listed with its observable status and last collection time. Source availability does not mean the underlying content is verified by ZAF TECH.", "Her kaynak gözlemlenebilir durumu ve son toplama zamanı ile listelenir. Kaynağın kullanılabilir olması, içeriğinin ZAF TECH tarafından doğrulandığı anlamına gelmez.")}</p>
+        <p className="mt-1 text-[10px] text-muted-foreground">{tr("Each source is listed with its observable status and last collection time. Source availability does not mean the underlying content is verified by ZAF Tech.", "Her kaynak gözlemlenebilir durumu ve son toplama zamanı ile listelenir. Kaynağın kullanılabilir olması, içeriğinin ZAF Tech tarafından doğrulandığı anlamına gelmez.")}</p>
         <div className="mt-3 space-y-2">
           {sources.length ? sources.map(source => (
             <div key={source.url} className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
@@ -478,7 +478,7 @@ function ObservatoryExplorerView({ apps, sources, snapshot, locale, tr }: {
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Verification Boundary", "Doğrulama Sınırı")}</div>
-        <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tr("ZAF TECH separates observation from verification. A reachable URL, public source response, blockchain record, or local node signal is evidence that the signal was observed; it is not proof of ownership, safety, legitimacy, future behavior, or undisclosed backend activity.", "ZAF TECH gözlem ile doğrulamayı birbirinden ayırır. Erişilebilir URL, herkese açık kaynak yanıtı, blockchain kaydı veya yerel node sinyali sinyalin gözlemlendiğine kanıttır; sahiplik, güvenlik, meşruiyet, gelecekteki davranış veya açıklanmamış backend faaliyetlerinin kanıtı değildir.")}</p>
+        <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tr("ZAF Tech separates observation from verification. A reachable URL, public source response, blockchain record, or local node signal is evidence that the signal was observed; it is not proof of ownership, safety, legitimacy, future behavior, or undisclosed backend activity.", "ZAF Tech gözlem ile doğrulamayı birbirinden ayırır. Erişilebilir URL, herkese açık kaynak yanıtı, blockchain kaydı veya yerel node sinyali sinyalin gözlemlendiğine kanıttır; sahiplik, güvenlik, meşruiyet, gelecekteki davranış veya açıklanmamış backend faaliyetlerinin kanıtı değildir.")}</p>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="rounded-lg border border-border p-3">
             <div className="text-[10px] font-semibold text-foreground">{tr("Observable", "Gözlemlenebilir")}</div>
@@ -610,7 +610,7 @@ export function ZafTechApp() {
     setRefreshing(true);
     try {
       const response = await fetch(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" });
-      if (!response.ok) throw new Error("ZAF TECH observation request failed");
+      if (!response.ok) throw new Error("ZAF Tech observation request failed");
       const observation = await response.json();
       if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
       setSnapshot(observation.network ?? null);
@@ -725,8 +725,8 @@ export function ZafTechApp() {
             <ZafEcosystemHealthTimeline locale={locale} snapshot={snapshot} radar={radarData} />
 
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
-              <div className="text-xs font-semibold text-foreground">{tr("What ZAF TECH Does", "ZAF TECH Ne Yapar")}</div>
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH is an independent, read-only technology project. It observes public ecosystem sources and local Node diagnostics; it does not represent Pi Core Team and does not assign subjective network health scores.", "ZAF TECH bağımsız, salt-okunur bir teknoloji projesidir. Herkese açık ekosistem kaynaklarını ve yerel Node teşhislerini gözlemler; Pi Core Team'i temsil etmez ve öznel ağ sağlık puanları üretmez.")}</p>
+              <div className="text-xs font-semibold text-foreground">{tr("What ZAF Tech Does", "ZAF Tech Ne Yapar")}</div>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF Tech is an independent, read-only technology project. It observes public ecosystem sources and local Node diagnostics; it does not represent Pi Core Team and does not assign subjective network health scores.", "ZAF Tech bağımsız, salt-okunur bir teknoloji projesidir. Herkese açık ekosistem kaynaklarını ve yerel Node teşhislerini gözlemler; Pi Core Team'i temsil etmez ve öznel ağ sağlık puanları üretmez.")}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[11px]"><External href="https://minepi.com/developers/">{tr("Pi Developers", "Pi Geliştiricileri")}</External><External href="https://developers.minepi.com/">{tr("Developer Docs", "Geliştirici Dokümanları")}</External><External href="https://ecosystem.pinet.com/">{tr("Pi Ecosystem", "Pi Ekosistemi")}</External></div>
             </div>
           </section>
@@ -970,7 +970,7 @@ export function ZafTechApp() {
             </div>
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("Network Measurement Boundary", "Ağ Ölçüm Sınırı")}</div>
-              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF TECH reads public Mainnet Horizon data and reports the observed sample. Daily values are normalized from the observed ledger window; they are not a complete calendar-day count.", "ZAF TECH herkese açık Mainnet Horizon verisini okur ve gözlemlenen örneği raporlar. Günlük değerler gözlemlenen ledger penceresinden normalize edilir; tam bir takvim günü toplamı değildir.")}</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("ZAF Tech reads public Mainnet Horizon data and reports the observed sample. Daily values are normalized from the observed ledger window; they are not a complete calendar-day count.", "ZAF Tech herkese açık Mainnet Horizon verisini okur ve gözlemlenen örneği raporlar. Günlük değerler gözlemlenen ledger penceresinden normalize edilir; tam bir takvim günü toplamı değildir.")}</p>
               <div className="mt-3 flex flex-wrap gap-3 text-[11px]">
                 <External href="https://api.mainnet.minepi.com">{tr("Pi Mainnet Horizon", "Pi Mainnet Horizon")}</External>
                 <span className="text-muted-foreground">{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
@@ -984,7 +984,7 @@ export function ZafTechApp() {
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span>ZAF TECH · Pi Ecosystem Observatory</span>
+            <span>ZAF Tech · Pi Ecosystem Observatory</span>
             <span>{tr("Independent community-developed technology project", "Bağımsız topluluk geliştirimi teknoloji projesi")}</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-3">
@@ -1342,7 +1342,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
         <div className="mt-3 rounded-xl border border-border bg-card p-4">
           <div className="text-xs font-semibold text-foreground">{tr("Measurement Evidence", "Ölçüm Kanıtı")}</div>
           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-            {tr("This panel records what ZAF TECH actually stored for the selected period. It does not invent missing observations or infer unseen network activity.", "Bu panel, ZAF TECH'in seçilen dönem için gerçekten kaydettiği verileri gösterir. Eksik gözlemler uydurulmaz ve görülmeyen ağ aktivitesi çıkarımla tamamlanmaz.")}
+            {tr("This panel records what ZAF Tech actually stored for the selected period. It does not invent missing observations or infer unseen network activity.", "Bu panel, ZAF Tech'in seçilen dönem için gerçekten kaydettiği verileri gösterir. Eksik gözlemler uydurulmaz ve görülmeyen ağ aktivitesi çıkarımla tamamlanmaz.")}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Card title={tr("Stored Points", "Kayıtlı Noktalar")} value={number(history.count, 0, locale)} detail={tr("Five-minute buckets", "Beş dakikalık aralıklar")} />
@@ -1414,7 +1414,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
               </div>
             ) : (
               <div className="mt-3 rounded-lg border border-border bg-background p-3 text-[10px] leading-relaxed text-muted-foreground">
-                {tr("No protocol transition has been recorded in the selected history range yet. ZAF TECH does not infer a change from a single current sample.", "Seçilen tarih aralığında henüz protokol geçişi kaydedilmedi. ZAF TECH tek bir güncel örnekten değişim çıkarmaz.")}
+                {tr("No protocol transition has been recorded in the selected history range yet. ZAF Tech does not infer a change from a single current sample.", "Seçilen tarih aralığında henüz protokol geçişi kaydedilmedi. ZAF Tech tek bir güncel örnekten değişim çıkarmaz.")}
               </div>
             )}
             <div className="mt-3 space-y-1.5">
@@ -1536,7 +1536,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Data Boundary", "Veri Sınırı")}</div>
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("Observatory metrics are derived from public ecosystem responses and stored snapshots. They describe what ZAF TECH could observe at collection time; missing, unavailable or unverified signals are not inferred.", "Gözlem Merkezi metrikleri herkese açık ekosistem yanıtlarından ve kayıtlı snapshotlardan üretilir. Veriler, ZAF TECH'in toplama anında gözlemleyebildiği durumu tanımlar; eksik, kullanılamayan veya doğrulanmamış sinyaller çıkarımla tamamlanmaz.")}</p>
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{tr("Observatory metrics are derived from public ecosystem responses and stored snapshots. They describe what ZAF Tech could observe at collection time; missing, unavailable or unverified signals are not inferred.", "Gözlem Merkezi metrikleri herkese açık ekosistem yanıtlarından ve kayıtlı snapshotlardan üretilir. Veriler, ZAF Tech'in toplama anında gözlemleyebildiği durumu tanımlar; eksik, kullanılamayan veya doğrulanmamış sinyaller çıkarımla tamamlanmaz.")}</p>
         <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-muted-foreground"><span>{tr("Read-only", "Salt-okunur")}</span><span>•</span><span>{tr("Public Sources", "Herkese Açık Kaynaklar")}</span><span>•</span><span>{tr("Historical Data", "Tarihsel Veri")}</span></div>
       </div>
 

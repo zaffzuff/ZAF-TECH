@@ -8,7 +8,7 @@ import "./globals.css";
 const michroma = Michroma({ subsets: ["latin"], weight: "400", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "ZAF TECH — Pi Ecosystem Observatory",
+  title: "ZAF Tech — Pi Ecosystem Observatory",
   description: "Independent, read-only technology layer for observable Pi Network ecosystem data.",
   icons: { icon: [{ url: "/zaf-tech-logo.png", sizes: "512x512", type: "image/png" }], apple: "/zaf-tech-logo.png" },
 };

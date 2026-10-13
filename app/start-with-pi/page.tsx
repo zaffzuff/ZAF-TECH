@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const copy = {
   en: {
-    eyebrow: "ZAF TECH / PI NETWORK FIELD GUIDE",
+    eyebrow: "ZAF Tech / Pi Network Field Guide",
     title: "Your Pi journey starts here.",
     intro: "New to Pi Network? This is a clear, safety-first starting point to understand the ecosystem and decide your next step.",
     cta: "Start with my invitation",
@@ -39,7 +39,7 @@ const copy = {
     footer: "Explore carefully. Verify official sources. Keep control of your account.",
   },
   tr: {
-    eyebrow: "ZAF TECH / PI NETWORK BAŞLANGIÇ REHBERİ",
+    eyebrow: "ZAF Tech / Pi Network Başlangıç Rehberi",
     title: "Pi yolculuğun burada başlıyor.",
     intro: "Pi Network'e yeni misin? Ekosistemi anlamak ve sonraki adımına bilinçli karar vermek için güvenliği önceleyen bir başlangıç noktası.",
     cta: "Davet bağlantımla başla",
@@ -109,7 +109,7 @@ export default function StartWithPiPage() {
           <div className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full border border-[#d9c6a4]/70" />
           <div className="pointer-events-none absolute -right-2 -top-2 h-36 w-36 rounded-full border border-[#d9c6a4]/70" />
           <div className="relative max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 border-b border-[#b98745] pb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-[#93672f]">{t.eyebrow}</div>
+            <div className="mb-5 inline-flex items-center gap-2 border-b border-[#b98745] pb-2 text-[9px] font-bold tracking-[0.2em] text-[#93672f]">{t.eyebrow}</div>
             <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">{t.title}</h1>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#596873] sm:text-base">{t.intro}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">

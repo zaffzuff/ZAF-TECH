@@ -172,7 +172,7 @@ export function ZafPulse({
         </div>
         <h1 className="zaf-pulse-title mt-3">{tx(locale, "What is changing across Pi right now?", "Pi ekosisteminde şu anda ne değişiyor?")}</h1>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          {tx(locale, "ZAF TECH turns Pi blockchain activity, ecosystem apps, official developments, and Web3 signals into an observable daily brief. It shows what changed, how much, and where to inspect it.", "ZAF TECH; Pi blockchain aktivitesini, ekosistem uygulamalarını, resmi gelişmeleri ve Web3 sinyallerini günlük okunabilir bir özete dönüştürür. Ne değiştiğini, ne kadar değiştiğini ve nereden incelenebileceğini gösterir.")}
+          {tx(locale, "ZAF Tech turns Pi blockchain activity, ecosystem apps, official developments, and Web3 signals into an observable daily brief. It shows what changed, how much, and where to inspect it.", "ZAF Tech; Pi blockchain aktivitesini, ekosistem uygulamalarını, resmi gelişmeleri ve Web3 sinyallerini günlük okunabilir bir özete dönüştürür. Ne değiştiğini, ne kadar değiştiğini ve nereden incelenebileceğini gösterir.")}
         </p>
 
         <div className="zaf-pulse-brief mt-5">

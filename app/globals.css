@@ -292,7 +292,7 @@
 }
 
 
-/* ZAF TECH responsive presentation split.
+/* ZAF Tech responsive presentation split.
    Mobile keeps the compact touch-first layout; desktop gets a wider,
    more readable information surface without duplicating the data layer. */
 @media (min-width: 1024px) {
@@ -506,7 +506,7 @@
 
 /* Refined primary navigation icon system.
    Accent colors describe the role of each section while preserving the
-   restrained gold/silver ZAF TECH brand language. */
+   restrained gold/silver ZAF Tech brand language. */
 .zaf-nav-icon {
   display: block;
   flex: none;

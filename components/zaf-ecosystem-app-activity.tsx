@@ -137,7 +137,7 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
       ) : null}
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[10px] leading-relaxed text-muted-foreground">
-        {translate(locale, "Boundary: app activity is based on the public ecosystem source responses that ZAF TECH can read. It does not claim access to Pi's internal ranking or moderation systems.", "Sınır: uygulama aktivitesi ZAF TECH'in okuyabildiği herkese açık ekosistem kaynak yanıtlarına dayanır. Pi'nin dahili sıralama veya moderasyon sistemlerine erişim iddiası değildir.")}
+        {translate(locale, "Boundary: app activity is based on the public ecosystem source responses that ZAF Tech can read. It does not claim access to Pi's internal ranking or moderation systems.", "Sınır: uygulama aktivitesi ZAF Tech'in okuyabildiği herkese açık ekosistem kaynak yanıtlarına dayanır. Pi'nin dahili sıralama veya moderasyon sistemlerine erişim iddiası değildir.")}
       </div>
     </section>
   );

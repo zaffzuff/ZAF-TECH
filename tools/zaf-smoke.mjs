@@ -118,7 +118,7 @@ try {
     if (response.status !== 200) throw new Error(`Live external health check expected 200, received ${response.status}`);
   }
 
-  console.log(`ZAF TECH smoke checks passed (base: ${baseUrl}).`);
+  console.log(`ZAF Tech smoke checks passed (base: ${baseUrl}).`);
 } finally {
   stopSmokeServer(server);
 }

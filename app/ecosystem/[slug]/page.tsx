@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const snapshot = await getEcosystemSnapshot();
   const app = snapshot.apps.items.map((item) => toDirectoryApp(item, snapshot.generatedAt)).find((item) => item.slug === slug);
-  return { title: app ? `${app.name} — ZAF TECH` : "App — ZAF TECH" };
+  return { title: app ? `${app.name} — ZAF Tech` : "App — ZAF Tech" };
 }
 
 export default async function EcosystemAppPage({ params }: Props) {

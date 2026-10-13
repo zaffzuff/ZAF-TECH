@@ -29,7 +29,7 @@ export function ZafTrust({ locale, snapshot, radar }: { locale: Locale; snapshot
   const scope = snapshot?.networkScope === "mainnet" ? (tx("Pi Mainnet", "Pi Mainnet")) : snapshot?.networkScope === "testnet" ? (tx("Pi Testnet", "Pi Testnet")) : "—";
   const source = snapshot?.source ?? "—";
   return <section className="mt-5 sm:mt-7">
-    <div className="mb-4"><h2 className="text-base font-semibold text-foreground">ZAF Trust</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">{tx("ZAF TECH separates observed evidence from unverified claims. This is not a guarantee of security or financial legitimacy.", "ZAF TECH gözlemlenen veriyi doğrulanmamış iddialardan ayırır. Bu alan güvenlik veya finansal meşruiyet garantisi değildir.")}</p></div>
+    <div className="mb-4"><h2 className="text-base font-semibold text-foreground">ZAF Trust</h2><p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">{tx("ZAF Tech separates observed evidence from unverified claims. This is not a guarantee of security or financial legitimacy.", "ZAF Tech gözlemlenen veriyi doğrulanmamış iddialardan ayırır. Bu alan güvenlik veya finansal meşruiyet garantisi değildir.")}</p></div>
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="zaf-trust-card"><Icon kind="verified" /><div><strong>{tx("Observable", "Gözlemlenebilir")}</strong><span>{tx("Signals directly visible from public sources.", "Herkese açık kaynaklardan doğrudan görülebilen sinyaller.")}</span></div></div>
       <div className="zaf-trust-card"><Icon kind="observed" /><div><strong>{tx("Evidence base", "Kanıt tabanı")}</strong><span>{coverage}% {tx("source coverage · ", "kaynak kapsamı · ")}{confidence}% {tx("confidence", "güven")}</span></div></div>

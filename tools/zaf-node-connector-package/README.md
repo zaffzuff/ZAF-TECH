@@ -1,8 +1,8 @@
-# ZAF TECH Node Connector
+# ZAF Tech Node Connector
 
-The **ZAF TECH Node Connector** is a local Windows companion for ZAF TECH users who operate a Pi Node on their own computer.
+The **ZAF Tech Node Connector** is a local Windows companion for ZAF Tech users who operate a Pi Node on their own computer.
 
-Its purpose is simple: allow the ZAF TECH web application to read **technical, read-only status information from the user's own local Pi Node** without exposing the user's Docker daemon or Node service to the public internet.
+Its purpose is simple: allow the ZAF Tech web application to read **technical, read-only status information from the user's own local Pi Node** without exposing the user's Docker daemon or Node service to the public internet.
 
 ## What it does
 
@@ -22,7 +22,7 @@ The Connector:
   - SCP quorum information
   - Local port listening checks
   - Container restart count
-- Provides a local health endpoint so ZAF TECH can determine whether the Connector is running.
+- Provides a local health endpoint so ZAF Tech can determine whether the Connector is running.
 - Supports protocol compatibility checks for Protocol 27 and Protocol 28 in Connector v0.2.0.
 
 ## What it does NOT do
@@ -38,7 +38,7 @@ It does **not**:
 - Request or handle a Pi Wallet passphrase, seed phrase, or private key.
 - Send Pi transactions.
 - Control the user's wallet.
-- Collect or upload the user's Node data to a central ZAF TECH server by itself.
+- Collect or upload the user's Node data to a central ZAF Tech server by itself.
 - Provide remote access to the user's computer.
 
 The Connector's local HTTP service is bound to:
@@ -58,12 +58,12 @@ User's Windows PC
     |
     +-- Pi Node / Docker
     |
-    +-- ZAF TECH Node Connector
+    +-- ZAF Tech Node Connector
              |
              +-- 127.0.0.1:39100
                        |
                        v
-                 ZAF TECH Web App
+                 ZAF Tech Web App
 ```
 
 The Connector does not create a public network endpoint for Docker or Pi Node.
@@ -74,17 +74,17 @@ Cross-origin access is restricted to configured local development origins by def
 
 The Connector is designed around the principle that Node diagnostics should remain local to the user whenever possible.
 
-The Connector itself does not contain a mechanism for sending Node diagnostics to a remote server. ZAF TECH may request the local endpoint from the user's browser when the user has the Connector installed and running.
+The Connector itself does not contain a mechanism for sending Node diagnostics to a remote server. ZAF Tech may request the local endpoint from the user's browser when the user has the Connector installed and running.
 
-Users should only install Connector builds obtained from a trusted ZAF TECH distribution source.
+Users should only install Connector builds obtained from a trusted ZAF Tech distribution source.
 
 ## Pi wallet safety
 
 The Connector has no wallet functionality.
 
-**ZAF TECH Node Connector will never ask for a Pi Wallet passphrase, seed phrase, or private key.**
+**ZAF Tech Node Connector will never ask for a Pi Wallet passphrase, seed phrase, or private key.**
 
-Never enter a wallet passphrase or private key into the Connector or into an unofficial application claiming to be ZAF TECH.
+Never enter a wallet passphrase or private key into the Connector or into an unofficial application claiming to be ZAF Tech.
 
 ## Compatibility
 
@@ -95,7 +95,7 @@ Connector v0.2.0 recognizes:
 
 The Connector reports a compatibility status rather than assuming that every future protocol version is compatible.
 
-If a newer protocol is detected, ZAF TECH can display a compatibility warning while the Connector is updated.
+If a newer protocol is detected, ZAF Tech can display a compatibility warning while the Connector is updated.
 
 ## Windows packaging
 
@@ -115,13 +115,13 @@ The current packaging target is Windows x64.
 
 ## Important security note
 
-This README describes the intended architecture and behavior of the ZAF TECH Node Connector. It is not a formal security certification or guarantee that every future build will be free of vulnerabilities.
+This README describes the intended architecture and behavior of the ZAF Tech Node Connector. It is not a formal security certification or guarantee that every future build will be free of vulnerabilities.
 
-Before public distribution, ZAF TECH should publish Connector releases from a controlled repository/release process and provide version information and integrity verification for released installers.
+Before public distribution, ZAF Tech should publish Connector releases from a controlled repository/release process and provide version information and integrity verification for released installers.
 
 ## License
 
-The licensing terms for the ZAF TECH project are defined by the project owner and may be added here before public distribution.
+The licensing terms for the ZAF Tech project are defined by the project owner and may be added here before public distribution.
 
 
 ## Release integrity
@@ -139,9 +139,9 @@ Compare the resulting hash with the `ZAF-TECH-Node-Connector-Setup.exe` entry in
 
 ## Attribution
 
-ZAF TECH Node Connector is created and maintained by **zaffzuff** for the ZAF TECH project.
+ZAF Tech Node Connector is created and maintained by **zaffzuff** for the ZAF Tech project.
 
 
 ## Windows branding
 
-The distributed Windows executable and installer use the official ZAF TECH logo as their application/installer icon. The package also identifies **zaffzuff** as the creator and maintainer of the Connector.
+The distributed Windows executable and installer use the official ZAF Tech logo as their application/installer icon. The package also identifies **zaffzuff** as the creator and maintainer of the Connector.

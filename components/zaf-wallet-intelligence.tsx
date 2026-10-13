@@ -216,7 +216,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-3 text-[10px] leading-relaxed text-muted-foreground">
-        {tr("Security boundary: ZAF TECH never asks for a seed phrase, private key, wallet connection or transaction signature. Only a public wallet address is used for lookup.", "Güvenlik sınırı: ZAF TECH seed phrase, private key, cüzdan bağlantısı veya işlem imzası istemez. Sorgu için yalnızca herkese açık cüzdan adresi kullanılır.")}
+        {tr("Security boundary: ZAF Tech never asks for a seed phrase, private key, wallet connection or transaction signature. Only a public wallet address is used for lookup.", "Güvenlik sınırı: ZAF Tech seed phrase, private key, cüzdan bağlantısı veya işlem imzası istemez. Sorgu için yalnızca herkese açık cüzdan adresi kullanılır.")}
       </div>
     </div> : null}
   </section>;

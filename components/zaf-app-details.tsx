@@ -132,9 +132,9 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
       <div className="mx-auto max-w-3xl px-4 pb-10">
         <header className="border-b border-border pb-5 pt-7">
           <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="text-xs font-medium text-muted-foreground hover:text-foreground">{tr("← Back To ZAF TECH", "← ZAF TECH'e Dön")}</Link>
+            <Link href="/" className="text-xs font-medium text-muted-foreground hover:text-foreground">{tr("← Back To ZAF Tech", "← ZAF Tech'e Dön")}</Link>
             <LanguageSelector locale={locale} onChange={setLocale} />
-            <Image src="/zaf-tech-logo.png" alt="ZAF TECH" width={38} height={38} className="h-9 w-9 object-contain" priority />
+            <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={38} height={38} className="h-9 w-9 object-contain" priority />
           </div>
           <div className="mt-6">
             <div className="text-[10px] tracking-wider text-muted-foreground">{tr("Pi App Directory", "Pi Uygulama Dizini")}</div>
@@ -327,13 +327,13 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="text-xs font-semibold text-foreground">{tr("Verification Boundary", "Doğrulama Sınırı")}</div>
             <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-              {tr("ZAF TECH does not claim Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet status or application health until the relevant property has been independently verified by an observable check. Category is a ZAF TECH classification based on the public name/URL signal and is not an official Pi category.", "ZAF TECH, ilgili özellik gözlemlenebilir bir kontrolle bağımsız olarak doğrulanmadıkça Pi Kimlik Doğrulama, Pi Ödemeleri, PiNet, Mainnet/Testnet durumu veya uygulama sağlığı hakkında doğrulanmış bir iddiada bulunmaz. Kategori, herkese açık ad/URL sinyaline dayalı bir ZAF TECH sınıflandırmasıdır ve resmi Pi kategorisi değildir.")}
+              {tr("ZAF Tech does not claim Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet status or application health until the relevant property has been independently verified by an observable check. Category is a ZAF Tech classification based on the public name/URL signal and is not an official Pi category.", "ZAF Tech, ilgili özellik gözlemlenebilir bir kontrolle bağımsız olarak doğrulanmadıkça Pi Kimlik Doğrulama, Pi Ödemeleri, PiNet, Mainnet/Testnet durumu veya uygulama sağlığı hakkında doğrulanmış bir iddiada bulunmaz. Kategori, herkese açık ad/URL sinyaline dayalı bir ZAF Tech sınıflandırmasıdır ve resmi Pi kategorisi değildir.")}
             </p>
           </div>
         </section>
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] text-muted-foreground">
-          ZAF TECH · {tr("Independent Community-Developed Technology Project", "Bağımsız Topluluk Geliştirmeli Teknoloji Projesi")}
+          ZAF Tech · {tr("Independent Community-Developed Technology Project", "Bağımsız Topluluk Geliştirmeli Teknoloji Projesi")}
         </footer>
       </div>
     </main>

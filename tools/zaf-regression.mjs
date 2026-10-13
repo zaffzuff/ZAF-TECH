@@ -134,7 +134,7 @@ for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Pi account 
 const zafAppSource = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sign-in";') ||
     !zafAppSource.includes('<ZafPiSignIn locale={locale} />')) {
-  throw new Error("Pi Sign-In must be mounted in the main ZAF TECH interface");
+  throw new Error("Pi Sign-In must be mounted in the main ZAF Tech interface");
 }
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
@@ -462,7 +462,7 @@ for (const token of ["fetchWithTimeout", "AbortSignal.timeout", "stopSmokeServer
 const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
 
-console.log("ZAF TECH v1.1 regression checks passed.");
+console.log("ZAF Tech v1.1 regression checks passed.");
 
 
 

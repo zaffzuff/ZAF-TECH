@@ -202,7 +202,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
 
       {!payload ? (
         <div className="mt-4 rounded-lg border border-border px-3 py-4 text-[11px] text-muted-foreground">
-          {tr("Install and run the current ZAF TECH Node Connector to start collecting Node history.", "Node geçmişini toplamaya başlamak için güncel ZAF TECH Node Connector'ı kurup çalıştırın.")}
+          {tr("Install and run the current ZAF Tech Node Connector to start collecting Node history.", "Node geçmişini toplamaya başlamak için güncel ZAF Tech Node Connector'ı kurup çalıştırın.")}
         </div>
       ) : (
         <>
