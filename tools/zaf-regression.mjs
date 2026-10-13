@@ -169,6 +169,9 @@ if (!(sdkInitializationCall >= 0 &&
 }
 for (const token of [
   "function safePiErrorDetail",
+  "let sdkInitializationPromise: Promise<PiSdk> | null = null;",
+  "useEffect(() => {",
+  "await withTimeout(initializePiSdk(), 12_000, \"Pi SDK initialization timed out.\")",
   'userAgent.includes("pibrowser")',
   'userAgent.includes("pi-browser")',
   'info?.hostApp === "pi-browser"',
@@ -188,10 +191,18 @@ const mobileHeaderEnd = zafAppSource.indexOf('<div className="zaf-header-status-
 const mobileHeaderMarkup = mobileHeaderStart >= 0 && mobileHeaderEnd > mobileHeaderStart
   ? zafAppSource.slice(mobileHeaderStart, mobileHeaderEnd)
   : "";
-const startPiPosition = mobileHeaderMarkup.indexOf('className="zaf-start-pi-link');
-const mobileSignInPosition = mobileHeaderMarkup.indexOf('<ZafPiSignIn locale={locale} />');
+if (mobileHeaderMarkup.includes('className="zaf-start-pi-link')) {
+  throw new Error("Mobile Pi action links should not compete with the icon row");
+}
+const mobileActionsStart = zafAppSource.indexOf('<div className="zaf-mobile-pi-actions">');
+const mobileActionsEnd = zafAppSource.indexOf('<div className="zaf-header-status-row', mobileActionsStart);
+const mobileActionsMarkup = mobileActionsStart >= 0 && mobileActionsEnd > mobileActionsStart
+  ? zafAppSource.slice(mobileActionsStart, mobileActionsEnd)
+  : "";
+const startPiPosition = mobileActionsMarkup.indexOf('className="zaf-start-pi-link');
+const mobileSignInPosition = mobileActionsMarkup.indexOf('<ZafPiSignIn locale={locale} />');
 if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileSignInPosition) {
-  throw new Error("Mobile Sign in with Pi must sit beside Start Pi in the header action group");
+  throw new Error("Mobile action row must place Start Pi to the left of Sign in with Pi");
 }
 const piSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
 
@@ -209,22 +220,22 @@ for (const token of [
 }
 
 for (const token of [
-  ".zaf-mobile-header .zaf-start-pi-link",
-  ".zaf-mobile-header .zaf-pi-signin-button",
-  "background-color: #f5e8c7;",
-  "background-image: none;",
-  "-webkit-text-fill-color: #6f3f8f;",
-  "max-width: 210px;",
+  ".zaf-mobile-pi-actions .zaf-start-pi-link",
+  ".zaf-mobile-pi-actions .zaf-pi-signin-button",
+  "height: 34px;",
+  "background: #f5e8c7 !important;",
+  "background-image: none !important;",
+  "-webkit-text-fill-color: #6f3f8f !important;",
+  "max-width: min(100%, 240px);",
   "overflow-wrap: anywhere;",
 ]) {
   if (!piSignInStyles.includes(token)) throw new Error("Mobile Pi Sign-In champagne styling/layout regression: " + token);
 }
 if (!piSignIn.includes("zaf-pi-status-bubble") ||
     !piSignIn.includes("safePiErrorDetail") ||
-    !piSignIn.includes("Pi Browser authentication failed: ")) {
-  throw new Error("Pi sign-in must show a compact status bubble and sanitized diagnostic detail");
+    !piSignIn.includes("Pi Browser did not respond to the sign-in request")) {
+  throw new Error("Pi sign-in must show a compact status bubble and useful timeout diagnosis");
 }
-
 
 const piOAuthHelpers = fs.readFileSync(path.join(root, "lib/zaf/pi/oauth.ts"), "utf8");
 for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "getSafePiSignInReturnPath", 'startsWith("//")']) {

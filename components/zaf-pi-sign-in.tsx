@@ -29,6 +29,7 @@ declare global {
 
 let sdkLoadPromise: Promise<void> | null = null;
 let initializedSandboxMode: boolean | null = null;
+let sdkInitializationPromise: Promise<PiSdk> | null = null;
 
 function beginPiOAuthSignIn(clientId: string) {
   const bytes = new Uint8Array(24);
@@ -142,26 +143,28 @@ async function initializePiSdk(): Promise<PiSdk> {
   const pi = window.Pi;
   if (!pi) throw new Error("Pi SDK is unavailable.");
 
-  // Sandbox mode is determined by Pi's Sandbox host, not by the registered
-  // blockchain network. A hosted Testnet app may correctly use sandbox:false.
+  // Sandbox is an environment setting, separate from the app's Mainnet/Testnet choice.
   const configuredMode = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase();
-  // Pi Sandbox authorizes the configured Development URL, then redirects back
-  // to that host (e.g. zaf-tech.vercel.app), so the hostname alone cannot
-  // identify Sandbox mode. Mark the registered Development URL with
-  // ?pi_sandbox=true to carry the mode through the redirect.
   const requestedByUrl = new URLSearchParams(window.location.search).get("pi_sandbox") === "true";
   const sandbox = configuredMode
     ? configuredMode === "sandbox"
     : requestedByUrl || window.location.hostname === "sandbox.minepi.com";
 
-  if (initializedSandboxMode !== sandbox) {
-    // Current Pi SDK init is asynchronous. Authentication must not start until
-    // its Promise resolves, otherwise Pi.authenticate may fail before /me.
-    await pi.init({ version: "2.0", sandbox });
-    initializedSandboxMode = sandbox;
-  }
+  if (initializedSandboxMode === sandbox) return pi;
+  if (sdkInitializationPromise) return sdkInitializationPromise;
 
-  return pi;
+  // Share one init promise so a slow Pi Browser cannot trigger racing Pi.init() calls.
+  sdkInitializationPromise = Promise.resolve(pi.init({ version: "2.0", sandbox }))
+    .then(() => {
+      initializedSandboxMode = sandbox;
+      return pi;
+    })
+    .catch((error: unknown) => {
+      sdkInitializationPromise = null;
+      throw error;
+    });
+
+  return sdkInitializationPromise;
 }
 
 export function ZafPiSignIn({ locale }: { locale: Locale }) {
@@ -178,6 +181,31 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     } catch {
       // Storage may be blocked; sign-in can still work for this page view.
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isPiBrowserUserAgent()) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        await withTimeout(loadPiSdk(), 12_000, "Pi SDK loading timed out.");
+        await withTimeout(initializePiSdk(), 12_000, "Pi SDK initialization timed out.");
+      } catch (error) {
+        if (!cancelled) {
+          // Delay visible errors until the user taps Sign in; log only sanitized details.
+          console.warn(
+            "[ZAF Tech] Pi SDK pre-initialization failed",
+            error instanceof Error ? error.name : "UnknownError",
+            safePiErrorDetail(error),
+          );
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function signIn() {
@@ -221,8 +249,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       phase = "authentication";
       const auth = await withTimeout(
         pi.authenticate(["username"], () => undefined),
-        25_000,
-        "Pi authentication timed out.",
+        45_000,
+        "Pi Browser did not respond to the sign-in request within 45 seconds.",
       );
       if (!auth?.accessToken || typeof auth.accessToken !== "string") {
         throw new Error("Pi did not return an access token.");
@@ -268,9 +296,14 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       setUser(null);
 
       if (phase === "authentication" && errorDetail) {
+        const timedOut = /timed out|did not respond/i.test(errorDetail);
         setMessage(tr(
-          "Pi Browser authentication failed: " + errorDetail,
-          "Pi Browser kimlik doğrulaması başarısız: " + errorDetail,
+          timedOut
+            ? "Pi Browser did not respond to the sign-in request. The SDK is now initialized on page load; check for a pending Pi permission prompt and try again."
+            : "Pi Browser authentication failed: " + errorDetail,
+          timedOut
+            ? "Pi Browser giriş isteğine yanıt vermedi. SDK artık sayfa açılırken başlatılıyor; bekleyen Pi izin penceresi olup olmadığını kontrol edip tekrar dene."
+            : "Pi Browser kimlik doğrulaması başarısız: " + errorDetail,
         ));
         return;
       }
