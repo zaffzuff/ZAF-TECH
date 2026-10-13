@@ -149,7 +149,8 @@ for (const token of [
 ]) {
   if (!piSignInStyles.includes(token)) throw new Error("Pi Sign-In mobile overflow protection regression: " + token);
 }
-if (!piSignIn.includes("rounded-lg border border-border bg-card px-3 py-2") ||
+if (!piSignIn.includes("zaf-pi-status-bubble") ||
+    !piSignIn.includes("px-2.5 py-1.5 text-[10px]") ||
     !piSignIn.includes("[overflow-wrap:anywhere]")) {
   throw new Error("Pi Sign-In status message must be readable and wrap inside its container");
 }
