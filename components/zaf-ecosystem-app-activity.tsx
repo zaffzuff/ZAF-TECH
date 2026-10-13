@@ -18,7 +18,7 @@ type AppObservation = {
 type ResponsePayload = {
   generatedAt: string;
   configured: boolean;
-  currentCount: number;
+  currentCount: number | null;
   previousSnapshotAt: string | null;
   historicalSnapshotCount: number;
   apps: AppObservation[];

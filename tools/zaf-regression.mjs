@@ -515,3 +515,16 @@ const defiHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/histo
 for (const token of ["getDefiSnapshotHistory", "isDefiHistoryConfigured", "no-store"]) {
   if (!defiHistoryRoute.includes(token)) throw new Error("DeFi history API regression: " + token);
 }
+
+
+const ecosystemAppObservations = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
+for (const token of [
+  "function normalizeTimestamp",
+  "value instanceof Date",
+  "function isCompleteSnapshot",
+  "currentIsComplete",
+  "currentlyObserved: boolean | null",
+  "do not infer removals from an empty or truncated scrape",
+]) {
+  if (!ecosystemAppObservations.includes(token)) throw new Error("Ecosystem app history reliability regression: " + token);
+}
