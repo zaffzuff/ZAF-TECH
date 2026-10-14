@@ -114,29 +114,53 @@ async function detectPiBrowser(pi: PiSdk): Promise<boolean> {
   return isPiBrowserUserAgent();
 }
 
-function loadPiSdk() {
+function loadPiSdk(): Promise<void> {
   if (typeof window !== "undefined" && window.Pi) return Promise.resolve();
   if (sdkLoadPromise) return sdkLoadPromise;
 
-  sdkLoadPromise = new Promise<void>((resolve, reject) => {
+  let pending: Promise<void>;
+  pending = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://sdk.minepi.com/pi-sdk.js";
     script.async = true;
+
+    let timeoutId: number;
+    const clearHandlers = () => {
+      window.clearTimeout(timeoutId);
+      script.onload = null;
+      script.onerror = null;
+    };
+    const releasePending = () => {
+      if (sdkLoadPromise === pending) sdkLoadPromise = null;
+    };
+
+    timeoutId = window.setTimeout(() => {
+      clearHandlers();
+      releasePending();
+      script.remove();
+      reject(new Error("Pi SDK loading timed out."));
+    }, 12_000);
+
     script.onload = () => {
+      clearHandlers();
+      releasePending();
       if (window.Pi) resolve();
       else {
-        sdkLoadPromise = null;
+        script.remove();
         reject(new Error("Pi SDK did not initialize."));
       }
     };
     script.onerror = () => {
-      sdkLoadPromise = null;
+      clearHandlers();
+      releasePending();
+      script.remove();
       reject(new Error("Pi SDK could not be loaded."));
     };
     document.head.appendChild(script);
   });
 
-  return sdkLoadPromise;
+  sdkLoadPromise = pending;
+  return pending;
 }
 
 async function initializePiSdk(): Promise<PiSdk> {
@@ -153,18 +177,23 @@ async function initializePiSdk(): Promise<PiSdk> {
   if (initializedSandboxMode === sandbox) return pi;
   if (sdkInitializationPromise) return sdkInitializationPromise;
 
-  // Share one init promise so a slow Pi Browser cannot trigger racing Pi.init() calls.
-  sdkInitializationPromise = Promise.resolve(pi.init({ version: "2.0", sandbox }))
-    .then(() => {
-      initializedSandboxMode = sandbox;
-      return pi;
-    })
-    .catch((error: unknown) => {
-      sdkInitializationPromise = null;
-      throw error;
-    });
+  // Keep a timed-out Pi.init() from pinning the shared promise forever.
+  const initOperation = Promise.resolve().then(() => pi.init({ version: "2.0", sandbox }));
+  let pending: Promise<PiSdk>;
+  pending = withTimeout(
+    initOperation,
+    12_000,
+    "Pi SDK initialization timed out.",
+  ).then(() => {
+    initializedSandboxMode = sandbox;
+    return pi;
+  }).catch((error: unknown) => {
+    if (sdkInitializationPromise === pending) sdkInitializationPromise = null;
+    throw error;
+  });
 
-  return sdkInitializationPromise;
+  sdkInitializationPromise = pending;
+  return pending;
 }
 
 export function ZafPiSignIn({ locale }: { locale: Locale }) {
