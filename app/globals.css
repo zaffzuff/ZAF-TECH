@@ -1884,3 +1884,32 @@
     opacity: .65;
   }
 }
+
+
+/* Compact mobile Pi action row replaces status pills; auth feedback overlays without reflow. */
+.zaf-mobile-pi-actions {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  min-height: 40px; padding: 5px 10px 8px;
+  border-top: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+}
+.zaf-mobile-pi-actions .zaf-start-pi-link {
+  display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center;
+  height: 32px; min-width: 82px; padding: 0 10px;
+  border: 1px solid #cbb270; border-radius: 9px; background-color: #f5e8c7;
+  color: #6f3f8f; -webkit-text-fill-color: #6f3f8f; font-size: 10px; font-weight: 700; white-space: nowrap;
+}
+.zaf-mobile-pi-actions [data-testid="zaf-pi-sign-in"] { margin: 0; flex: 0 0 auto; }
+.zaf-mobile-pi-actions .zaf-pi-signin-button {
+  height: 32px; min-height: 32px; border-color: #cbb270; background-color: #f5e8c7;
+  color: #6f3f8f; -webkit-text-fill-color: #6f3f8f;
+}
+.zaf-mobile-pi-actions .zaf-pi-signin-button > span { color: inherit; -webkit-text-fill-color: currentColor; }
+@media (max-width: 1023px) {
+  .zaf-mobile-header > div:first-child > img.zaf-mobile-brand-logo { width: 44px; height: 44px; }
+  .zaf-mobile-header .ty-brand-text { font-size: clamp(1.12rem, 5vw, 1.4rem); line-height: 1.08; }
+}
+@media (max-width: 380px) {
+  .zaf-mobile-pi-actions { gap: 5px; padding-inline: 8px; }
+  .zaf-mobile-pi-actions .zaf-start-pi-link { min-width: 72px; padding-inline: 7px; }
+  .zaf-mobile-pi-actions .zaf-pi-signin-button { width: 148px; min-width: 128px; }
+}
