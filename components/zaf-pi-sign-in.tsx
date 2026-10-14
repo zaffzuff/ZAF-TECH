@@ -351,7 +351,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         aria-label={tr("Sign in with Pi", "Pi ile giriş yap")}
       >
         <span aria-hidden="true" className="text-sm font-bold">π</span>
-        <span className="truncate">{busy ? tr("Connecting…", "Bağlanıyor…") : user ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="hidden truncate lg:inline">{busy ? tr("Connecting to Pi…", "Pi'ye bağlanılıyor…") : user ? tr("Pi Account Verified", "Pi Hesabı Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="inline truncate lg:hidden">{busy ? tr("Connecting…", "Bağlanıyor…") : user ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
       </button>
       {user ? (
         <span className="min-w-0 break-all text-[10px] text-muted-foreground" aria-live="polite">
