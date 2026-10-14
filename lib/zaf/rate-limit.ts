@@ -16,8 +16,18 @@ function clientIdentity(request: Request) {
   const realIp = request.headers.get("x-real-ip")?.trim();
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const address = realIp || forwarded || "unknown";
-  const userAgent = request.headers.get("user-agent")?.trim().slice(0, 256) || "unknown";
-  return address + "|" + userAgent;
+  return address.slice(0, 256);
+}
+
+const localWindows = new Map<string, { start: number; count: number; expiresAt: number }>();
+function localRateLimit(request: Request, scope: string, rule: ReturnType<typeof normalizeRule>, windowStartMs: number, resetAt: number, retryAfterSeconds: number): RateLimitResult {
+  for (const [key, value] of localWindows) if (value.expiresAt <= Date.now()) localWindows.delete(key);
+  const key = keyHash(request, scope);
+  if (!localWindows.has(key) && localWindows.size >= 10_000) localWindows.delete(localWindows.keys().next().value!);
+  const prior = localWindows.get(key);
+  const count = prior?.start === windowStartMs ? prior.count + 1 : 1;
+  localWindows.set(key, { start: windowStartMs, count, expiresAt: resetAt });
+  return { allowed: !rule.failClosed && count <= rule.limit, limit: rule.limit, remaining: rule.failClosed ? 0 : Math.max(0, rule.limit - count), resetAt, retryAfterSeconds, storageAvailable: false };
 }
 
 function keyHash(request: Request, scope: string) {
@@ -32,11 +42,7 @@ export async function consumeRateLimit(request: Request, scope: string, rule: Ra
   const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - now) / 1000));
   const sql = getZafDb();
 
-  if (!sql) return { allowed: true, limit: normalized.limit, remaining: normalized.limit, resetAt, retryAfterSeconds, storageAvailable: false };
-  if (!(await ensureZafSchema())) return {
-    allowed: normalized.failClosed ? false : true,
-    limit: normalized.limit, remaining: normalized.failClosed ? 0 : normalized.limit, resetAt, retryAfterSeconds, storageAvailable: false,
-  };
+  if (!sql || !(await ensureZafSchema())) return localRateLimit(request, scope, normalized, windowStartMs, resetAt, retryAfterSeconds);
 
   try {
     const rows = await sql`
@@ -54,11 +60,8 @@ export async function consumeRateLimit(request: Request, scope: string, rule: Ra
     const count = Number(rows[0]?.requestCount ?? 1);
     return { allowed: count <= normalized.limit, limit: normalized.limit, remaining: Math.max(0, normalized.limit - count), resetAt, retryAfterSeconds, storageAvailable: true };
   } catch (error) {
-    console.error("[ZAF-TECH] Rate-limit storage check failed", error);
-    return {
-      allowed: normalized.failClosed ? false : true,
-      limit: normalized.limit, remaining: normalized.failClosed ? 0 : normalized.limit, resetAt, retryAfterSeconds, storageAvailable: false,
-    };
+    console.error("[ZAF-TECH] Rate-limit storage check failed", error instanceof Error ? error.name : "unknown");
+    return localRateLimit(request, scope, normalized, windowStartMs, resetAt, retryAfterSeconds);
   }
 }
 

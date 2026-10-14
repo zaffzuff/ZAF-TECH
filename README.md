@@ -18,6 +18,13 @@ ZAF Tech is **not affiliated with or endorsed by the Pi Network Core Team**. It 
 - Observed transaction and operation pace, sampled transaction success, ledger observations, and source coverage when available.
 - Clear distinction between observed data, missing data, and unverified claims.
 
+### Automatic updates and editorial maintenance
+- The Latest Ecosystem Update card uses dated publications from the official Pi RSS feed, with the official blog listing as a fallback. Publications are ordered by source date, not page link order or the curated statistics list.
+- While the dashboard is open, observations refresh every minute. Successful news reads are cached for five minutes per server instance; failed reads are retried after one minute. The publication date, last attempted check, and last successful check are shown separately.
+- If both official news sources fail, the last successful news observation is shown with an unavailable-source notice. Recovery uses server memory and, when `DATABASE_URL` is configured, stored ecosystem snapshots across server restarts. A new instance without historical storage may have no previous observation to show.
+- The existing daily `/api/apps/health/cron` job also collects Mainnet and ecosystem observations before checking app availability. Production scheduling requires the existing `CRON_SECRET` configuration; persistent history additionally requires `DATABASE_URL`. These settings and successful scheduled runs must be verified in the deployment environment.
+- Guides, translations, feature explanations, and curated official statistics remain editorial content and require periodic review. An observation timestamp does not change the publication date of that evidence.
+
 ### Discover and app health
 - Pi ecosystem app directory and app detail views.
 - App URL checks and observable app metadata.

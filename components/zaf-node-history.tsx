@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { requestJson } from "@/lib/zaf/client-request";
+import { isMobileConnectorUnavailable, mobileConnectorMessage } from "@/lib/zaf/local-connector-client";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 
@@ -96,19 +98,21 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [resources, setResources] = useState<ResourcePayload | null>(null);
   const [windowHours, setWindowHours] = useState<WindowHours>(24);
+  const [mobile, setMobile] = useState(false);
 
   async function load() {
+    if (isMobileConnectorUnavailable()) { setMobile(true); return; }
     const [historyResult, resourceResult] = await Promise.allSettled([
-      fetch("http://127.0.0.1:39100/history", { cache: "no-store" }),
-      fetch("http://127.0.0.1:39100/resources", { cache: "no-store" }),
+      requestJson<Payload>("http://127.0.0.1:39100/history", { cache: "no-store" }, 5000),
+      requestJson<ResourcePayload>("http://127.0.0.1:39100/resources", { cache: "no-store" }, 5000),
     ]);
-    if (historyResult.status === "fulfilled" && historyResult.value.ok) {
-      setPayload(await historyResult.value.json());
+    if (historyResult.status === "fulfilled" && historyResult.value.response.ok) {
+      setPayload(historyResult.value.body);
     } else {
       setPayload(null);
     }
-    if (resourceResult.status === "fulfilled" && resourceResult.value.ok) {
-      setResources(await resourceResult.value.json());
+    if (resourceResult.status === "fulfilled" && resourceResult.value.response.ok) {
+      setResources(resourceResult.value.body);
     } else {
       setResources(null);
     }
@@ -183,6 +187,7 @@ export function ZafNodeHistory({ locale }: { locale: Locale }) {
 
   return (
     <section className="mt-4 rounded-xl border border-border bg-card p-4">
+      {mobile ? <p className="mb-3 text-xs text-muted-foreground">{mobileConnectorMessage[locale]}</p> : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground">{tr("Node Performance History", "Node Performans Geçmişi")}</h3>

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { runEcosystemHealthChecks } from "@/lib/zaf/app-health-runner";
 import { cleanupZafRateLimits } from "@/lib/zaf/rate-limit";
+import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
+import { saveMonitorRun } from "@/lib/zaf/monitor-status";
 
 export const dynamic = "force-dynamic";
 
@@ -22,14 +24,33 @@ export async function GET(request: Request) {
     );
   }
 
-  const result = await runEcosystemHealthChecks();
+  const observation = await getUnifiedObservation({ force: true });
+  const result = await runEcosystemHealthChecks(observation.ecosystem);
   const rateLimitRowsRemoved = await cleanupZafRateLimits();
+  const networkObserved = Boolean(observation.network?.latestLedger) && !observation.network?.error;
+  const newsAvailable = observation.ecosystem?.newsMetadata.status === "available";
+  const historyStored = observation.historyStored === true;
+  const monitorStored = await saveMonitorRun({
+    checkedAt: new Date().toISOString(),
+    status: !networkObserved || !newsAvailable ? "failed" : !historyStored || !observation.ecosystem?.apps.items.length ? "limited" : "healthy",
+    networkObserved, protocol: observation.network?.metrics?.latestProtocolVersion ?? null,
+    newsAvailable, directoryRecords: observation.ecosystem?.apps.items.length ?? 0,
+    historyStored, appsChecked: result.checked,
+  });
 
   return NextResponse.json(
     {
       ok: true,
       scheduled: true,
+      historyStored,
+      monitorStored,
       rateLimitRowsRemoved,
+      observation: {
+        generatedAt: observation.generatedAt,
+        networkObserved: Boolean(observation.network?.latestLedger),
+        news: observation.ecosystem?.newsMetadata ?? null,
+        errors: observation.errors,
+      },
       ...result,
     },
     {

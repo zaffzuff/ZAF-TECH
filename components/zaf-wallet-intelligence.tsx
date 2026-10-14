@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import type { ZafWalletSnapshot } from "@/lib/zaf/types";
@@ -59,6 +60,13 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
   const [data, setData] = useState<WalletViewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const activeRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => activeRequest.current?.abort(), []);
+  function clearLookup() {
+    activeRequest.current?.abort();
+    activeRequest.current = null;
+    setData(null); setError(""); setLoading(false);
+  }
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
   const explorerBase = network === "mainnet" ? "https://blockexplorer.minepi.com/mainnet" : "https://blockexplorer.minepi.com/testnet";
@@ -70,19 +78,23 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       setData(null);
       return;
     }
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`/api/zaf/wallet?address=${encodeURIComponent(normalized)}&network=${network}`, { cache: "no-store" });
-      const body = await response.json();
+      const { response, body } = await requestJson<WalletViewData & { error?: string }>(`/api/zaf/wallet?address=${encodeURIComponent(normalized)}&network=${network}`, { cache: "no-store", signal: controller.signal });
+      if (activeRequest.current !== controller) return;
       if (!response.ok && body?.exists !== false) throw new Error(body?.error ?? tr("Wallet lookup failed.", "Cüzdan sorgusu başarısız."));
       setData(body);
       if (body?.exists === false) setError(tr("No account was found for this address on the selected network.", "Seçilen ağda bu adres için hesap bulunamadı."));
     } catch (err) {
+      if (activeRequest.current !== controller) return;
       setData(null);
       setError(err instanceof Error ? err.message : tr("Wallet lookup failed.", "Cüzdan sorgusu başarısız."));
     } finally {
-      setLoading(false);
+      if (activeRequest.current === controller) setLoading(false);
     }
   }
 
@@ -94,8 +106,8 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
 
     <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-        <input value={address} onChange={e => setAddress(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void lookup(); }} placeholder={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
-        <select value={network} onChange={e => setNetwork(e.target.value as "mainnet" | "testnet")} className="rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground">
+        <input aria-label={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} value={address} onChange={e => { clearLookup(); setAddress(e.target.value); }} onKeyDown={e => { if (e.key === "Enter") void lookup(); }} placeholder={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
+        <select aria-label={tr("Network", "Ağ")} value={network} onChange={e => { clearLookup(); setNetwork(e.target.value as "mainnet" | "testnet"); }} className="rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground">
           <option value="mainnet">{tr("Pi Mainnet", "Pi Mainnet")}</option>
           <option value="testnet">{tr("Pi Testnet", "Pi Testnet")}</option>
         </select>

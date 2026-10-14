@@ -1,6 +1,8 @@
 "use client";
 
-import { translate } from "@/lib/zaf/i18n";
+import { intlLocale, translate } from "@/lib/zaf/i18n";
+import { normalizeOfficialNews } from "@/lib/zaf/official-news-parser";
+import type { EcosystemNewsItem, OfficialNewsMetadata } from "@/lib/zaf/official-news-parser";
 import type { Locale } from "@/lib/zaf/i18n";
 import type { RadarObservation, RadarSignal } from "@/lib/zaf/radar";
 import type { ZafSnapshot } from "@/lib/zaf/types";
@@ -18,6 +20,8 @@ type PulseChanges = { hasBaseline: boolean; changes: PulseChange[] };
 type EcosystemPulseData = {
   generatedAt: string;
   apps: { totalCount: number | null };
+  news?: EcosystemNewsItem[];
+  newsMetadata?: OfficialNewsMetadata;
   officialSignals?: Array<{
     title: string;
     value: string;
@@ -32,12 +36,14 @@ function tx(locale: Locale, en: string, tr: string) {
 
 function observationTime(value: string | null | undefined, locale: Locale) {
   if (!value) return "—";
-  const match = value.match(/^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})/);
-  if (!match) return "—";
-  const [, year, month, day, hour, minute] = match;
-  return locale === "tr"
-    ? `${day}.${month}.${year} ${hour}:${minute} UTC`
-    : `${year}-${month}-${day} ${hour}:${minute} UTC`;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "—";
+  return date.toLocaleString(intlLocale(locale), { timeZone: "UTC", dateStyle: "short", timeStyle: "short" }) + " UTC";
+}
+
+function publicationDate(value: string | null, locale: Locale) {
+  if (!value || !Number.isFinite(Date.parse(value))) return "—";
+  return new Date(value).toLocaleDateString(intlLocale(locale), { timeZone: "UTC", year: "numeric", month: "short", day: "numeric" });
 }
 
 function activityLabel(value: string, locale: Locale) {
@@ -46,6 +52,7 @@ function activityLabel(value: string, locale: Locale) {
     falling: ["Falling", "Düşüyor"],
     stable: ["Stable", "Sabit"],
     "insufficient-data": ["Insufficient Data", "Yetersiz Veri"],
+    mixed: ["Mixed", "Karışık"],
   };
   const pair = labels[value];
   return pair ? tx(locale, pair[0], pair[1]) : value;
@@ -133,16 +140,18 @@ export function ZafPulse({
   const total = radar?.sourceCoverage.total ?? 0;
   const available = radar?.sourceCoverage.available ?? 0;
   const coverage = total ? Math.round((available / total) * 100) : 0;
-  const activity = snapshot?.intelligence.activityState ?? "insufficient-data";
+  const paceStates = (radar?.signals ?? []).filter(signal => ["transaction-pace", "operation-pace"].includes(signal.id) && signal.changePercent != null).map(signal => signal.state);
+  const activity = paceStates.length === 2
+    ? paceStates[0] === paceStates[1] ? paceStates[0] : "mixed"
+    : snapshot?.intelligence.activityState ?? "insufficient-data";
   const activityDisplay = activityLabel(activity, locale);
 
   const movement = (radar?.signals ?? [])
     .filter(signal => ["transaction-pace", "operation-pace", "transaction-success"].includes(signal.id))
     .sort((a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0));
 
-  const latestOfficial = [...(ecosystem?.officialSignals ?? [])]
-    .filter(signal => signal.observedAt)
-    .sort((a, b) => Date.parse(b.observedAt) - Date.parse(a.observedAt))[0] ?? null;
+  const latestOfficial = normalizeOfficialNews(ecosystem?.news ?? [])[0] ?? null;
+  const newsMetadata = ecosystem?.newsMetadata;
 
   const changesToShow = (changes?.changes ?? []).slice(0, 3);
   const topOperation = snapshot?.metrics.topOperationType
@@ -194,7 +203,7 @@ export function ZafPulse({
         </div>
 
         <div className="zaf-pulse-source-line mt-3">
-          <span>{tx(locale, "Coverage", "Kapsam")} {coverage}%</span>
+          <span>{tx(locale, "Public Source Coverage", "Herkese Açık Kaynak Kapsamı")} {coverage}%</span>
           <span>·</span>
           <span>{tx(locale, "Latest observation", "Son gözlem")} {observationTime(radar?.generatedAt ?? snapshot?.generatedAt, locale)}</span>
           <span>·</span>
@@ -278,12 +287,19 @@ export function ZafPulse({
           </div>
           {latestOfficial ? (
             <>
-              <div className="zaf-pulse-big-number">{latestOfficial.value}</div>
+              <div className="text-[10px] font-semibold text-muted-foreground">{tx(locale, "Automatic updates", "Otomatik güncelleme")}</div>
               <div className="mt-2 text-xs font-semibold leading-snug text-foreground ty-clamp-2">{latestOfficial.title}</div>
-              <div className="mt-2 text-[10px] text-muted-foreground">{observationTime(latestOfficial.observedAt, locale)}</div>
-              <a href={latestOfficial.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-[10px] font-semibold text-foreground underline underline-offset-2">{tx(locale, "Open official source", "Resmi kaynağı aç")}</a>
+              <div className="mt-2 text-[10px] text-muted-foreground">{tx(locale, "Published", "Yayımlandı")}: {publicationDate(latestOfficial.publishedAt, locale)}</div>
+              <a href={latestOfficial.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-[10px] font-semibold text-foreground underline underline-offset-2">{tx(locale, "Open official source", "Resmi kaynağı aç")}</a>
             </>
           ) : <div className="zaf-pulse-empty">{tx(locale, "No official ecosystem update is currently exposed by the source.", "Kaynakta şu anda görünür bir resmi ekosistem gelişmesi bulunmuyor.")}</div>}
+          <div className="mt-3 space-y-1 text-[10px] text-muted-foreground">
+            <div>{tx(locale, "Last checked", "Son kontrol")}: {observationTime(newsMetadata?.checkedAt, locale)}</div>
+            <div>{tx(locale, "Last successful check", "Son başarılı kontrol")}: {observationTime(newsMetadata?.lastSuccessfulAt, locale)}</div>
+          </div>
+          {newsMetadata?.status === "unavailable" ? <p role="status" className="mt-2 text-[10px] text-amber-600 dark:text-amber-400">{newsMetadata.stale
+            ? tx(locale, "Source could not be refreshed. Showing the last successful observation.", "Kaynak yenilenemedi. Son başarılı gözlem gösteriliyor.")
+            : tx(locale, "Official news source is temporarily unavailable.", "Resmi haber kaynağı geçici olarak okunamıyor.")}</p> : null}
         </article>
 
         <article className="zaf-pulse-card">
@@ -318,6 +334,14 @@ export function ZafPulse({
         </div>
         <button type="button" onClick={onOpenRadar}>{tx(locale, "Open analysis center", "Analiz merkezini aç")}</button>
       </div>
+      <details className="mt-3 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">
+        <summary className="cursor-pointer text-xs font-semibold text-foreground">{tx(locale, "How updates work", "Güncellemeler nasıl çalışır")}</summary>
+        <div className="mt-3 space-y-2 leading-relaxed">
+          <p>{tx(locale, "Official news refreshes automatically while this page is open.", "Bu sayfa açıkken resmi haberler otomatik yenilenir.")}</p>
+          <p>{tx(locale, "Daily background observations require scheduled monitoring to be enabled.", "Günlük arka plan gözlemleri için zamanlanmış takibin etkin olması gerekir.")}</p>
+          <p>{tx(locale, "Guides, explanations and published statistics need periodic editorial review.", "Rehberler, açıklamalar ve yayımlanmış istatistikler düzenli olarak gözden geçirilmelidir.")}</p>
+        </div>
+      </details>
     </section>
   );
 }

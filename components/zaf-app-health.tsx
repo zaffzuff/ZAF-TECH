@@ -1,4 +1,5 @@
 "use client";
+import { requestJson } from "@/lib/zaf/client-request";
 
 import { useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
@@ -42,7 +43,7 @@ type TrendSummary = {
 };
 
 function AppTrend({points,summary,locale,tr}:{points:TrendPoint[];summary:TrendSummary|null;locale:Locale;tr:(en:string,tr:string)=>string}){
- if(!points.length) return <div className="mt-3"><ZafComingSoon locale={locale} title={tr("Response Time Trend","Yanıt Süresi Trendi")} detail={tr("Historical trend cards will become available when this app has enough persisted health checks to show a meaningful trend.","Bu uygulama için anlamlı bir trend gösterecek kadar kayıtlı sağlık kontrolü oluştuğunda tarihsel trend kartları kullanılabilir olacak.")} /></div>;
+ if(!points.length) return <div className="mt-3"><ZafComingSoon waitingForData locale={locale} title={tr("Response Time Trend","Yanıt Süresi Trendi")} detail={tr("Historical trend cards will become available when this app has enough persisted health checks to show a meaningful trend.","Bu uygulama için anlamlı bir trend gösterecek kadar kayıtlı sağlık kontrolü oluştuğunda tarihsel trend kartları kullanılabilir olacak.")} /></div>;
  const max=Math.max(...points.map(p=>p.responseTimeMs),1);
  return <div className="mt-4 rounded-lg border border-border p-3">
   <div className="text-xs font-semibold text-foreground">{tr("Response Time Trend","Yanıt Süresi Trendi")}</div>
@@ -79,6 +80,8 @@ export function ZafAppHealth({locale}:{locale:Locale}){
  const tr=(en:string,trText:string)=>translate(locale,en,trText);
  const [url,setUrl]=useState("");
  const [result,setResult]=useState<Result|null>(null);
+ const [checkError,setCheckError]=useState("");
+ const [batchError,setBatchError]=useState("");
  const [batch,setBatch]=useState<BatchResult|null>(null);
  const [loading,setLoading]=useState(false);
  const [batchLoading,setBatchLoading]=useState(false);
@@ -91,9 +94,12 @@ export function ZafAppHealth({locale}:{locale:Locale}){
 
  async function check(){
    if(!url.trim()) return;
-   setLoading(true); setResult(null);
-   try{const r=await fetch("/api/apps/check?url="+encodeURIComponent(url.trim()),{cache:"no-store"}); setResult(await r.json());}
-   catch{setResult({url:url.trim(),reachable:false,responseTimeMs:0,https:url.startsWith("https://"),redirect:false,checkedAt:new Date().toISOString(),error:tr("Request failed", "La requête a échoué")});}
+   setLoading(true); setResult(null); setCheckError("");
+   try{
+     const {response,body}=await requestJson<Result>("/api/apps/check?url="+encodeURIComponent(url.trim()),{cache:"no-store"});
+     if(!response.ok){setCheckError(response.status===429?tr("Too many requests. Please retry later.","Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin."):tr("The URL check could not be completed. Check the address or try again later.","URL kontrolü tamamlanamadı. Adresi kontrol edin veya biraz sonra tekrar deneyin."));return;}
+     setResult(body);
+   }catch{setCheckError(tr("Request failed","İstek başarısız"));}
    finally{setLoading(false);}
  }
 
@@ -114,13 +120,13 @@ export function ZafAppHealth({locale}:{locale:Locale}){
  }
 
  async function checkEcosystem(){
-   setBatchLoading(true); setBatch(null);
+   setBatchLoading(true); setBatch(null); setBatchError("");
    try{
-     const r=await fetch("/api/apps/health",{cache:"no-store"});
-     if(!r.ok) throw new Error("Batch health check failed");
-     setBatch(await r.json());
+     const {response,body}=await requestJson<BatchResult>("/api/apps/health",{cache:"no-store"},30_000);
+     if(!response.ok){setBatchError(response.status===429?tr("Too many requests. Please retry later.","Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin."):tr("Request failed","İstek başarısız"));return;}
+     setBatch(body);
    }catch{
-     setBatch(null);
+     setBatch(null); setBatchError(tr("Request failed","İstek başarısız"));
    }finally{
      setBatchLoading(false);
    }
@@ -133,9 +139,10 @@ export function ZafAppHealth({locale}:{locale:Locale}){
    </div>
    <div className="rounded-xl border border-border bg-card p-4">
     <div className="flex flex-col gap-2 sm:flex-row">
-      <input value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void check()}} placeholder="https://example.com" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"/>
+      <input aria-label={tr("Pi App URL Checker", "Pi Uygulama URL Kontrolü")} value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void check()}} placeholder="https://example.com" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"/>
       <button type="button" onClick={()=>void check()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background disabled:opacity-50">{loading?tr("Checking…","Kontrol Ediliyor…"):tr("Check URL","URL'yi Kontrol Et")}</button>
     </div>
+    {checkError?<p role="status" className="mt-3 text-xs text-muted-foreground">{checkError}</p>:null}
     {result?<div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Reachability","Erişilebilirlik")}</div><div className="mt-1 text-sm font-semibold text-foreground">{result.reachable?tr("Online","Çevrimiçi"):tr("Offline","Çevrimdışı")}</div></div>
       <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">HTTPS</div><div className="mt-1 text-sm font-semibold text-foreground">{result.https?"✓":"—"}</div></div>
@@ -179,7 +186,8 @@ export function ZafAppHealth({locale}:{locale:Locale}){
         </div>
         <button type="button" onClick={()=>void checkEcosystem()} disabled={batchLoading} className="shrink-0 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{batchLoading?tr("Running Checks…","Kontroller Çalıştırılıyor…"):tr("Run Ecosystem Check","Ekosistem Kontrolünü Çalıştır")}</button>
       </div>
-      {batch?<div className="mt-3">
+      {batchError?<p role="status" className="mt-3 text-xs text-muted-foreground">{batchError}</p>:null}
+    {batch?<div className="mt-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Checked","Kontrol Edilen")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.checked}</div></div>
           <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Online","Çevrimiçi")}</div><div className="mt-1 text-sm font-semibold text-foreground">{batch.summary.online}</div></div>
@@ -256,7 +264,7 @@ export function ZafAppHealth({locale}:{locale:Locale}){
               </div>
             </div>
           ) : null}
-          </div>:<div className="mt-3"><ZafComingSoon locale={locale} title={tr("Historical Checks","Geçmiş Kontroller")} detail={tr("Historical checks will appear when persistent health-check storage is configured and records have been collected.","Kalıcı sağlık kontrolü depolaması yapılandırılıp kayıtlar biriktirildiğinde geçmiş kontroller burada görünecek.")} /></div>}
+          </div>:<div className="mt-3"><ZafComingSoon waitingForData locale={locale} title={tr("Historical Checks","Geçmiş Kontroller")} detail={tr("Historical checks will appear when persistent health-check storage is configured and records have been collected.","Kalıcı sağlık kontrolü depolaması yapılandırılıp kayıtlar biriktirildiğinde geçmiş kontroller burada görünecek.")} /></div>}
         </div>:null}
       </div>:null}
     </div>

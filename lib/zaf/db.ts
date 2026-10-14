@@ -89,6 +89,16 @@ const MIGRATIONS: Migration[] = [
         ON zaf_rate_limits (updated_at DESC)`,
     ],
   },
+  {
+    id: "0003_monitor_status",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS zaf_monitor_status (
+        id SMALLINT PRIMARY KEY CHECK (id = 1),
+        checked_at TIMESTAMPTZ NOT NULL,
+        payload JSONB NOT NULL
+      )`,
+    ],
+  },
 ];
 
 export function isZafDatabaseConfigured() {

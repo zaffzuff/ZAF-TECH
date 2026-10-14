@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic="force-dynamic";
 
 export async function GET(request:Request){
+ const blocked=await enforceRateLimit(request,"transaction-lookup",{limit:30,windowMs:60_000});if(blocked)return blocked;
  const id=new URL(request.url).searchParams.get("id")?.trim();
  if(!id||id.length>128||!/^[a-f0-9]{64}$/i.test(id))return NextResponse.json({error:"A 64-character transaction hash is required."},{status:400,headers:{"Cache-Control":"no-store"}});
  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),10000);

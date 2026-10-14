@@ -18,7 +18,7 @@ async function horizon(path: string): Promise<HorizonResponse> {
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`Pi Horizon request failed: ${response.status}`);
-    return response.json() as Promise<HorizonResponse>;
+    return await response.json() as HorizonResponse;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error("Pi Horizon request timed out after 10 seconds");
@@ -46,6 +46,7 @@ function stroopsToPi(value: unknown): number | null {
 }
 
 function numberOrNull(value: unknown): number | null {
+  if ((typeof value !== "number" && typeof value !== "string") || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
@@ -55,7 +56,7 @@ function mapLedger(raw: HorizonRecord): ZafLedger {
     sequence: String(raw.sequence),
     hash: String(raw.hash ?? ""),
     closedAt: String(raw.closed_at ?? ""),
-    transactionCount: numberOrNull(raw.transaction_count) ?? 0,
+    transactionCount: numberOrNull(raw.transaction_count) ?? ((numberOrNull(raw.successful_transaction_count) ?? 0) + (numberOrNull(raw.failed_transaction_count) ?? 0)),
     operationCount: numberOrNull(raw.operation_count) ?? 0,
     successfulTransactionCount: numberOrNull(raw.successful_transaction_count),
     failedTransactionCount: numberOrNull(raw.failed_transaction_count),
@@ -87,7 +88,7 @@ function mapOperation(raw: HorizonRecord): ZafOperation {
     successful: typeof raw.transaction_successful === "boolean" ? raw.transaction_successful : null,
     sourceAccount: raw.source_account != null ? String(raw.source_account) : null,
     transactionHash: raw.transaction_hash != null ? String(raw.transaction_hash) : null,
-    amountPi: stroopsToPi(raw.amount),
+    amountPi: raw.asset_type === "native" || raw.asset === "native" ? numberOrNull(raw.amount) : null,
     from: raw.from != null ? String(raw.from) : null,
     to: raw.to != null ? String(raw.to) : null,
   };
@@ -132,10 +133,11 @@ function observedPerHour(count: number, windowMinutes: number | null): number | 
 export async function getZafSnapshot(): Promise<ZafSnapshot> {
   const generatedAt = new Date().toISOString();
   try {
-    const [ledgerPage, transactionPage, operationPage] = await Promise.all([
+    const [ledgerPage, transactionPage, operationPage, root] = await Promise.all([
       horizon("/ledgers?order=desc&limit=100"),
       horizon("/transactions?order=desc&limit=100&include_failed=true"),
       horizon("/operations?order=desc&limit=100"),
+      horizon("/").catch(() => null),
     ]);
 
     const recentLedgers = recordsFromPage(ledgerPage).map(mapLedger);
@@ -232,6 +234,12 @@ export async function getZafSnapshot(): Promise<ZafSnapshot> {
       networkScope: "mainnet",
       source: "Pi Mainnet Horizon",
       generatedAt,
+      protocol: root ? {
+        current: numberOrNull(root.current_protocol_version),
+        horizonSupported: numberOrNull(root.supported_protocol_version),
+        coreSupported: numberOrNull(root.core_supported_protocol_version),
+        observedAt: new Date().toISOString(), source: BASE,
+      } : null,
       latestLedger: recentLedgers[0] ?? null,
       recentLedgers,
       transactions,

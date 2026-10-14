@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
+const readText = (file, encoding) => fs.readFileSync(file, encoding).replace(/\r\n/g, "\n");
 const required = [
   "lib/zaf/observation-engine.ts",
   "lib/zaf/observation-history.ts",
@@ -62,7 +63,7 @@ for (const file of removedStandalonePages) {
   if (fs.existsSync(path.join(root, file))) throw new Error("Redundant standalone page returned: " + file);
 }
 
-const db = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+const db = readText(path.join(root, "lib/zaf/db.ts"), "utf8");
 for (const token of ["getZafDb", "ensureZafSchema", "zaf_schema_migrations", "pg_advisory_xact_lock", "0001_core_history", "zaf_app_checks", "zaf_defi_snapshots", "zaf_ecosystem_snapshots", "zaf_observation_snapshots"]) {
   if (!db.includes(token)) throw new Error("Central DB/migration regression: " + token);
 }
@@ -72,7 +73,7 @@ for (const file of [
   "lib/zaf/defi-history.ts",
   "lib/zaf/ecosystem-history.ts",
 ]) {
-  const source = fs.readFileSync(path.join(root, file), "utf8");
+  const source = readText(path.join(root, file), "utf8");
   if (source.includes('from "postgres"') || source.includes("postgres(")) {
     throw new Error("Direct Postgres client bypass remains in " + file);
   }
@@ -81,11 +82,11 @@ for (const file of [
   }
 }
 
-const rateLimit = fs.readFileSync(path.join(root, "lib/zaf/rate-limit.ts"), "utf8");
+const rateLimit = readText(path.join(root, "lib/zaf/rate-limit.ts"), "utf8");
 for (const token of ["consumeRateLimit", "enforceRateLimit", "rateLimitHeaders", "cleanupZafRateLimits", "429", "Retry-After", "zaf_rate_limits", "ON CONFLICT (key_hash)"]) {
   if (!rateLimit.includes(token)) throw new Error("Rate-limit foundation regression: " + token);
 }
-const dbRateLimit = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+const dbRateLimit = readText(path.join(root, "lib/zaf/db.ts"), "utf8");
 for (const token of ["0002_rate_limits", "CREATE TABLE IF NOT EXISTS zaf_rate_limits", "zaf_rate_limits_updated_at_idx"]) {
   if (!dbRateLimit.includes(token)) throw new Error("Rate-limit migration regression: " + token);
 }
@@ -103,15 +104,15 @@ const rateLimitedRoutes = [
   "app/api/zaf/launchpad/route.ts",
 ];
 for (const file of rateLimitedRoutes) {
-  const source = fs.readFileSync(path.join(root, file), "utf8");
+  const source = readText(path.join(root, file), "utf8");
   if (!source.includes('from "@/lib/zaf/rate-limit"') || !source.includes("enforceRateLimit")) {
     throw new Error("Rate-limit route coverage regression: " + file);
   }
 }
-const cronRateLimit = fs.readFileSync(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
+const cronRateLimit = readText(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
 if (!cronRateLimit.includes("cleanupZafRateLimits")) throw new Error("Rate-limit cleanup cron regression");
-const piRuntime = fs.readFileSync(path.join(root, "lib/zaf/pi/runtime.ts"), "utf8");
-for (const token of ["PI_SDK_VERSION = \"2.0\"", "PI_SDK_SCRIPT_URL", "PI_PLATFORM_API_DEFAULT", "testnet", "mainnet", "PI_SDK_MODES", "PI_SDK_MODE", "PI_NETWORK", "assertPiRuntimeCompatible", "isPiMainnetRuntimeReady", "isPiPaymentReady"]) {
+const piRuntime = readText(path.join(root, "lib/zaf/pi/runtime.ts"), "utf8");
+for (const token of ["PI_SDK_VERSION = \"2.0\"", "PI_SDK_SCRIPT_URL", "PI_PLATFORM_API_DEFAULT", "testnet", "mainnet", "PI_SDK_MODES", "PI_SDK_MODE", "PI_NETWORK", "assertPiRuntimeCompatible", "isPiMainnetRuntimeReady"]) {
   if (!piRuntime.includes(token)) throw new Error("Pi runtime matrix regression: " + token);
 }
 if (!piRuntime.includes("https://api.testnet.minepi.com") || !piRuntime.includes("https://api.mainnet.minepi.com")) {
@@ -120,14 +121,14 @@ if (!piRuntime.includes("https://api.testnet.minepi.com") || !piRuntime.includes
 if (!piRuntime.includes("const compatible = !(sdkSandbox && network === \"mainnet\");")) {
   throw new Error("Pi SDK Sandbox/network compatibility guard regression");
 }
-const piAuthRoute = fs.readFileSync(path.join(root, "app/api/zaf/pi/auth/route.ts"), "utf8");
+const piAuthRoute = readText(path.join(root, "app/api/zaf/pi/auth/route.ts"), "utf8");
 for (const token of ["pi-auth-verify", "/me", "Authorization", "Bearer", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
   if (!piAuthRoute.includes(token)) throw new Error("Pi authentication verification regression: " + token);
 }
 if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
   throw new Error("Pi username-only authentication must not require payment credentials or scope");
 }
-const piSignIn = fs.readFileSync(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
+const piSignIn = readText(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
 for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Promise.resolve(pi.init({ version: \"2.0\", sandbox }))", "await withTimeout(\n        initializePiSdk(),", "Pi SDK initialization timed out.", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE", "pi_sandbox", "new URLSearchParams(window.location.search)", "function withTimeout", "sdk-init", "12_000", "45_000"]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Sign-In UI regression: " + token);
 }
@@ -180,7 +181,7 @@ for (const token of [
   if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
 }
 
-const zafAppSource = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+const zafAppSource = readText(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sign-in";') ||
     !zafAppSource.includes('<ZafPiSignIn locale={locale} />')) {
   throw new Error("Pi Sign-In must be mounted in the main ZAF Tech interface");
@@ -202,7 +203,7 @@ const mobileSignInPosition = mobileActionsMarkup.indexOf('<ZafPiSignIn locale={l
 if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileSignInPosition) {
   throw new Error("Mobile action row must place Start Pi to the left of Sign in with Pi");
 }
-const piSignInStyles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+const piSignInStyles = readText(path.join(root, "app/globals.css"), "utf8");
 
 for (const token of [
   ".zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link",
@@ -235,17 +236,17 @@ if (!piSignIn.includes("zaf-pi-status-bubble") ||
   throw new Error("Pi sign-in must show a compact status bubble and useful timeout diagnosis");
 }
 
-const piOAuthHelpers = fs.readFileSync(path.join(root, "lib/zaf/pi/oauth.ts"), "utf8");
+const piOAuthHelpers = readText(path.join(root, "lib/zaf/pi/oauth.ts"), "utf8");
 for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "getSafePiSignInReturnPath", 'startsWith("//")']) {
   if (!piOAuthHelpers.includes(token)) throw new Error("Pi OAuth state/redirect safety regression: " + token);
 }
-const piSignInCallback = fs.readFileSync(path.join(root, "app/signin/callback/page.tsx"), "utf8");
+const piSignInCallback = readText(path.join(root, "app/signin/callback/page.tsx"), "utf8");
 for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/auth", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "window.location.replace"]) {
   if (!piSignInCallback.includes(token)) throw new Error("Pi OAuth callback regression: " + token);
 }
 
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+const packageJson = JSON.parse(readText(path.join(root, "package.json"), "utf8"));
 if (packageJson.scripts?.regression !== "node tools/zaf-regression.mjs") {
   throw new Error("Regression script is not wired into package.json");
 }
@@ -256,19 +257,19 @@ if (!fs.existsSync(path.join(root, "tools/zaf-smoke.mjs"))) {
   throw new Error("Smoke test harness is missing");
 }
 
-const vercelConfig = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+const vercelConfig = JSON.parse(readText(path.join(root, "vercel.json"), "utf8"));
 if (!Array.isArray(vercelConfig.crons) || !vercelConfig.crons.some(cron => cron.path === "/api/apps/health/cron" && cron.schedule === "0 3 * * *")) {
   throw new Error("Scheduled App Health cron configuration regression");
 }
-const cronRoute = fs.readFileSync(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
+const cronRoute = readText(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
 if (!cronRoute.includes("CRON_SECRET") || !cronRoute.includes('authorization') || !cronRoute.includes("Unauthorized")) {
   throw new Error("Scheduled App Health cron authorization regression");
 }
 
-const app = fs.readFileSync(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
-const i18n = fs.readFileSync(path.join(root, "lib/zaf/i18n.ts"), "utf8");
+const app = readText(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
+const i18n = readText(path.join(root, "lib/zaf/i18n.ts"), "utf8");
 if (i18n.includes("spanishCopy")) throw new Error("Pseudo-localization fallback must not return");
-const supplementalTranslations = fs.readFileSync(path.join(root, "lib/zaf/ui-translations.ts"), "utf8");
+const supplementalTranslations = readText(path.join(root, "lib/zaf/ui-translations.ts"), "utf8");
 if (!supplementalTranslations.includes('const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"]')) {
   throw new Error("Supplemental translation catalog is missing supported locales");
 }
@@ -281,7 +282,7 @@ const russianSupplementalTranslations = supplementalTranslations.slice(russianCa
 
 const componentFiles = fs.readdirSync(path.join(root, "components"))
   .filter(file => file.endsWith(".tsx"))
-  .map(file => fs.readFileSync(path.join(root, "components", file), "utf8"));
+  .map(file => readText(path.join(root, "components", file), "utf8"));
 const pairedUiKeys = new Set();
 for (const source of componentFiles) {
   for (const match of source.matchAll(/\btr\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"/g)) {
@@ -313,7 +314,7 @@ for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
   }
 }
 
-const nodeCompute = fs.readFileSync(path.join(root, "components/zaf-node-compute.tsx"), "utf8");
+const nodeCompute = readText(path.join(root, "components/zaf-node-compute.tsx"), "utf8");
 for (const token of [
   "const spanishOverrides: Record<string, string>",
   "La actualización del 9 de septiembre de 2026 mejoró el descubrimiento",
@@ -323,7 +324,7 @@ for (const token of [
   if (!nodeCompute.includes(token)) throw new Error("Node/Compute Spanish localization regression: " + token);
 }
 
-const visualTokens = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+const visualTokens = readText(path.join(root, "app/globals.css"), "utf8");
 for (const token of [
   "--ty-bronze: oklch(0.87 0.13 72)",
   "--ty-bronze: oklch(0.77 0.125 70)",
@@ -345,7 +346,7 @@ function scanTextFiles(dir) {
 }
 for (const base of ["components", "app", "lib/zaf"]) {
   for (const file of scanTextFiles(path.join(root, base))) {
-    const source = fs.readFileSync(file, "utf8");
+    const source = readText(file, "utf8");
     for (const term of ["İstihbarat", "istihbarat"]) {
       if (source.includes(term)) throw new Error("Forbidden Turkish terminology remains in " + file + ": " + term);
     }
@@ -360,12 +361,12 @@ for (const term of forbiddenVisibleTerms) {
   if (app.includes(term)) throw new Error("Forbidden visible terminology remains: " + term);
 }
 
-const engine = fs.readFileSync(path.join(root, "lib/zaf/observation-engine.ts"), "utf8");
+const engine = readText(path.join(root, "lib/zaf/observation-engine.ts"), "utf8");
 for (const token of ["Promise.allSettled", "CACHE_TTL_MS", "confidenceFor", "healthFor"]) {
   if (!engine.includes(token)) throw new Error("Unified observation engine regression: " + token);
 }
 
-const walletAnalytics = fs.readFileSync(path.join(root, "lib/zaf/wallet-analytics.ts"), "utf8");
+const walletAnalytics = readText(path.join(root, "lib/zaf/wallet-analytics.ts"), "utf8");
 for (const token of ["activityByDay", "activeDayCount", "getWalletActivityAnalytics"]) {
   if (!walletAnalytics.includes(token)) throw new Error("Wallet analytics regression: " + token);
 }
@@ -375,7 +376,7 @@ for (const token of ["SearchPanel", "/api/zaf/search", "Global Search", "deepLin
   if (!app.includes(token)) throw new Error("Search/deep-link regression: " + token);
 }
 
-const nextConfig = fs.readFileSync(path.join(root, "next.config.mjs"), "utf8");
+const nextConfig = readText(path.join(root, "next.config.mjs"), "utf8");
 for (const token of [
   "poweredByHeader: false",
   "X-Content-Type-Options",
@@ -387,7 +388,7 @@ for (const token of [
   if (!nextConfig.includes(token)) throw new Error("Production security header regression: " + token);
 }
 
-const styles = fs.readFileSync(path.join(root, "app/globals.css"), "utf8");
+const styles = readText(path.join(root, "app/globals.css"), "utf8");
 for (const token of [
   "Desktop brand lockup",
   ".zaf-desktop-header > div:first-child",
@@ -399,13 +400,13 @@ for (const token of [
   if (!styles.includes(token)) throw new Error("Desktop brand lockup regression: " + token);
 }
 
-const radar = fs.readFileSync(path.join(root, "lib/zaf/radar.ts"), "utf8");
+const radar = readText(path.join(root, "lib/zaf/radar.ts"), "utf8");
 for (const token of ["getRadarObservation", "getRollingObservationBaseline", "sampleConfidence", "transaction-pace", "operation-pace", "source-coverage"]) {
   if (!radar.includes(token)) throw new Error("Radar regression: " + token);
 }
 
-const observationHistory = fs.readFileSync(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
-const dbSchema = fs.readFileSync(path.join(root, "lib/zaf/db.ts"), "utf8");
+const observationHistory = readText(path.join(root, "lib/zaf/observation-history.ts"), "utf8");
+const dbSchema = readText(path.join(root, "lib/zaf/db.ts"), "utf8");
 for (const token of ["function median", "getRollingObservationBaseline", "daily_transactions"]) {
   if (!observationHistory.includes(token)) throw new Error("Observation history regression: " + token);
 }
@@ -415,62 +416,62 @@ for (const token of ["30-minute rolling median", "Rolling baseline", "30 dakikal
   if (!app.includes(token)) throw new Error("Radar UI interpretation regression: " + token);
 }
 
-const score = fs.readFileSync(path.join(root, "lib/zaf/app-health-score.ts"), "utf8");
+const score = readText(path.join(root, "lib/zaf/app-health-score.ts"), "utf8");
 for (const token of ["calculateAppHealthScore", "healthy", "degraded", "offline"]) {
   if (!score.includes(token)) throw new Error("App health score regression: " + token);
 }
 
-const appHealthComponent = fs.readFileSync(path.join(root, "components/zaf-app-health.tsx"), "utf8");
+const appHealthComponent = readText(path.join(root, "components/zaf-app-health.tsx"), "utf8");
 for (const token of ["Observable Health Factors", "scoreFactors", "security audit", "ownership verification"]) {
   if (!appHealthComponent.includes(token)) throw new Error("App health UI regression: " + token);
 }
 
-const appHealthHistory = fs.readFileSync(path.join(root, "lib/zaf/app-check-history.ts"), "utf8");
+const appHealthHistory = readText(path.join(root, "lib/zaf/app-check-history.ts"), "utf8");
 for (const token of ["calculateAppHealthScore", "healthStatus", "score: score.score"]) {
   if (!appHealthHistory.includes(token)) throw new Error("App Health trend score regression: " + token);
 }
 
-const appHealthTrendModel = fs.readFileSync(path.join(root, "lib/zaf/app-health-trend.ts"), "utf8");
+const appHealthTrendModel = readText(path.join(root, "lib/zaf/app-health-trend.ts"), "utf8");
 for (const token of ["classifyHealthTrend", "assessHealthData", "freshness", "confidence", "improving", "declining"]) {
   if (!appHealthTrendModel.includes(token)) throw new Error("App Health trend model regression: " + token);
 }
 
-const appHealthRunner = fs.readFileSync(path.join(root, "lib/zaf/app-health-runner.ts"), "utf8");
+const appHealthRunner = readText(path.join(root, "lib/zaf/app-health-runner.ts"), "utf8");
 for (const token of ["getAppHealthTrend", "assessHealthTrend", "declining", "improving", "attention"]) {
   if (!appHealthRunner.includes(token)) throw new Error("App Health overview regression: " + token);
 }
 
-const appHealthOverviewRoute = fs.readFileSync(path.join(root, "app/api/apps/health/overview/route.ts"), "utf8");
+const appHealthOverviewRoute = readText(path.join(root, "app/api/apps/health/overview/route.ts"), "utf8");
 for (const token of ["getLatestAppChecks", "assessHealthTrend", "averageScore", "declining", "attention", "temporarily unavailable"]) {
   if (!appHealthOverviewRoute.includes(token)) throw new Error("App Health overview API regression: " + token);
 }
 
-const appHealthTrendRoute = fs.readFileSync(path.join(root, "app/api/apps/health/trend/route.ts"), "utf8");
+const appHealthTrendRoute = readText(path.join(root, "app/api/apps/health/trend/route.ts"), "utf8");
 for (const token of ["averageHealthScore", "minimumHealthScore", "maximumHealthScore", "firstHealthScore", "latestHealthScore", "firstHealthStatus", "latestHealthStatus", "healthScoreDelta", "healthStatusTransitions", "trendDirection", "dataConfidence", "freshness", "temporarily unavailable"]) {
   if (!appHealthTrendRoute.includes(token)) throw new Error("App Health trend summary regression: " + token);
 }
 
-const appDetails = fs.readFileSync(path.join(root, "components/zaf-app-details.tsx"), "utf8");
+const appDetails = readText(path.join(root, "components/zaf-app-details.tsx"), "utf8");
 for (const token of ["Avg Health", "Health Score Trend", "Trend Direction", "Data Confidence", "Freshness", "Latest Age", "First → Latest Status", "Observed Window", "Status Transition Timeline", "toLocaleString", "healthStatus"]) {
   if (!appDetails.includes(token)) throw new Error("App Health trend visualization regression: " + token);
 }
 
-const ecosystemAppActivity = fs.readFileSync(path.join(root, "components/zaf-ecosystem-app-activity.tsx"), "utf8");
+const ecosystemAppActivity = readText(path.join(root, "components/zaf-ecosystem-app-activity.tsx"), "utf8");
 for (const token of ["App Activity", "Newly Observed Apps", "Not Present In Latest Source Response", "does not claim access to Pi's internal ranking or moderation systems"]) {
   if (!ecosystemAppActivity.includes(token)) throw new Error("Ecosystem app activity regression: " + token);
 }
 
-const ecosystemStaking = fs.readFileSync(path.join(root, "components/zaf-ecosystem-staking.tsx"), "utf8");
+const ecosystemStaking = readText(path.join(root, "components/zaf-ecosystem-staking.tsx"), "utf8");
 for (const token of ["Ecosystem Directory Staking", "Live Data Boundary", "Published Staking Evidence", "Coming soon target", "Historical official statements"]) {
   if (!ecosystemStaking.includes(token)) throw new Error("Ecosystem staking regression: " + token);
 }
 
-const ecosystemAppObservationModel = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
+const ecosystemAppObservationModel = readText(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
 for (const token of ["getEcosystemAppObservations", "firstSeenAt", "observationCount", "notPresentInLatest"]) {
   if (!ecosystemAppObservationModel.includes(token)) throw new Error("Ecosystem app observation model regression: " + token);
 }
 
-const ecosystemStakingModel = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-staking.ts"), "utf8");
+const ecosystemStakingModel = readText(path.join(root, "lib/zaf/ecosystem-staking.ts"), "utf8");
 for (const token of ["EcosystemStakingAvailability", "broadPublicFeed", "app-specific-whitelist", "PublishedStakingEvidence"]) {
   if (!ecosystemStakingModel.includes(token)) throw new Error("Ecosystem staking model regression: " + token);
 }
@@ -479,12 +480,12 @@ for (const token of ["App Activity", "Staking"]) {
   if (!app.includes(token)) throw new Error("Ecosystem navigation regression: " + token);
 }
 
-const appHealthTimeline = fs.readFileSync(path.join(root, "components/zaf-ecosystem-health-timeline.tsx"), "utf8");
+const appHealthTimeline = readText(path.join(root, "components/zaf-ecosystem-health-timeline.tsx"), "utf8");
 for (const token of ["Ecosystem Health Timeline", "Network Activity", "Public Source Coverage", "Stored App Health", "wallet data is address scoped"]) {
   if (!appHealthTimeline.includes(token)) throw new Error("Ecosystem health timeline regression: " + token);
 }
 
-const appHealthOverview = fs.readFileSync(path.join(root, "components/zaf-app-health.tsx"), "utf8");
+const appHealthOverview = readText(path.join(root, "components/zaf-app-health.tsx"), "utf8");
 for (const token of ["Health Overview", "Health Change Radar", "Measurement Evidence", "attention", "Declining", "Improving", "Stale History", "Synthetic data: none"]) {
   if (!appHealthOverview.includes(token)) throw new Error("App Health overview UI regression: " + token);
 }
@@ -495,47 +496,47 @@ for (const token of ["HistoryRange", "24h", "7d", "30d", "sampleHistoryPoints", 
 
 if (!dbSchema.includes("zaf_app_checks")) throw new Error("App Health schema initialization regression");
 
-const networkScope = fs.readFileSync(path.join(root, "lib/zaf/network-scope.ts"), "utf8");
+const networkScope = readText(path.join(root, "lib/zaf/network-scope.ts"), "utf8");
 for (const token of ["ZAF_NETWORK_SCOPES", "ZafNetworkScope", "mainnet", "testnet", "unknown"]) {
   if (!networkScope.includes(token)) throw new Error("Network scope model regression: " + token);
 }
 
-const appDirectoryScope = fs.readFileSync(path.join(root, "lib/zaf/app-directory.ts"), "utf8");
+const appDirectoryScope = readText(path.join(root, "lib/zaf/app-directory.ts"), "utf8");
 for (const token of ["ZafNetworkScope", "networkScope", '"unknown"']) {
   if (!appDirectoryScope.includes(token)) throw new Error("App network scope regression: " + token);
 }
 
-const walletScope = fs.readFileSync(path.join(root, "lib/zaf/wallet-client.ts"), "utf8");
+const walletScope = readText(path.join(root, "lib/zaf/wallet-client.ts"), "utf8");
 for (const token of ["networkScope", "mapAssets", "selected.label"]) {
   if (!walletScope.includes(token)) throw new Error("Wallet network scope regression: " + token);
 }
 
-const walletTypes = fs.readFileSync(path.join(root, "lib/zaf/types.ts"), "utf8");
+const walletTypes = readText(path.join(root, "lib/zaf/types.ts"), "utf8");
 for (const token of ["ZafWalletAsset", "networkScope: ZafNetworkScope"]) {
   if (!walletTypes.includes(token)) throw new Error("Wallet asset scope regression: " + token);
 }
 
-const testnetAssets = fs.readFileSync(path.join(root, "lib/zaf/testnet-assets.ts"), "utf8");
+const testnetAssets = readText(path.join(root, "lib/zaf/testnet-assets.ts"), "utf8");
 for (const token of ["getTestnetAssets", "api.testnet.minepi.com", 'networkScope: "testnet"', "numLiquidityPools"]) {
   if (!testnetAssets.includes(token)) throw new Error("Testnet asset regression: " + token);
 }
 
-const testnetAssetsRoute = fs.readFileSync(path.join(root, "app/api/zaf/assets/route.ts"), "utf8");
+const testnetAssetsRoute = readText(path.join(root, "app/api/zaf/assets/route.ts"), "utf8");
 for (const token of ["getTestnetAssets", "Only Testnet asset observations", "networkScope"]) {
   if (!testnetAssetsRoute.includes(token)) throw new Error("Testnet asset API regression: " + token);
 }
 
-const defiObservation = fs.readFileSync(path.join(root, "lib/zaf/defi-observation.ts"), "utf8");
+const defiObservation = readText(path.join(root, "lib/zaf/defi-observation.ts"), "utf8");
 for (const token of ["getDefiObservation", "liquidity_pools", "/trades?", 'networkScope: "testnet"', "distinctAssets", "pairActivity", "pairKeyFor", "observedTrades", "poolTradeCounts"]) {
   if (!defiObservation.includes(token)) throw new Error("DeFi observation model regression: " + token);
 }
 
-const defiRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/route.ts"), "utf8");
+const defiRoute = readText(path.join(root, "app/api/zaf/defi/route.ts"), "utf8");
 for (const token of ["getDefiObservation", "Only Testnet DeFi observations", "networkScope"]) {
   if (!defiRoute.includes(token)) throw new Error("DeFi API regression: " + token);
 }
 
-const defiUI = fs.readFileSync(path.join(root, "components/zaf-defi-observatory.tsx"), "utf8");
+const defiUI = readText(path.join(root, "components/zaf-defi-observatory.tsx"), "utf8");
 for (const token of ["DeFi Observatory", "Observed Liquidity Pools", "Observed Trades", "DeFi-Observed Tokens", "Observed Pair Activity", "Coming Soon target", "Mainnet Readiness"]) {
   if (!defiUI.includes(token)) throw new Error("DeFi UI regression: " + token);
 }
@@ -544,47 +545,47 @@ for (const token of ["DeFi", "DEX", "AMM & Pools", "Tokens"]) {
   if (!app.includes(token)) throw new Error("DeFi navigation regression: " + token);
 }
 
-const testnetAssetsUI = fs.readFileSync(path.join(root, "components/zaf-testnet-assets.tsx"), "utf8");
+const testnetAssetsUI = readText(path.join(root, "components/zaf-testnet-assets.tsx"), "utf8");
 for (const token of ["Testnet Assets", "Observed Testnet Assets", "Coming Soon target", "Test-Pi has no real-world value"]) {
   if (!testnetAssetsUI.includes(token)) throw new Error("Testnet asset UI regression: " + token);
 }
 
-const walletUI = fs.readFileSync(path.join(root, "components/zaf-wallet-intelligence.tsx"), "utf8");
+const walletUI = readText(path.join(root, "components/zaf-wallet-intelligence.tsx"), "utf8");
 for (const token of ["Observed Assets", "asset.assetIssuer", "Public asset balances"]) {
   if (!walletUI.includes(token)) throw new Error("Wallet asset UI regression: " + token);
 }
 
 if (!dbSchema.includes("zaf_observation_snapshots")) throw new Error("Observation schema initialization regression");
 
-const observationHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
+const observationHistoryRoute = readText(path.join(root, "app/api/zaf/observations/history/route.ts"), "utf8");
 if (!observationHistoryRoute.includes("10000")) throw new Error("Historical observation route limit regression");
 
 
 
 
-const smokeHarness = fs.readFileSync(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
+const smokeHarness = readText(path.join(root, "tools/zaf-smoke.mjs"), "utf8");
 for (const token of ["fetchWithTimeout", "AbortSignal.timeout", "stopSmokeServer", "process.kill(-child.pid", "Smoke server did not become ready"]) {
   if (!smokeHarness.includes(token)) throw new Error("Deterministic smoke harness regression: " + token);
 }
 
-const workflow = fs.readFileSync(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
+const workflow = readText(path.join(root, ".github/workflows/build-web-app.yml"), "utf8");
 if (!workflow.includes("npm run regression")) throw new Error("CI regression gate is missing");
 
 console.log("ZAF Tech v1.1 regression checks passed.");
 
 
 
-const launchpadObservation = fs.readFileSync(path.join(root, "lib/zaf/launchpad-observation.ts"), "utf8");
+const launchpadObservation = readText(path.join(root, "lib/zaf/launchpad-observation.ts"), "utf8");
 for (const token of ["getLaunchpadObservation", "published-evidence", "IRRA", "SLICE", "Testnet", "Mainnet"]) {
   if (!launchpadObservation.includes(token)) throw new Error("Launchpad observation model regression: " + token);
 }
 
-const launchpadRoute = fs.readFileSync(path.join(root, "app/api/zaf/launchpad/route.ts"), "utf8");
+const launchpadRoute = readText(path.join(root, "app/api/zaf/launchpad/route.ts"), "utf8");
 for (const token of ["getLaunchpadObservation", "Only Testnet Launchpad observations", "networkScope"]) {
   if (!launchpadRoute.includes(token)) throw new Error("Launchpad API regression: " + token);
 }
 
-const launchpadUI = fs.readFileSync(path.join(root, "components/zaf-launchpad-observatory.tsx"), "utf8");
+const launchpadUI = readText(path.join(root, "components/zaf-launchpad-observatory.tsx"), "utf8");
 for (const token of ["Launchpad Observatory", "Published Launch Evidence", "Live Launchpad Feed", "Mainnet Readiness", "published-evidence"]) {
   if (!launchpadUI.includes(token)) throw new Error("Launchpad UI regression: " + token);
 }
@@ -594,17 +595,17 @@ for (const token of ["Launchpad", "ZafLaunchpadObservatory"]) {
 }
 
 
-const ecosystemGraph = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-graph.ts"), "utf8");
+const ecosystemGraph = readText(path.join(root, "lib/zaf/ecosystem-graph.ts"), "utf8");
 for (const token of ["getEcosystemGraph", "networkScope", "published-staking-evidence", "observed-pair", "launch-token", "Promise.allSettled"]) {
   if (!ecosystemGraph.includes(token)) throw new Error("Ecosystem graph model regression: " + token);
 }
 
-const ecosystemGraphRoute = fs.readFileSync(path.join(root, "app/api/zaf/ecosystem/graph/route.ts"), "utf8");
+const ecosystemGraphRoute = readText(path.join(root, "app/api/zaf/ecosystem/graph/route.ts"), "utf8");
 for (const token of ["getEcosystemGraph", "network", "maxNodes", "Cache-Control"]) {
   if (!ecosystemGraphRoute.includes(token)) throw new Error("Ecosystem graph API regression: " + token);
 }
 
-const ecosystemGraphUI = fs.readFileSync(path.join(root, "components/zaf-ecosystem-graph.tsx"), "utf8");
+const ecosystemGraphUI = readText(path.join(root, "components/zaf-ecosystem-graph.tsx"), "utf8");
 for (const token of ["Ecosystem Graph", "Observed relationships", "Network Filter", "Node Type", "selectedNode", "read-only"]) {
   if (!ecosystemGraphUI.includes(token)) throw new Error("Ecosystem graph UI regression: " + token);
 }
@@ -614,18 +615,18 @@ for (const token of ["Graph", "ZafEcosystemGraph"]) {
 }
 
 
-const defiHistory = fs.readFileSync(path.join(root, "lib/zaf/defi-history.ts"), "utf8");
+const defiHistory = readText(path.join(root, "lib/zaf/defi-history.ts"), "utf8");
 for (const token of ["toDefiHistorySnapshot", "saveDefiSnapshot", "getDefiSnapshotHistory", "compareDefiSnapshots", "new-pool", "new-pair"]) {
   if (!defiHistory.includes(token)) throw new Error("DeFi history/alert regression: " + token);
 }
 
-const defiHistoryRoute = fs.readFileSync(path.join(root, "app/api/zaf/defi/history/route.ts"), "utf8");
+const defiHistoryRoute = readText(path.join(root, "app/api/zaf/defi/history/route.ts"), "utf8");
 for (const token of ["getDefiSnapshotHistory", "isDefiHistoryConfigured", "no-store"]) {
   if (!defiHistoryRoute.includes(token)) throw new Error("DeFi history API regression: " + token);
 }
 
 
-const observationEngine = fs.readFileSync(path.join(root, "lib/zaf/observation-engine.ts"), "utf8");
+const observationEngine = readText(path.join(root, "lib/zaf/observation-engine.ts"), "utf8");
 for (const token of [
   "ecosystem app directory is reachable",
   "app-directory coverage is incomplete",
@@ -635,7 +636,7 @@ for (const token of [
 }
 
 
-const ecosystemAppObservations = fs.readFileSync(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
+const ecosystemAppObservations = readText(path.join(root, "lib/zaf/ecosystem-app-observations.ts"), "utf8");
 for (const token of [
   "function normalizeTimestamp",
   "value instanceof Date",

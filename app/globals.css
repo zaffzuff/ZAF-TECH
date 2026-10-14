@@ -1978,11 +1978,11 @@
 
   .zaf-mobile-pi-actions .zaf-start-pi-link,
   .zaf-mobile-pi-actions .zaf-pi-signin-button {
-    height: 25px !important;
-    min-height: 25px !important;
+    height: 44px !important;
+    min-height: 44px !important;
     padding: 0 7px !important;
     gap: 4px !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     line-height: 1 !important;
     border-radius: 7px;
   }
@@ -2135,4 +2135,105 @@
     max-width: 168px;
     justify-self: start !important;
   }
+}
+
+/* Keep mobile form text readable and controls comfortably tappable. */
+@media (max-width: 639px) {
+  .zaf-main-shell input,
+  .zaf-main-shell select,
+  .zaf-main-shell textarea { font-size: 16px; min-height: 44px; }
+  .zaf-main-shell button { min-height: 44px; }
+}
+
+/* Preserve readable colors in older Safari and Android WebViews. */
+@supports not (color: oklch(0.5 0 0)) {
+  :root, .dark {
+    --background: #0c0d11;
+    --foreground: #edeef1;
+    --card: #15171b;
+    --card-foreground: #edeef1;
+    --popover: #15171b;
+    --popover-foreground: #edeef1;
+    --primary: #e1bc69;
+    --primary-foreground: #161107;
+    --secondary: #222428;
+    --secondary-foreground: #e6e8eb;
+    --muted: #1d1f23;
+    --muted-foreground: #95989f;
+    --accent: #24262a;
+    --accent-foreground: #e6e8eb;
+    --destructive: #b54a46;
+    --destructive-foreground: #f5eceb;
+    --border: #292b2f;
+    --input: #292b2f;
+    --ring: #e1bc69;
+    --ty-gold: #e1bc69;
+    --ty-gold-soft: #342707;
+    --ty-silver: #c8cad0;
+    --ty-silver-soft: #2c2e31;
+    --ty-bronze: #ffc66e;
+    --ty-bronze-soft: #472c04;
+    --ty-active: #74c196;
+    --ty-active-soft: #0f301f;
+    --ty-beta: #ebbb6e;
+    --ty-beta-soft: #3e2903;
+    --ty-paused: #a1a5ab;
+    --ty-paused-soft: #27292c;
+    --ty-unknown: #8f9299;
+    --ty-unknown-soft: #232427;
+    --ty-verified: #dbca96;
+    --ty-verified-soft: #322b13;
+    --ty-demo: #86aac4;
+    --ty-demo-soft: #152b3b;
+    --ty-estimated: #b99bde;
+    --ty-estimated-soft: #31253f;
+    --ty-unavailable: #a2a5aa;
+    --ty-unavailable-soft: #1e1f22;
+  }
+  .light {
+    --background: #f7f8fb;
+    --foreground: #0f1217;
+    --card: #ffffff;
+    --card-foreground: #0f1217;
+    --popover: #ffffff;
+    --popover-foreground: #0f1217;
+    --primary: #9e711e;
+    --primary-foreground: #fffbf4;
+    --secondary: #e9ebef;
+    --secondary-foreground: #181b20;
+    --muted: #e9ebef;
+    --muted-foreground: #55585f;
+    --accent: #e9ebef;
+    --accent-foreground: #181b20;
+    --destructive: #cf4040;
+    --destructive-foreground: #fff9f8;
+    --border: #d5d7dd;
+    --input: #d5d7dd;
+    --ring: #9e711e;
+    --ty-gold: #9e711e;
+    --ty-gold-soft: #f7eace;
+    --ty-silver: #4b4d52;
+    --ty-silver-soft: #dfe1e5;
+    --ty-bronze: #e7a554;
+    --ty-bronze-soft: #ffe6c4;
+    --ty-active: #008951;
+    --ty-active-soft: #cdf3db;
+    --ty-beta: #b07a00;
+    --ty-beta-soft: #fee8c6;
+    --ty-paused: #606369;
+    --ty-paused-soft: #e2e4e9;
+    --ty-unknown: #5b5e63;
+    --ty-unknown-soft: #e2e4e9;
+    --ty-verified: #8b7940;
+    --ty-verified-soft: #f5ebce;
+    --ty-demo: #42789c;
+    --ty-demo-soft: #d1ecff;
+    --ty-estimated: #8b66b3;
+    --ty-estimated-soft: #f1e5ff;
+    --ty-unavailable: #616368;
+    --ty-unavailable-soft: #e2e4e9;
+  }
+  body { background-color: var(--background); color: var(--foreground); }
+  .bg-card { background-color: var(--card); }
+  .text-muted-foreground { color: var(--muted-foreground); }
 }

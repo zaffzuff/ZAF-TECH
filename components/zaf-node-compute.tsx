@@ -1,5 +1,7 @@
 "use client";
 
+import { requestJson } from "@/lib/zaf/client-request";
+import { isMobileConnectorUnavailable, mobileConnectorMessage } from "@/lib/zaf/local-connector-client";
 import { useEffect, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import type { ZafSnapshot } from "@/lib/zaf/types";
@@ -61,10 +63,12 @@ function Compute({locale}:{locale:Locale}){
 
 function Infrastructure({locale}:{locale:Locale}){
  const tr=locale==="tr"; const es=locale==="es"; const zh=locale==="zh"; const it=locale==="it"; const fr=locale==="fr"; const de=locale==="de"; const pt=locale==="pt"; const ru=locale==="ru";const[health,setHealth]=useState<Health|null>(null);const[r,setR]=useState<Resources|null>(null);const[online,setOnline]=useState<boolean|null>(null);
- useEffect(()=>{const load=async()=>{try{const[h,x]=await Promise.all([fetch("http://127.0.0.1:39100/health",{cache:"no-store"}),fetch("http://127.0.0.1:39100/resources",{cache:"no-store"})]);if(!h.ok)throw new Error();setHealth(await h.json());setR(x.ok?await x.json():null);setOnline(true);}catch{setHealth(null);setR(null);setOnline(false);}};void load();const id=window.setInterval(()=>void load(),15000);return()=>window.clearInterval(id);},[]);
+ const [mobile,setMobile]=useState(false);
+ useEffect(()=>{if(isMobileConnectorUnavailable()){setMobile(true);return;}let stopped=false;const load=async()=>{try{const[h,x]=await Promise.all([requestJson<Health>("http://127.0.0.1:39100/health",{cache:"no-store"},5000),requestJson<Resources>("http://127.0.0.1:39100/resources",{cache:"no-store"},5000)]);if(stopped)return;if(!h.response.ok)throw new Error();setHealth(h.body);setR(x.response.ok?x.body:null);setOnline(true);}catch{if(!stopped){setHealth(null);setR(null);setOnline(false);}}};void load();const id=window.setInterval(()=>void load(),15000);return()=>{stopped=true;window.clearInterval(id);};},[]);
  const dist=r?.wsl?.distributions?.filter(d=>d.state==="running").length??0;
  return <section className="mt-7"><div className="mb-3"><h2 className="text-sm font-semibold text-foreground">{fr?"Infrastructure":it?"Infrastruttura":zh?"基础设施":es?spanishCopy("Infraestructura"):de?"Infrastruktur":pt?"Infraestrutura":ru?"Инфраструктура":"Infrastructure"}</h2><p className="text-[11px] text-muted-foreground">{tr?"Yerel Connector, Docker ve WSL kaynak gözlemleri.":it?"Osservazioni delle risorse del Connector locale, Docker e WSL.":fr?"Observations des ressources du Connector local, de Docker et de WSL.":zh?"本地 Connector、Docker 和 WSL 资源观测。":es?spanishCopy("Observaciones De Recursos Del Connector Local, Docker Y WSL."):de?"Beobachtungen der Ressourcen von lokalem Connector, Docker und WSL.":pt?"Observações de recursos do Connector local, Docker e WSL.":ru?"Наблюдения ресурсов локального Connector, Docker и WSL.":"Local Connector, Docker, and WSL resource observations."}</p></div>
  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+ {mobile?<p className="col-span-full text-xs text-muted-foreground">{mobileConnectorMessage[locale]}</p>:null}
  <Card title="Connector" value={online?(tr?"Bağlı":it?"Connesso":fr?"Connecté":zh?"已连接":es?spanishCopy("Conectado"):de?"Verbunden":pt?"Conectado":ru?"Подключён":"Connected"):(tr?"Çevrimdışı":it?"Offline":fr?"Hors ligne":zh?"离线":es?spanishCopy("Fuera De Línea"):de?"Offline":pt?"Offline":ru?"Офлайн":"Offline")} detail={health?.version?(tr?"Sürüm ":it?"Versione ":fr?"Version ":zh?"版本 ":es?spanishCopy("Versión "):de?"Version ":pt?"Versão ":ru?"Версия ":"Version ")+health.version:"127.0.0.1:39100"}/>
  <Card title="CPU" value={pct(r?.host?.cpuPercent)} detail={tr?"Host CPU Kullanımı":it?"Utilizzo CPU Host":fr?"Utilisation du CPU hôte":zh?"主机 CPU 使用率":es?spanishCopy("Uso De CPU Del Host"):de?"CPU-Auslastung des Hosts":pt?"Uso de CPU do Host":ru?"Использование CPU хоста":"Host CPU usage"}/>
  <Card title={tr?"Bellek":it?"Memoria":fr?"Mémoire":zh?"内存":es?spanishCopy("Memoria"):de?"Arbeitsspeicher":pt?"Memória":ru?"Память":"Memory"} value={pct(r?.host?.memory?.usedPercent)} detail={r?.host?.memory?bytes(r.host.memory.usedBytes)+" / "+bytes(r.host.memory.totalBytes):"—"}/>

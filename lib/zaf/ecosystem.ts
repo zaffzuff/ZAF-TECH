@@ -1,4 +1,7 @@
-import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
+import { getLastSuccessfulOfficialNews, saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
+import { readOfficialNews } from "./official-news";
+import type { EcosystemNewsItem, OfficialNewsMetadata } from "./official-news-parser";
+export type { EcosystemNewsItem } from "./official-news-parser";
 
 export const ECOSYSTEM_SOURCES = {
   ecosystemInterface: "https://ecosystem.pinet.com/",
@@ -14,12 +17,6 @@ export type EcosystemSourceStatus = {
   status: "available" | "unavailable";
   checkedAt: string;
   detail: string;
-};
-
-export type EcosystemNewsItem = {
-  title: string;
-  url: string;
-  publishedAt: string | null;
 };
 
 export type OfficialEcosystemSignal = {
@@ -55,6 +52,7 @@ export type EcosystemSnapshot = {
     note: string;
   };
   news: EcosystemNewsItem[];
+  newsMetadata: OfficialNewsMetadata;
   officialSignals: OfficialEcosystemSignal[];
   signals: EcosystemSignal[];
   defi: {
@@ -166,28 +164,9 @@ async function readEcosystemApps() {
   }
 }
 
-async function readOfficialNews() {
-  try {
-    const html = await fetchText(ECOSYSTEM_SOURCES.officialBlog);
-    const items = new Map<string, EcosystemNewsItem>();
-    const pattern = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-    let match: RegExpExecArray | null;
-    while ((match = pattern.exec(html)) && items.size < 20) {
-      const url = absoluteUrl(match[1]);
-      const title = stripHtml(match[2]);
-      if (!url.includes("minepi.com/blog/") || title.length < 8 || title.length > 180) continue;
-      if (/^(blog|read more|previous post|next post)$/i.test(title)) continue;
-      items.set(url, { title, url, publishedAt: null });
-    }
-    return [...items.values()].slice(0, 8);
-  } catch {
-    return [];
-  }
-}
-
 export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
   const generatedAt = new Date().toISOString();
-  const [ecosystemInterface, appData, news] = await Promise.all([
+  const [ecosystemInterface, appData, newsResult, developers] = await Promise.all([
     inspectSource(
       "ecosystemInterface",
       "Pi Ecosystem Interface",
@@ -195,8 +174,11 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
       "Official curated Mainnet/Testnet ecosystem directory.",
     ),
     readEcosystemApps(),
-    readOfficialNews(),
+    readOfficialNews(getLastSuccessfulOfficialNews),
+    inspectSource("officialDevelopers", "Pi Developer Documentation", ECOSYSTEM_SOURCES.officialDevelopers, "Official developer documentation source."),
   ]);
+  const news = newsResult.items;
+  const newsMetadata = newsResult.metadata;
 
   const defiNews = news.filter((item) => /launchpad|dex|amm|liquidity|token/i.test(item.title));
   const launchpadUpdate = defiNews.find((item) => /launchpad/i.test(item.title)) ?? null;
@@ -222,18 +204,13 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
       id: "officialBlog",
       label: "Pi Official Blog",
       url: ECOSYSTEM_SOURCES.officialBlog,
-      status: news.length ? "available" : "unavailable",
-      checkedAt: generatedAt,
-      detail: news.length ? "Official Pi publications observed." : "No publication records were exposed by the source response.",
+      status: newsMetadata.status,
+      checkedAt: newsMetadata.checkedAt,
+      detail: newsMetadata.status === "available"
+        ? "Dated official Pi publications observed."
+        : newsMetadata.stale ? "Official news could not be refreshed; showing the last successful observation." : "No dated official publication could be read.",
     },
-    {
-      id: "officialDevelopers",
-      label: "Pi Developer Documentation",
-      url: ECOSYSTEM_SOURCES.officialDevelopers,
-      status: "available",
-      checkedAt: generatedAt,
-      detail: "Official developer documentation source.",
-    },
+    developers,
   ];
 
   const officialSignals: OfficialEcosystemSignal[] = [
@@ -350,7 +327,7 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
       detailTr: isDefi
         ? "Gözlemlenebilir DeFi ekosistem katmanıyla ilgili resmi Pi yayını."
         : "Herkese açık resmi blog kaynağında resmi Pi yayını gözlemlendi.",
-      detectedAt: generatedAt,
+      detectedAt: newsMetadata.lastSuccessfulAt ?? generatedAt,
       sourceUrl: item.url,
     });
   }
@@ -394,8 +371,8 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
     });
   }
 
-  const snapshot = { generatedAt, sources, apps: appData, news, officialSignals, signals, defi };
-  void saveEcosystemSnapshot({
+  const snapshot = { generatedAt, sources, apps: appData, news, newsMetadata, officialSignals, signals, defi };
+  await saveEcosystemSnapshot({
     generatedAt,
     sourceAvailable: appData.sourceAvailable,
     observedAppCount: appData.totalCount,

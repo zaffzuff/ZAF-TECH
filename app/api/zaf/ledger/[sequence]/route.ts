@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 
 const BASE = "https://api.mainnet.minepi.com";
 export const dynamic = "force-dynamic";
@@ -7,7 +8,9 @@ function validSequence(value: string) {
   return /^\d{1,12}$/.test(value) && Number(value) > 0;
 }
 
-export async function GET(_: Request, context: { params: Promise<{ sequence: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ sequence: string }> }) {
+  const rateLimit = await enforceRateLimit(request, "ledger", { limit: 60, windowMs: 60_000 });
+  if (rateLimit) return rateLimit;
   const { sequence } = await context.params;
   if (!validSequence(sequence)) return NextResponse.json({ error: "Invalid ledger sequence." }, { status: 400 });
 
@@ -28,7 +31,7 @@ export async function GET(_: Request, context: { params: Promise<{ sequence: str
       hash: raw.hash ?? null,
       closedAt: raw.closed_at ?? null,
       protocolVersion: raw.protocol_version ?? null,
-      transactionCount: raw.transaction_count ?? null,
+      transactionCount: raw.transaction_count ?? (raw.successful_transaction_count != null && raw.failed_transaction_count != null ? Number(raw.successful_transaction_count) + Number(raw.failed_transaction_count) : null),
       operationCount: raw.operation_count ?? null,
       successfulTransactionCount: raw.successful_transaction_count ?? null,
       failedTransactionCount: raw.failed_transaction_count ?? null,

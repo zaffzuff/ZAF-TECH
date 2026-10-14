@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { requestJson } from "@/lib/zaf/client-request";
 import {
   getSafePiSignInReturnPath,
   PI_SIGNIN_RETURN_TO_KEY,
@@ -24,6 +25,8 @@ export default function PiSignInCallbackPage() {
       const accessToken = fragment.get("access_token");
       const oauthError = fragment.get("error");
       const returnedState = fragment.get("state");
+      // Clear credentials before storage access: restricted browsers may throw.
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
       let expectedState: string | null = null;
       let returnTo: string | null = null;
@@ -37,9 +40,6 @@ export default function PiSignInCallbackPage() {
         setMessage("Sign-in security storage is unavailable. Try again in the same browser. / Güvenlik depolaması kullanılamıyor. Aynı tarayıcıda tekrar dene.");
         return;
       }
-
-      // Remove the bearer token from the address bar before making any request.
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
       if (!expectedState || !returnedState || returnedState !== expectedState) {
         setFailed(true);
@@ -64,14 +64,13 @@ export default function PiSignInCallbackPage() {
         return;
       }
 
-      const response = await fetch("/api/zaf/pi/auth", {
+      const { response, body } = await requestJson<{ user?: { username?: string } }>("/api/zaf/pi/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessToken }),
         cache: "no-store",
         credentials: "same-origin",
       });
-      const body = await response.json().catch(() => null);
       const username = typeof body?.user?.username === "string" ? body.user.username.trim() : "";
 
       if (!response.ok || !username) {

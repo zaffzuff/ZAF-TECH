@@ -8,6 +8,8 @@
     "start": "next start",
     "node:connector": "node tools/zaf-node-connector.mjs",
     "regression": "node tools/zaf-regression.mjs",
+    "test:news": "node --test tools/zaf-news.test.mjs",
+    "test:readiness": "node --test tools/zaf-readiness.test.mjs",
     "smoke": "node tools/zaf-smoke.mjs"
   },
   "dependencies": {

@@ -1,9 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { servicePolicy } from "@/lib/zaf/service-policy";
+import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
+import { requestJson } from "@/lib/zaf/client-request";
+import type { UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type React from "react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 import type { RadarObservation } from "@/lib/zaf/radar";
 import type { Locale } from "@/lib/zaf/i18n";
@@ -44,6 +48,8 @@ type LedgerObservation = {
 };
 type EcosystemPayload = {
   generatedAt: string;
+  news?: import("@/lib/zaf/official-news-parser").EcosystemNewsItem[];
+  newsMetadata?: import("@/lib/zaf/official-news-parser").OfficialNewsMetadata;
   apps: { sourceAvailable: boolean; totalCount: number | null; items: AppItem[]; note: string };
   sources: Array<{ label: string; status: string; url: string; detail: string }>;
   officialSignals?: Array<{ title: string; value: string; observedAt: string; sourceUrl: string }>;
@@ -190,19 +196,20 @@ function searchPlaceholder(locale: Locale) {
 function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void; mobile?: boolean; compact?: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [searchError, setSearchError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   async function submit() {
     const q = query.trim();
     if (q.length < 2) { setResults([]); return; }
-    setLoading(true);
+    setLoading(true); setSearchError("");
     try {
-      const response = await fetch("/api/zaf/search?q=" + encodeURIComponent(q), { cache: "no-store" });
-      const body = await response.json();
+      const {response,body}=await requestJson<{results?:SearchResult[]}>("/api/zaf/search?q="+encodeURIComponent(q),{cache:"no-store"});
+      if(!response.ok) throw new Error("Search failed");
       setResults(Array.isArray(body?.results) ? body.results : []);
     } catch {
-      setResults([]);
+      setResults([]); setSearchError(tr("Request failed","İstek başarısız"));
     } finally {
       setLoading(false);
     }
@@ -212,7 +219,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
     results.length ? (
       <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
         {results.slice(0, 8).map(result => (
-          <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
+          <button key={result.type + result.href + result.title} type="button" onClick={() => { setQuery(""); setResults([]); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">{result.title}</span>
               <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
@@ -223,7 +230,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
       </div>
     ) : (
       <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">
-        {tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
+        {searchError || tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
       </div>
     )
   ) : null;
@@ -338,9 +345,9 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
       <div className="rounded-xl border border-border bg-card p-3">
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <div className="flex min-w-0 flex-1 items-center rounded-lg border border-border bg-background px-3">
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr("Search apps or URLs…", "Uygulama veya URL ara…")} className="w-full bg-transparent py-2 text-xs text-foreground outline-none" />
+            <input aria-label={tr("Search apps or URLs…", "Uygulama veya URL ara…")} value={query} onChange={e => setQuery(e.target.value)} placeholder={tr("Search apps or URLs…", "Uygulama veya URL ara…")} className="w-full bg-transparent py-2 text-xs text-foreground outline-none" />
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value as "name" | "category")} className="rounded-lg border border-border bg-background px-3 py-2 text-[10px] text-foreground outline-none">
+          <select aria-label={tr("Sort applications", "Uygulamaları sırala")} value={sort} onChange={e => setSort(e.target.value as "name" | "category")} className="rounded-lg border border-border bg-background px-3 py-2 text-[10px] text-foreground outline-none">
             <option value="name">{tr("Sort: Name", "Sırala: Ad")}</option>
             <option value="category">{tr("Sort: Category", "Sırala: Kategori")}</option>
           </select>
@@ -394,6 +401,7 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
         ))}
       </div>
       {!filtered.length ? <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[11px] text-muted-foreground">{apps.length ? tr("No applications match the current filters.", "Mevcut filtrelerle eşleşen uygulama yok.") : note}</div> : null}
+      {!apps.length ? <div className="mt-3"><External href="https://ecosystem.pinet.com/">{tr("Pi Ecosystem", "Pi Ekosistemi")} ↗</External></div> : null}
       <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[10px] leading-relaxed text-muted-foreground">
         {tr("Category is a ZAF Tech classification based on the public app name/URL signal, not an official Pi category. Activity labels use persisted public ecosystem observations when available. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF Tech sınıflandırmasıdır; resmi Pi kategorisi değildir. Aktivite etiketleri, mevcut olduğunda kayıtlı herkese açık ekosistem gözlemlerini kullanır. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulanana kadar doğrulanmamış olarak kalır.")}
       </div>
@@ -513,28 +521,12 @@ export function ZafTechApp() {
   const [ledgerObservation, setLedgerObservation] = useState<LedgerObservation | null>(null);
   const [deepLinkReady, setDeepLinkReady] = useState(false);
   const router = useRouter();
+  const loadingObservation = useRef(false);
+  const ledgerRequest = useRef<AbortController | null>(null);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/zaf/ecosystem/changes", { cache: "no-store" })
-      .then(response => response.ok ? response.json() : null)
-      .then(value => { if (active) setRadarChanges(value); })
-      .catch(() => { if (active) setRadarChanges(null); });
-    return () => { active = false; };
-  }, [refreshNonce]);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/zaf/radar", { cache: "no-store" })
-      .then(response => response.ok ? response.json() as Promise<RadarObservation> : null)
-      .then(value => { if (active) setRadarData(value); })
-      .catch(() => { if (active) setRadarData(null); });
-    return () => { active = false; };
-  }, [refreshNonce]);
-
-  useEffect(() => {
+  const applyLocation = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
     const rawSection = params.get("section");
     const requestedSubtab = params.get("subtab") ?? "";
@@ -542,7 +534,7 @@ export function ZafTechApp() {
       apps: { section: "discover" },
       testnet: { section: "network", subtab: "Testnet Assets" },
       defi: { section: "network" },
-      node: { section: "network" },
+      node: { section: "network", subtab: "Node" },
       observatory: { section: "intelligence" },
     };
     const mapped = rawSection && legacyMap[rawSection] ? legacyMap[rawSection] : null;
@@ -556,16 +548,28 @@ export function ZafTechApp() {
       setSection(requestedSection);
       const allowed = ZAF_SECTION_TABS[requestedSection];
       setSubtab(allowed.includes(normalizedSubtab) ? normalizedSubtab : (allowed[0] ?? ""));
+    } else {
+      setSection("overview");
+      setSubtab("Pulse");
     }
+    ledgerRequest.current?.abort();
+    setLedgerObservation(null);
     const requestedLedger = params.get("ledger");
     if (requestedLedger && /^\d{1,12}$/.test(requestedLedger)) {
-      void fetch("/api/zaf/ledger/" + requestedLedger, { cache: "no-store" })
-        .then(response => response.ok ? response.json() as Promise<LedgerObservation> : null)
-        .then(value => setLedgerObservation(value))
-        .catch(() => setLedgerObservation(null));
+      const controller = new AbortController();
+      ledgerRequest.current = controller;
+      void requestJson<LedgerObservation>("/api/zaf/ledger/" + requestedLedger, { cache: "no-store", signal: controller.signal })
+        .then(({ response, body }) => { if (!controller.signal.aborted) setLedgerObservation(response.ok ? body : null); })
+        .catch(() => { if (!controller.signal.aborted) setLedgerObservation(null); });
     }
     setDeepLinkReady(true);
   }, []);
+
+  useEffect(() => {
+    applyLocation();
+    window.addEventListener("popstate", applyLocation);
+    return () => { window.removeEventListener("popstate", applyLocation); ledgerRequest.current?.abort(); };
+  }, [applyLocation]);
 
   useEffect(() => {
     if (!deepLinkReady) return;
@@ -577,13 +581,15 @@ export function ZafTechApp() {
 
   useEffect(() => {
     const key = "zaf-tech-theme-v1";
-    const saved = window.localStorage.getItem(key);
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(key); } catch { /* System theme works without storage. */ }
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     setTheme(saved === "light" || saved === "dark" ? saved : media.matches ? "dark" : "light");
     setThemeReady(true);
 
     const syncSystemTheme = (event: MediaQueryListEvent) => {
-      const preference = window.localStorage.getItem(key);
+      let preference: string | null = null;
+      try { preference = window.localStorage.getItem(key); } catch { /* Follow system theme. */ }
       if (preference !== "light" && preference !== "dark") {
         setTheme(event.matches ? "dark" : "light");
       }
@@ -599,7 +605,7 @@ export function ZafTechApp() {
 
   const toggleTheme = useCallback(() => {
     const nextTheme = theme === "light" ? "dark" : "light";
-    window.localStorage.setItem("zaf-tech-theme-v1", nextTheme);
+    try { window.localStorage.setItem("zaf-tech-theme-v1", nextTheme); } catch { /* Apply to this page view. */ }
     setTheme(nextTheme);
   }, [theme]);
   useEffect(() => {
@@ -607,14 +613,17 @@ export function ZafTechApp() {
   }, [locale]);
 
   const load = useCallback(async (force = false) => {
+    if (loadingObservation.current) return;
+    loadingObservation.current = true;
     setRefreshing(true);
     try {
-      const response = await fetch(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" });
+      const { response, body: observation } = await requestJson<UnifiedObservation & { radar: RadarObservation | null; ecosystemChanges: EcosystemChangePayload | null }>(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" }, 30_000);
       if (!response.ok) throw new Error("ZAF Tech observation request failed");
-      const observation = await response.json();
       if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
       setSnapshot(observation.network ?? null);
       setEcosystem(observation.ecosystem ?? null);
+      setRadarData(observation.radar ?? null);
+      setRadarChanges(observation.ecosystemChanges ?? null);
       setObservationMeta({
         generatedAt: observation.generatedAt ?? "",
         freshness: observation.freshness ?? { state: "unknown", ageSeconds: 0 },
@@ -626,6 +635,7 @@ export function ZafTechApp() {
     } catch {
       setLoadError("DATA_REQUEST_FAILED");
     } finally {
+      loadingObservation.current = false;
       setLoading(false);
       setRefreshing(false);
     }
@@ -639,7 +649,14 @@ export function ZafTechApp() {
 
   const apps = ecosystem?.apps.items ?? [];
   const sourceOnline = ecosystem?.apps.sourceAvailable ?? false;
-  const navigateResult = useCallback((href: string) => { if (href.startsWith("/")) router.push(href); else window.open(href, "_blank", "noopener,noreferrer"); }, [router]);
+  const navigateResult = useCallback((href: string) => {
+    if (href.startsWith("/") && !href.startsWith("//")) {
+      if (new URL(href, window.location.origin).pathname === "/") {
+        window.history.pushState(null, "", href);
+        applyLocation();
+      } else router.push(href);
+    } else if (/^https?:\/\//i.test(href)) window.open(href, "_blank", "noopener,noreferrer");
+  }, [router, applyLocation]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -887,6 +904,7 @@ export function ZafTechApp() {
               <Card title={tr("Latest Ledger", "Son Ledger")} value={snapshot?.latestLedger?.sequence ?? "—"} detail={snapshot?.latestLedger?.closedAt ? age(snapshot.latestLedger.closedAt, locale) : "—"} />
               <Card title={tr("Data Status", "Veri Durumu")} value={displayStatus(snapshot?.error ? "error" : snapshot?.latestLedger ? "available" : "unavailable", locale)} detail={snapshot?.error ?? tr("Pi Mainnet Horizon response observed.", "Pi Mainnet Horizon yanıtı gözlemlendi.")} />
             </div>
+            <ZafProtocolObservation data={snapshot} locale={locale} />
             {ledgerObservation ? (
               <div className="mt-3 rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center justify-between gap-2">
@@ -987,6 +1005,7 @@ export function ZafTechApp() {
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <span>ZAF Tech · Pi Ecosystem Observatory</span>
+            <span>{servicePolicy[locale].label}</span>
             <span>{tr("Independent community-developed technology project", "Bağımsız topluluk geliştirimi teknoloji projesi")}</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-3">
@@ -1178,16 +1197,22 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
   const [timeline, setTimeline] = useState<ObservationTimelinePayload | null>(null);
   const [historyRange, setHistoryRange] = useState<HistoryRange>("24h");
   const [loadingStats, setLoadingStats] = useState(true);
+  const [requestFailed, setRequestFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    setRequestFailed(false);
+    const read = <T,>(url: string) => requestJson<T>(url, { cache: "no-store", signal: controller.signal }, 20_000)
+      .then(({ response, body }) => { if (response.ok) return body; if (active) setRequestFailed(true); return null; })
+      .catch(() => { if (active) setRequestFailed(true); return null; });
     Promise.all([
-      fetch("/api/zaf/ecosystem/statistics", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/ecosystem/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/ecosystem/trends", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/history?limit=" + historyLimit(historyRange), { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/timeline", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
+      read<EcosystemStatisticsPayload>("/api/zaf/ecosystem/statistics"),
+      read<EcosystemChangePayload>("/api/zaf/ecosystem/changes"),
+      read<EcosystemTrendPayload>("/api/zaf/ecosystem/trends"),
+      read<ObservationHistoryPayload>("/api/zaf/observations/history?limit=" + historyLimit(historyRange)),
+      read<ObservationChangePayload>("/api/zaf/observations/changes"),
+      read<ObservationTimelinePayload>("/api/zaf/observations/timeline"),
     ])
       .then(([statistics, changeData, trendData, historyData, observationChangeData, timelineData]) => {
         if (!active) return;
@@ -1204,7 +1229,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
         setChanges(null);
       })
       .finally(() => { if (active) setLoadingStats(false); });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [refreshNonce, historyRange]);
 
   if (loadingStats) return <div className="py-10 text-center text-xs text-muted-foreground">{tr("Loading Statistics…", "İstatistikler Yükleniyor…")}</div>;
@@ -1213,6 +1238,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
     <section className="mt-5 sm:mt-7">
       <div className="mb-3">
         <h2 className="text-sm font-semibold text-foreground">{tr("Activity Signals", "Aktivite Sinyalleri")}</h2>
+        {requestFailed ? <p role="status" className="mt-2 text-xs text-muted-foreground">{tr("Request failed", "İstek başarısız")}</p> : null}
         <p className="text-[11px] text-muted-foreground">{tr("Current observations, stored snapshots and detected changes from public ecosystem sources.", "Herkese açık ekosistem kaynaklarından mevcut gözlemler, kayıtlı snapshot'lar ve tespit edilen değişiklikler.")}</p>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
