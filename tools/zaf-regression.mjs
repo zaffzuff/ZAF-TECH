@@ -147,8 +147,33 @@ if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
   throw new Error("Pi username-only authentication must not require payment credentials or scope");
 }
 const piSignIn = fs.readFileSync(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
-for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Promise.resolve(pi.init({ version: \"2.0\", sandbox }))", "await withTimeout(\n        initializePiSdk(),", "Pi SDK initialization timed out.", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE", "pi_sandbox", "new URLSearchParams(window.location.search)", "function withTimeout", "sdk-init", "12_000", "45_000"]) {
+for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Promise.resolve().then(() => pi.init({ version: \"2.0\", sandbox }))", "await withTimeout(\n        initializePiSdk(),", "Pi SDK initialization timed out.", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE", "pi_sandbox", "new URLSearchParams(window.location.search)", "function withTimeout", "sdk-init", "12_000", "45_000"]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Sign-In UI regression: " + token);
+}
+
+const sdkLoaderStart = piSignIn.indexOf("function loadPiSdk()");
+const sdkLoaderEnd = piSignIn.indexOf("async function initializePiSdk()", sdkLoaderStart);
+const sdkLoader = sdkLoaderStart >= 0 && sdkLoaderEnd > sdkLoaderStart
+  ? piSignIn.slice(sdkLoaderStart, sdkLoaderEnd)
+  : "";
+for (const token of [
+  "Pi SDK loading timed out.",
+  "script.remove();",
+  "if (sdkLoadPromise === pending) sdkLoadPromise = null;",
+]) {
+  if (!sdkLoader.includes(token)) throw new Error("Pi SDK load retry recovery regression: " + token);
+}
+const sdkInitializerStart = piSignIn.indexOf("async function initializePiSdk()");
+const sdkInitializerEnd = piSignIn.indexOf("export function ZafPiSignIn", sdkInitializerStart);
+const sdkInitializer = sdkInitializerStart >= 0 && sdkInitializerEnd > sdkInitializerStart
+  ? piSignIn.slice(sdkInitializerStart, sdkInitializerEnd)
+  : "";
+for (const token of [
+  "withTimeout(",
+  "initOperation",
+  "if (sdkInitializationPromise === pending) sdkInitializationPromise = null;",
+]) {
+  if (!sdkInitializer.includes(token)) throw new Error("Pi SDK init retry recovery regression: " + token);
 }
 
 for (const token of [
