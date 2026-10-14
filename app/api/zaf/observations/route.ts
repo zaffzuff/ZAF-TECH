@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
+import { getRadarObservation } from "@/lib/zaf/radar";
+import { getEcosystemChanges } from "@/lib/zaf/ecosystem-changes";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -11,7 +13,15 @@ export async function GET(request: NextRequest) {
 
   const force = request.nextUrl.searchParams.get("force") === "1";
   const observation = await getUnifiedObservation({ force });
-  return NextResponse.json(observation, {
+  const [radar, changes] = await Promise.allSettled([
+    getRadarObservation(observation),
+    getEcosystemChanges(observation.ecosystem),
+  ]);
+  return NextResponse.json({
+    ...observation,
+    radar: radar.status === "fulfilled" ? radar.value : null,
+    ecosystemChanges: changes.status === "fulfilled" ? changes.value : null,
+  }, {
     headers: { "Cache-Control": "no-store, max-age=0" },
   });
 }

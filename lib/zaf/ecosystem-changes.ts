@@ -1,5 +1,6 @@
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import { getEcosystemSnapshotHistory, isEcosystemHistoryConfigured } from "@/lib/zaf/ecosystem-history";
+import type { EcosystemSnapshot } from "./ecosystem";
 
 type StoredPayload = {
   apps?: { totalCount?: number | null };
@@ -46,8 +47,8 @@ function payloadOf(value: unknown): StoredPayload {
   return (value && typeof value === "object" ? value : {}) as StoredPayload;
 }
 
-export async function getEcosystemChanges(): Promise<EcosystemChanges> {
-  const current = (await getUnifiedObservation()).ecosystem;
+export async function getEcosystemChanges(observed?: EcosystemSnapshot | null): Promise<EcosystemChanges> {
+  const current = observed === undefined ? (await getUnifiedObservation()).ecosystem : observed;
   const history = await getEcosystemSnapshotHistory(2);
 
   if (!current || !history.length) {
@@ -60,7 +61,11 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
     };
   }
 
-  const previous = payloadOf(history[0].payload);
+  // The current snapshot may already have been saved by the collector. Compare
+  // against strictly older evidence instead of comparing the snapshot to itself.
+  const baseline = history.find(record => Date.parse(String(record.generatedAt)) < Date.parse(current.generatedAt));
+  if (!baseline) return { generatedAt: current.generatedAt, configured: isEcosystemHistoryConfigured(), comparedAt: null, hasBaseline: false, changes: [] };
+  const previous = payloadOf(baseline.payload);
   const changes: EcosystemChange[] = [];
 
   const previousApps = previous.apps?.totalCount ?? null;
@@ -157,7 +162,7 @@ export async function getEcosystemChanges(): Promise<EcosystemChanges> {
   return {
     generatedAt: current.generatedAt,
     configured: isEcosystemHistoryConfigured(),
-    comparedAt: history[0].generatedAt,
+    comparedAt: baseline.generatedAt,
     hasBaseline: true,
     changes: changes.slice(0, 50),
   };

@@ -1,5 +1,5 @@
 import { getRollingObservationBaseline } from "@/lib/zaf/observation-history";
-import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
+import { getUnifiedObservation, type UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 
 export type RadarSignalState = "rising" | "falling" | "stable" | "limited";
@@ -81,8 +81,8 @@ function currentConfidence(label: string, available: boolean, evidence: number, 
   return { score: bounded, level: level(bounded), reasons };
 }
 
-export async function getRadarObservation(): Promise<RadarObservation> {
-  const observation = await getUnifiedObservation();
+export async function getRadarObservation(observed?: UnifiedObservation): Promise<RadarObservation> {
+  const observation = observed ?? await getUnifiedObservation();
   const baseline = await getRollingObservationBaseline(observation.generatedAt, 30, 300, 3);
 
   const current = observation.network;

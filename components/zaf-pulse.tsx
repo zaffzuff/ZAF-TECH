@@ -52,6 +52,7 @@ function activityLabel(value: string, locale: Locale) {
     falling: ["Falling", "Düşüyor"],
     stable: ["Stable", "Sabit"],
     "insufficient-data": ["Insufficient Data", "Yetersiz Veri"],
+    mixed: ["Mixed", "Karışık"],
   };
   const pair = labels[value];
   return pair ? tx(locale, pair[0], pair[1]) : value;
@@ -139,7 +140,10 @@ export function ZafPulse({
   const total = radar?.sourceCoverage.total ?? 0;
   const available = radar?.sourceCoverage.available ?? 0;
   const coverage = total ? Math.round((available / total) * 100) : 0;
-  const activity = snapshot?.intelligence.activityState ?? "insufficient-data";
+  const paceStates = (radar?.signals ?? []).filter(signal => ["transaction-pace", "operation-pace"].includes(signal.id) && signal.changePercent != null).map(signal => signal.state);
+  const activity = paceStates.length === 2
+    ? paceStates[0] === paceStates[1] ? paceStates[0] : "mixed"
+    : snapshot?.intelligence.activityState ?? "insufficient-data";
   const activityDisplay = activityLabel(activity, locale);
 
   const movement = (radar?.signals ?? [])

@@ -21,6 +21,7 @@ export type UnifiedObservation = {
 
 const CACHE_TTL_MS = 15000;
 let cached: { expiresAt: number; value: UnifiedObservation } | null = null;
+let pending: Promise<UnifiedObservation> | null = null;
 
 function freshnessFor(generatedAt: string | null): ObservationFreshness {
   if (!generatedAt) return { state: "unknown", ageSeconds: 0, maxAgeSeconds: 60, generatedAt: null };
@@ -103,9 +104,13 @@ async function collect(): Promise<UnifiedObservation> {
 }
 
 export async function getUnifiedObservation(options: { force?: boolean } = {}) {
+  if (pending) return pending;
   const now = Date.now();
   if (!options.force && cached && cached.expiresAt > now) return cached.value;
-  const value = await collect();
-  cached = { value, expiresAt: now + CACHE_TTL_MS };
-  return value;
+  pending = collect();
+  try {
+    const value = await pending;
+    cached = { value, expiresAt: Date.now() + CACHE_TTL_MS };
+    return value;
+  } finally { pending = null; }
 }

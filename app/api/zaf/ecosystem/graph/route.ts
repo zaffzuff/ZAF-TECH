@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEcosystemGraph } from "@/lib/zaf/ecosystem-graph";
+import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
+  const blocked = await enforceRateLimit(request, "ecosystem-graph", { limit: 30, windowMs: 60_000 });
+  if (blocked) return blocked;
   const maxNodes = Number(request.nextUrl.searchParams.get("maxNodes") ?? "120");
   const limit = Number.isFinite(maxNodes) ? maxNodes : 120;
   const network = request.nextUrl.searchParams.get("network")?.trim().toLowerCase();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
+import { toDirectoryApp } from "@/lib/zaf/app-directory";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   for (const app of observation.ecosystem?.apps.items ?? []) {
     if ((app.name + " " + app.url).toLowerCase().includes(needle)) {
-      const slug = app.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "app";
+      const slug = toDirectoryApp(app, observation.generatedAt).slug;
       results.push({ type: "app", title: app.name, detail: app.url, href: "/ecosystem/" + slug });
     }
     if (results.length >= 20) break;
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       type: "ledger",
       title: "Ledger " + latest.sequence,
       detail: latest.hash,
-      href: "/?section=overview&subtab=Network&ledger=" + latest.sequence,
+      href: "/?section=network&subtab=Network&ledger=" + latest.sequence,
     });
   }
 

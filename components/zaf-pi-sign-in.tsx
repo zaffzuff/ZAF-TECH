@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
 import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_VERIFIED_USERNAME_KEY } from "@/lib/zaf/pi/oauth";
@@ -63,7 +64,7 @@ function safePiErrorDetail(error: unknown): string {
   }
 
   return message
-    .replace(/(?:access[_ -]?token|authorization|bearer)\s*[:=]?\s*\S+/gi, "$1 [redacted]")
+    .replace(/(access[_ -]?token|authorization|bearer)\s*[:=]?\s*\S+/gi, "$1 [redacted]")
     .replace(/https?:\/\/[^\s]+/gi, "[address]")
     .replace(/[\r\n\t]+/g, " ")
     .replace(/\s{2,}/g, " ")
@@ -197,7 +198,6 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           console.warn(
             "[ZAF Tech] Pi SDK pre-initialization failed",
             error instanceof Error ? error.name : "UnknownError",
-            safePiErrorDetail(error),
           );
         }
       }
@@ -257,14 +257,13 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       }
 
       phase = "verification";
-      const response = await fetch("/api/zaf/pi/auth", {
+      const { response, body } = await requestJson<{ error?: string; user?: { username?: string } }>("/api/zaf/pi/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessToken: auth.accessToken }),
         cache: "no-store",
         credentials: "same-origin",
       });
-      const body = await response.json().catch(() => null);
 
       if (!response.ok) {
         const serverMessage = typeof body?.error === "string" ? body.error : "";
@@ -287,23 +286,24 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       }
       setMessage(tr("Pi account verified.", "Pi hesabı doğrulandı."));
     } catch (error) {
+      // Ordinary browsers can use Pi OAuth even when the native SDK cannot
+      // initialize there. Native Pi Browser errors stay on the native path.
+      const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
+      if (["sdk-load", "sdk-init"].includes(phase) && !isPiBrowserUserAgent() && oauthClientId) {
+        try { beginPiOAuthSignIn(oauthClientId); return; } catch { phase = "oauth-start"; }
+      }
       // Never log the access token or full API request; only log the phase and
       // error class so a Pi Browser failure can be diagnosed without secrets.
       const errorName = error instanceof Error ? error.name : "UnknownError";
       const errorDetail = safePiErrorDetail(error);
       // Never log access tokens or full URLs. The short message is sanitized.
-      console.error("[ZAF Tech] Pi sign-in failed during " + phase, errorName, errorDetail);
+      console.error("[ZAF Tech] Pi sign-in failed during " + phase, errorName);
       setUser(null);
 
-      if (phase === "authentication" && errorDetail) {
-        const timedOut = /timed out|did not respond/i.test(errorDetail);
+      if (phase === "authentication" && /timed out|did not respond/i.test(errorDetail)) {
         setMessage(tr(
-          timedOut
-            ? "Pi Browser did not respond to the sign-in request. The SDK is now initialized on page load; check for a pending Pi permission prompt and try again."
-            : "Pi Browser authentication failed: " + errorDetail,
-          timedOut
-            ? "Pi Browser giriş isteğine yanıt vermedi. SDK artık sayfa açılırken başlatılıyor; bekleyen Pi izin penceresi olup olmadığını kontrol edip tekrar dene."
-            : "Pi Browser kimlik doğrulaması başarısız: " + errorDetail,
+          "Pi Browser did not respond to the sign-in request. Check for a pending permission prompt and try again.",
+          "Pi Browser giriş isteğine yanıt vermedi. Bekleyen bir izin penceresi olup olmadığını kontrol edip tekrar dene.",
         ));
         return;
       }

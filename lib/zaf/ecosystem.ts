@@ -166,7 +166,7 @@ async function readEcosystemApps() {
 
 export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
   const generatedAt = new Date().toISOString();
-  const [ecosystemInterface, appData, newsResult] = await Promise.all([
+  const [ecosystemInterface, appData, newsResult, developers] = await Promise.all([
     inspectSource(
       "ecosystemInterface",
       "Pi Ecosystem Interface",
@@ -175,6 +175,7 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
     ),
     readEcosystemApps(),
     readOfficialNews(getLastSuccessfulOfficialNews),
+    inspectSource("officialDevelopers", "Pi Developer Documentation", ECOSYSTEM_SOURCES.officialDevelopers, "Official developer documentation source."),
   ]);
   const news = newsResult.items;
   const newsMetadata = newsResult.metadata;
@@ -209,14 +210,7 @@ export async function getEcosystemSnapshot(): Promise<EcosystemSnapshot> {
         ? "Dated official Pi publications observed."
         : newsMetadata.stale ? "Official news could not be refreshed; showing the last successful observation." : "No dated official publication could be read.",
     },
-    {
-      id: "officialDevelopers",
-      label: "Pi Developer Documentation",
-      url: ECOSYSTEM_SOURCES.officialDevelopers,
-      status: "available",
-      checkedAt: generatedAt,
-      detail: "Official developer documentation source.",
-    },
+    developers,
   ];
 
   const officialSignals: OfficialEcosystemSignal[] = [

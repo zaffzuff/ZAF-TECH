@@ -144,7 +144,7 @@ export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trTex
 
     <div className="mt-3 rounded-xl border border-border bg-card p-3">
       <div className="grid gap-2 md:grid-cols-[1.3fr_auto_auto]">
-        <input value={query} onChange={e=>setQuery(e.target.value)} placeholder={tr("Search nodes…","Düğümlerde ara…")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
+        <input aria-label={tr("Search nodes…","Düğümlerde ara…")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={tr("Search nodes…","Düğümlerde ara…")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
         <div className="min-w-0 overflow-x-auto ty-no-scrollbar">
           <div className="flex min-w-max gap-1" aria-label={tr("Network Filter","Ağ Filtresi")}>
             {(["all","mainnet","testnet","unknown"] as const).map(item=><button key={item} type="button" onClick={()=>setScope(item)} className={"rounded-md border px-2.5 py-1.5 text-[10px] font-medium "+(scope===item?"border-foreground bg-foreground text-background":"border-border text-muted-foreground")}>{item==="all"?tr("All Networks","Tüm Ağlar"):scopeLabel(item,locale)}</button>)}

@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { requestJson } from "@/lib/zaf/client-request";
+import type { UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type React from "react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 import type { RadarObservation } from "@/lib/zaf/radar";
 import type { Locale } from "@/lib/zaf/i18n";
@@ -192,19 +194,20 @@ function searchPlaceholder(locale: Locale) {
 function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }: { locale: Locale; tr: (en: string, trText: string) => string; onNavigate: (href: string) => void; mobile?: boolean; compact?: boolean }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [searchError, setSearchError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   async function submit() {
     const q = query.trim();
     if (q.length < 2) { setResults([]); return; }
-    setLoading(true);
+    setLoading(true); setSearchError("");
     try {
-      const response = await fetch("/api/zaf/search?q=" + encodeURIComponent(q), { cache: "no-store" });
-      const body = await response.json();
+      const {response,body}=await requestJson<{results?:SearchResult[]}>("/api/zaf/search?q="+encodeURIComponent(q),{cache:"no-store"});
+      if(!response.ok) throw new Error("Search failed");
       setResults(Array.isArray(body?.results) ? body.results : []);
     } catch {
-      setResults([]);
+      setResults([]); setSearchError(tr("Request failed","İstek başarısız"));
     } finally {
       setLoading(false);
     }
@@ -214,7 +217,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
     results.length ? (
       <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
         {results.slice(0, 8).map(result => (
-          <button key={result.type + result.href + result.title} type="button" onClick={() => onNavigate(result.href)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
+          <button key={result.type + result.href + result.title} type="button" onClick={() => { setQuery(""); setResults([]); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">{result.title}</span>
               <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
@@ -225,7 +228,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
       </div>
     ) : (
       <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">
-        {tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
+        {searchError || tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
       </div>
     )
   ) : null;
@@ -340,9 +343,9 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
       <div className="rounded-xl border border-border bg-card p-3">
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <div className="flex min-w-0 flex-1 items-center rounded-lg border border-border bg-background px-3">
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr("Search apps or URLs…", "Uygulama veya URL ara…")} className="w-full bg-transparent py-2 text-xs text-foreground outline-none" />
+            <input aria-label={tr("Search apps or URLs…", "Uygulama veya URL ara…")} value={query} onChange={e => setQuery(e.target.value)} placeholder={tr("Search apps or URLs…", "Uygulama veya URL ara…")} className="w-full bg-transparent py-2 text-xs text-foreground outline-none" />
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value as "name" | "category")} className="rounded-lg border border-border bg-background px-3 py-2 text-[10px] text-foreground outline-none">
+          <select aria-label={tr("Sort applications", "Uygulamaları sırala")} value={sort} onChange={e => setSort(e.target.value as "name" | "category")} className="rounded-lg border border-border bg-background px-3 py-2 text-[10px] text-foreground outline-none">
             <option value="name">{tr("Sort: Name", "Sırala: Ad")}</option>
             <option value="category">{tr("Sort: Category", "Sırala: Kategori")}</option>
           </select>
@@ -515,28 +518,12 @@ export function ZafTechApp() {
   const [ledgerObservation, setLedgerObservation] = useState<LedgerObservation | null>(null);
   const [deepLinkReady, setDeepLinkReady] = useState(false);
   const router = useRouter();
+  const loadingObservation = useRef(false);
+  const ledgerRequest = useRef<AbortController | null>(null);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/zaf/ecosystem/changes", { cache: "no-store" })
-      .then(response => response.ok ? response.json() : null)
-      .then(value => { if (active) setRadarChanges(value); })
-      .catch(() => { if (active) setRadarChanges(null); });
-    return () => { active = false; };
-  }, [refreshNonce]);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/zaf/radar", { cache: "no-store" })
-      .then(response => response.ok ? response.json() as Promise<RadarObservation> : null)
-      .then(value => { if (active) setRadarData(value); })
-      .catch(() => { if (active) setRadarData(null); });
-    return () => { active = false; };
-  }, [refreshNonce]);
-
-  useEffect(() => {
+  const applyLocation = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
     const rawSection = params.get("section");
     const requestedSubtab = params.get("subtab") ?? "";
@@ -544,7 +531,7 @@ export function ZafTechApp() {
       apps: { section: "discover" },
       testnet: { section: "network", subtab: "Testnet Assets" },
       defi: { section: "network" },
-      node: { section: "network" },
+      node: { section: "network", subtab: "Node" },
       observatory: { section: "intelligence" },
     };
     const mapped = rawSection && legacyMap[rawSection] ? legacyMap[rawSection] : null;
@@ -558,16 +545,28 @@ export function ZafTechApp() {
       setSection(requestedSection);
       const allowed = ZAF_SECTION_TABS[requestedSection];
       setSubtab(allowed.includes(normalizedSubtab) ? normalizedSubtab : (allowed[0] ?? ""));
+    } else {
+      setSection("overview");
+      setSubtab("Pulse");
     }
+    ledgerRequest.current?.abort();
+    setLedgerObservation(null);
     const requestedLedger = params.get("ledger");
     if (requestedLedger && /^\d{1,12}$/.test(requestedLedger)) {
-      void fetch("/api/zaf/ledger/" + requestedLedger, { cache: "no-store" })
-        .then(response => response.ok ? response.json() as Promise<LedgerObservation> : null)
-        .then(value => setLedgerObservation(value))
-        .catch(() => setLedgerObservation(null));
+      const controller = new AbortController();
+      ledgerRequest.current = controller;
+      void requestJson<LedgerObservation>("/api/zaf/ledger/" + requestedLedger, { cache: "no-store", signal: controller.signal })
+        .then(({ response, body }) => { if (!controller.signal.aborted) setLedgerObservation(response.ok ? body : null); })
+        .catch(() => { if (!controller.signal.aborted) setLedgerObservation(null); });
     }
     setDeepLinkReady(true);
   }, []);
+
+  useEffect(() => {
+    applyLocation();
+    window.addEventListener("popstate", applyLocation);
+    return () => { window.removeEventListener("popstate", applyLocation); ledgerRequest.current?.abort(); };
+  }, [applyLocation]);
 
   useEffect(() => {
     if (!deepLinkReady) return;
@@ -579,13 +578,15 @@ export function ZafTechApp() {
 
   useEffect(() => {
     const key = "zaf-tech-theme-v1";
-    const saved = window.localStorage.getItem(key);
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(key); } catch { /* System theme works without storage. */ }
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     setTheme(saved === "light" || saved === "dark" ? saved : media.matches ? "dark" : "light");
     setThemeReady(true);
 
     const syncSystemTheme = (event: MediaQueryListEvent) => {
-      const preference = window.localStorage.getItem(key);
+      let preference: string | null = null;
+      try { preference = window.localStorage.getItem(key); } catch { /* Follow system theme. */ }
       if (preference !== "light" && preference !== "dark") {
         setTheme(event.matches ? "dark" : "light");
       }
@@ -601,7 +602,7 @@ export function ZafTechApp() {
 
   const toggleTheme = useCallback(() => {
     const nextTheme = theme === "light" ? "dark" : "light";
-    window.localStorage.setItem("zaf-tech-theme-v1", nextTheme);
+    try { window.localStorage.setItem("zaf-tech-theme-v1", nextTheme); } catch { /* Apply to this page view. */ }
     setTheme(nextTheme);
   }, [theme]);
   useEffect(() => {
@@ -609,14 +610,17 @@ export function ZafTechApp() {
   }, [locale]);
 
   const load = useCallback(async (force = false) => {
+    if (loadingObservation.current) return;
+    loadingObservation.current = true;
     setRefreshing(true);
     try {
-      const response = await fetch(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" });
+      const { response, body: observation } = await requestJson<UnifiedObservation & { radar: RadarObservation | null; ecosystemChanges: EcosystemChangePayload | null }>(force ? "/api/zaf/observations?force=1" : "/api/zaf/observations", { cache: "no-store" }, 30_000);
       if (!response.ok) throw new Error("ZAF Tech observation request failed");
-      const observation = await response.json();
       if (!observation?.network && !observation?.ecosystem) throw new Error("No usable observation returned");
       setSnapshot(observation.network ?? null);
       setEcosystem(observation.ecosystem ?? null);
+      setRadarData(observation.radar ?? null);
+      setRadarChanges(observation.ecosystemChanges ?? null);
       setObservationMeta({
         generatedAt: observation.generatedAt ?? "",
         freshness: observation.freshness ?? { state: "unknown", ageSeconds: 0 },
@@ -628,6 +632,7 @@ export function ZafTechApp() {
     } catch {
       setLoadError("DATA_REQUEST_FAILED");
     } finally {
+      loadingObservation.current = false;
       setLoading(false);
       setRefreshing(false);
     }
@@ -641,7 +646,14 @@ export function ZafTechApp() {
 
   const apps = ecosystem?.apps.items ?? [];
   const sourceOnline = ecosystem?.apps.sourceAvailable ?? false;
-  const navigateResult = useCallback((href: string) => { if (href.startsWith("/")) router.push(href); else window.open(href, "_blank", "noopener,noreferrer"); }, [router]);
+  const navigateResult = useCallback((href: string) => {
+    if (href.startsWith("/") && !href.startsWith("//")) {
+      if (new URL(href, window.location.origin).pathname === "/") {
+        window.history.pushState(null, "", href);
+        applyLocation();
+      } else router.push(href);
+    } else if (/^https?:\/\//i.test(href)) window.open(href, "_blank", "noopener,noreferrer");
+  }, [router, applyLocation]);
 
   return (
     <div className="min-h-screen bg-background">

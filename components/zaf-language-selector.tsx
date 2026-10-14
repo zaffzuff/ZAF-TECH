@@ -32,6 +32,7 @@ export function LanguageSelector({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
@@ -42,10 +43,24 @@ export function LanguageSelector({
   }, []);
 
   const ordered = [...locales].sort((a, b) => localeLabels[a].localeCompare(localeLabels[b], "en"));
+  useEffect(() => {
+    if (open) ref.current?.querySelector<HTMLButtonElement>('[role="option"][aria-selected="true"]')?.focus();
+  }, [open]);
 
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div ref={ref} className={`relative ${className}`} onKeyDown={event => {
+      if (event.key === "Escape") { setOpen(false); triggerRef.current?.focus(); return; }
+      if (event.key === "Tab") { setOpen(false); return; }
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      if (!open) { setOpen(true); return; }
+      const options = [...(ref.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? [])];
+      const current = options.indexOf(document.activeElement as HTMLButtonElement);
+      const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (current + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+      options[next]?.focus();
+    }}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(value => !value)}
         aria-haspopup="listbox"
@@ -73,6 +88,7 @@ export function LanguageSelector({
               onClick={() => {
                 onChange(option);
                 setOpen(false);
+                triggerRef.current?.focus();
               }}
               className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs ${locale === option ? "bg-muted font-semibold text-foreground" : "text-foreground hover:bg-muted"}`}
             >

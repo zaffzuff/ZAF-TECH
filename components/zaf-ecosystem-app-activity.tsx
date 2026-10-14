@@ -83,7 +83,7 @@ export function ZafEcosystemAppActivity({ locale, tr }: { locale: Locale; tr: (e
 
       {!hasComparisonBaseline ? (
         <div className="mt-3">
-          <ZafComingSoon locale={locale} title={tr("Snapshot Comparison", "Snapshot Karşılaştırması")} detail={tr("New and missing app observations need a previous persisted snapshot. These comparisons will be available when a reliable historical baseline exists.", "Yeni ve eksik uygulama gözlemlerini karşılaştırmak için önceki kayıtlı bir snapshot gerekir. Güvenilir bir tarihsel temel oluştuğunda bu karşılaştırmalar kullanılabilir olacak.")} />
+          <ZafComingSoon waitingForData locale={locale} title={tr("Snapshot Comparison", "Snapshot Karşılaştırması")} detail={tr("New and missing app observations need a previous persisted snapshot. These comparisons will be available when a reliable historical baseline exists.", "Yeni ve eksik uygulama gözlemlerini karşılaştırmak için önceki kayıtlı bir snapshot gerekir. Güvenilir bir tarihsel temel oluştuğunda bu karşılaştırmalar kullanılabilir olacak.")} />
         </div>
       ) : (
         <div className="mt-3 rounded-xl border border-border bg-background p-3 text-[10px] text-muted-foreground">

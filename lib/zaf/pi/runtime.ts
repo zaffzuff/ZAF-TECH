@@ -51,7 +51,7 @@ function cleanBaseUrl(value: string) {
 
 export function getPiRuntimeConfig(): PiRuntimeConfig {
   const network = normalizeNetwork(process.env.PI_NETWORK);
-  const sdkMode = normalizeSdkMode(process.env.PI_SDK_MODE);
+  const sdkMode = normalizeSdkMode(process.env.PI_SDK_MODE || process.env.NEXT_PUBLIC_PI_SDK_MODE);
   const sdkSandbox = sdkMode === "sandbox";
 
   // Sandbox uses Testnet. A hosted Testnet app is valid with sandbox:false.
@@ -59,6 +59,12 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
   const configurationError = compatible
     ? null
     : "Pi SDK Sandbox mode cannot be used with a Mainnet app.";
+  const configuredNetwork = process.env.PI_NETWORK?.trim().toLowerCase();
+  const configuredMode = process.env.PI_SDK_MODE?.trim().toLowerCase();
+  const clientMode = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase();
+  const invalidSetting = (configuredNetwork && !PI_NETWORKS.includes(configuredNetwork as PiNetwork)) ||
+    (configuredMode && !PI_SDK_MODES.includes(configuredMode as PiSdkMode)) ||
+    (clientMode && (!PI_SDK_MODES.includes(clientMode as PiSdkMode) || clientMode !== sdkMode));
 
   return {
     network,
@@ -68,9 +74,9 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
     sdkScriptUrl: PI_SDK_SCRIPT_URL,
     platformApiBaseUrl: cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT),
     horizonBaseUrl: cleanBaseUrl(process.env.PI_HORIZON_BASE_URL?.trim() || HORIZON_DEFAULTS[network]),
-    apiKeyConfigured: Boolean(process.env.PI_API_KEY),
-    compatible,
-    configurationError,
+    apiKeyConfigured: Boolean(process.env.PI_API_KEY?.trim()),
+    compatible: compatible && !invalidSetting,
+    configurationError: invalidSetting ? "Pi network or SDK mode configuration is invalid or inconsistent." : configurationError,
   };
 }
 

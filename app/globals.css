@@ -1978,11 +1978,11 @@
 
   .zaf-mobile-pi-actions .zaf-start-pi-link,
   .zaf-mobile-pi-actions .zaf-pi-signin-button {
-    height: 25px !important;
-    min-height: 25px !important;
+    height: 44px !important;
+    min-height: 44px !important;
     padding: 0 7px !important;
     gap: 4px !important;
-    font-size: 9px !important;
+    font-size: 12px !important;
     line-height: 1 !important;
     border-radius: 7px;
   }
@@ -2135,4 +2135,12 @@
     max-width: 168px;
     justify-self: start !important;
   }
+}
+
+/* Keep mobile form text readable and controls comfortably tappable. */
+@media (max-width: 639px) {
+  .zaf-main-shell input,
+  .zaf-main-shell select,
+  .zaf-main-shell textarea { font-size: 16px; min-height: 44px; }
+  .zaf-main-shell button { min-height: 44px; }
 }
