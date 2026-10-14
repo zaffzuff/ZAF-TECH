@@ -4,6 +4,7 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Public Node Key", "Clave pública del Node", "Node 公钥", "Chiave pubblica del Node", "Clé publique du Node", "Öffentlicher Node-Schlüssel", "Chave pública do Node"],
   ["Too many requests. Please retry later.","Demasiadas solicitudes. Vuelve a intentarlo más tarde.","请求过多。请稍后重试。","Troppe richieste. Riprova più tardi.","Trop de demandes. Veuillez réessayer plus tard.","Zu viele Anfragen. Bitte später erneut versuchen.","Demasiados pedidos. Tente novamente mais tarde."],
   ["The URL check could not be completed. Check the address or try again later.","No se pudo completar la comprobación de la URL. Revisa la dirección o inténtalo más tarde.","无法完成 URL 检查。请检查地址或稍后重试。","Impossibile completare il controllo dell’URL. Controlla l’indirizzo o riprova più tardi.","La vérification de l’URL n’a pas pu être terminée. Vérifiez l’adresse ou réessayez plus tard.","Die URL-Prüfung konnte nicht abgeschlossen werden. Prüfe die Adresse oder versuche es später erneut.","Não foi possível concluir a verificação do URL. Verifique o endereço ou tente novamente mais tarde."],
   ["Pi Browser did not respond to the sign-in request. Check for a pending permission prompt and try again.","Pi Browser no respondió a la solicitud de inicio de sesión. Comprueba si hay una solicitud de permiso pendiente e inténtalo de nuevo.","Pi Browser 未响应登录请求。请检查是否有待处理的权限提示，然后重试。","Pi Browser non ha risposto alla richiesta di accesso. Controlla se c’è una richiesta di autorizzazione in sospeso e riprova.","Pi Browser n’a pas répondu à la demande de connexion. Vérifiez si une demande d’autorisation est en attente, puis réessayez.","Pi Browser hat auf die Anmeldeanfrage nicht reagiert. Prüfe, ob eine Berechtigungsabfrage aussteht, und versuche es erneut.","O Pi Browser não respondeu ao pedido de início de sessão. Verifique se há um pedido de permissão pendente e tente novamente."],
@@ -539,6 +540,7 @@ export const supplementalUiTranslations: Record<string, Partial<Record<Supplemen
 
 
 export const supplementalRussianUiTranslations: Record<string, string> = {
+  "Public Node Key": "Публичный ключ Node",
   "Too many requests. Please retry later.": "Слишком много запросов. Повторите попытку позже.",
   "The URL check could not be completed. Check the address or try again later.": "Не удалось завершить проверку URL. Проверьте адрес или повторите попытку позже.",
   "Pi Browser did not respond to the sign-in request. Check for a pending permission prompt and try again.": "Pi Browser не ответил на запрос входа. Проверьте, нет ли ожидающего запроса разрешения, и повторите попытку.",

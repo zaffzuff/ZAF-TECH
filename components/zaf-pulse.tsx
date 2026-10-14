@@ -203,7 +203,7 @@ export function ZafPulse({
         </div>
 
         <div className="zaf-pulse-source-line mt-3">
-          <span>{tx(locale, "Coverage", "Kapsam")} {coverage}%</span>
+          <span>{tx(locale, "Public Source Coverage", "Herkese Açık Kaynak Kapsamı")} {coverage}%</span>
           <span>·</span>
           <span>{tx(locale, "Latest observation", "Son gözlem")} {observationTime(radar?.generatedAt ?? snapshot?.generatedAt, locale)}</span>
           <span>·</span>

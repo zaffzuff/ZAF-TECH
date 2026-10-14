@@ -126,13 +126,14 @@ test("concurrent reads share one request and respect the five-minute cache", asy
 
 test("scheduled collection requires authorization and reuses the collected ecosystem for app checks", async () => {
   const calls = [];
-  const ecosystem = { newsMetadata: { status: "available" } };
+  const ecosystem = { newsMetadata: { status: "available" }, apps: { items: [] } };
   const observation = { generatedAt: "2026-10-14T03:00:00Z", ecosystem, network: { latestLedger: { sequence: "100" } }, errors: [] };
   const dependencies = {
     "next/server": { NextResponse: { json: (body, options) => ({ body, status: options?.status ?? 200 }) } },
     "@/lib/zaf/observation-engine": { getUnifiedObservation: async options => { assert.equal(options.force, true); calls.push("observe"); return observation; } },
     "@/lib/zaf/app-health-runner": { runEcosystemHealthChecks: async value => { assert.equal(value, ecosystem); calls.push("health"); return { checked: 2 }; } },
     "@/lib/zaf/rate-limit": { cleanupZafRateLimits: async () => { calls.push("cleanup"); return 0; } },
+    "@/lib/zaf/monitor-status": { saveMonitorRun: async () => true },
   };
   const source = fs.readFileSync(new URL("../app/api/apps/health/cron/route.ts", import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;

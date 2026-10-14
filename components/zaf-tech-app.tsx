@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { servicePolicy } from "@/lib/zaf/service-policy";
+import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { requestJson } from "@/lib/zaf/client-request";
 import type { UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type React from "react";
@@ -399,6 +401,7 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
         ))}
       </div>
       {!filtered.length ? <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[11px] text-muted-foreground">{apps.length ? tr("No applications match the current filters.", "Mevcut filtrelerle eşleşen uygulama yok.") : note}</div> : null}
+      {!apps.length ? <div className="mt-3"><External href="https://ecosystem.pinet.com/">{tr("Pi Ecosystem", "Pi Ekosistemi")} ↗</External></div> : null}
       <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[10px] leading-relaxed text-muted-foreground">
         {tr("Category is a ZAF Tech classification based on the public app name/URL signal, not an official Pi category. Activity labels use persisted public ecosystem observations when available. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF Tech sınıflandırmasıdır; resmi Pi kategorisi değildir. Aktivite etiketleri, mevcut olduğunda kayıtlı herkese açık ekosistem gözlemlerini kullanır. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulanana kadar doğrulanmamış olarak kalır.")}
       </div>
@@ -901,6 +904,7 @@ export function ZafTechApp() {
               <Card title={tr("Latest Ledger", "Son Ledger")} value={snapshot?.latestLedger?.sequence ?? "—"} detail={snapshot?.latestLedger?.closedAt ? age(snapshot.latestLedger.closedAt, locale) : "—"} />
               <Card title={tr("Data Status", "Veri Durumu")} value={displayStatus(snapshot?.error ? "error" : snapshot?.latestLedger ? "available" : "unavailable", locale)} detail={snapshot?.error ?? tr("Pi Mainnet Horizon response observed.", "Pi Mainnet Horizon yanıtı gözlemlendi.")} />
             </div>
+            <ZafProtocolObservation data={snapshot} locale={locale} />
             {ledgerObservation ? (
               <div className="mt-3 rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center justify-between gap-2">
@@ -1001,6 +1005,7 @@ export function ZafTechApp() {
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <span>ZAF Tech · Pi Ecosystem Observatory</span>
+            <span>{servicePolicy[locale].label}</span>
             <span>{tr("Independent community-developed technology project", "Bağımsız topluluk geliştirimi teknoloji projesi")}</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-3">

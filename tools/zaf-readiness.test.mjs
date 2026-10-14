@@ -11,6 +11,66 @@ import ts from "typescript";
 const require = createRequire(import.meta.url);
 const root = process.cwd();
 
+test("Connector distinguishes active ledger protocol from binary support and handles v28 image tags", () => {
+  const connector = require("./zaf-node-connector.cjs");
+  assert.equal(connector.observedProtocol({ protocol_version: 28, ledger: { version: 27 } }, ""), 27);
+  assert.equal(connector.parseProtocol("pinetwork/pi-node-docker:organization-mainnet-v1.0-p28.0.1"), 28);
+  assert.equal(connector.protocolSupport("v28.0.1"), "supported");
+  for (const value of [null, undefined, "", "not-a-version", 0, -1]) assert.equal(connector.protocolSupport(value), "unknown");
+  assert.equal(connector.protocolSupport(29), "newer_or_unsupported");
+});
+
+test("iOS and Android local diagnostics do not try to contact a desktop on phone localhost", () => {
+  const { isMobileConnectorUnavailable } = loader()("@/lib/zaf/local-connector-client");
+  assert.equal(isMobileConnectorUnavailable("iPhone PiBrowser/1.17.1", "iPhone", 5), true);
+  assert.equal(isMobileConnectorUnavailable("Android Chrome", "Linux arm", 5), true);
+  assert.equal(isMobileConnectorUnavailable("Macintosh Safari", "MacIntel", 5), true);
+  assert.equal(isMobileConnectorUnavailable("Windows Chrome", "Win32", 0), false);
+});
+
+test("protocol 27/28 transition and unfamiliar operations remain observable without inventing activation", async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async url => new Response(JSON.stringify(url.endsWith("minepi.com/") ? { current_protocol_version: 27, supported_protocol_version: 28, core_supported_protocol_version: 28 } : { _embedded: { records: url.includes("/ledgers?") ? [28,27].map((version,index)=>({sequence:100-index,hash:"fixture",protocol_version:version,closed_at:`2026-10-14T10:00:0${5-index}Z`,successful_transaction_count:2,failed_transaction_count:0,operation_count:2})) : url.includes("/operations?") ? [{id:"1",type:"future_protocol_operation",transaction_successful:true}] : [] } }));
+  try {
+    const snapshot = await loader()("@/lib/zaf/horizon-client").getZafSnapshot();
+    assert.equal(snapshot.protocol.current, 27);
+    assert.equal(snapshot.protocol.horizonSupported, 28);
+    assert.deepEqual(snapshot.metrics.protocolVersionDistribution.map(item=>item.version).sort(), [27,28]);
+    assert.equal(snapshot.metrics.latestProtocolVersion, 28);
+    assert.equal(snapshot.operations[0].type, "future_protocol_operation");
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test("source failure retains an explicitly stale sample without recording a new historical measurement", async () => {
+  let reads = 0, writes = 0;
+  const now = new Date().toISOString();
+  const snapshot = { generatedAt: now, latestLedger:{sequence:"42"}, recentLedgers:[], metrics:{ latestProtocolVersion:28 }, error:null };
+  const load=loader({
+    "@/lib/zaf/horizon-client":{getZafSnapshot:async()=>{reads++;return reads===1?snapshot:{...snapshot,latestLedger:null,error:"Source timed out"};}},
+    "@/lib/zaf/ecosystem":{getEcosystemSnapshot:async()=>({generatedAt:now,apps:{items:[],totalCount:null},sources:[]})},
+    "@/lib/zaf/observation-history":{saveObservationSnapshot:async()=>{writes++;return true;}},
+  });
+  const {getUnifiedObservation}=load("@/lib/zaf/observation-engine");
+  const first=await Promise.all([getUnifiedObservation({force:true}),getUnifiedObservation({force:true})]);
+  assert.equal(reads,1);assert.equal(first[0],first[1]);
+  const failed=await getUnifiedObservation({force:true});
+  assert.equal(failed.network.latestLedger.sequence,"42");
+  assert.equal(failed.freshness.state,"stale");
+  assert.equal(failed.historyStored,false);assert.equal(writes,1);
+  assert.ok(failed.errors.includes("Source timed out"));
+});
+
+test("public monitor status reports unknown scheduled evidence rather than success", async () => {
+  const route=loader({
+    "next/server":responseMock,
+    "@/lib/zaf/monitor-status":{readMonitorStatus:async()=>({storage:"available",latestScheduledRun:null})},
+    "@/lib/zaf/observation-history":{getObservationHistory:async()=>[]},
+  })("@/app/api/zaf/status/route");
+  const result=await route.GET();
+  assert.equal(result.body.access,"free_public");assert.equal(result.body.paymentsEnabled,false);
+  assert.equal(result.body.monitoring.overdue,null);assert.equal(result.body.latestObservation,null);
+});
+
 test("Horizon mapping preserves native amounts and derives ledger transaction totals", async () => {
   const previousFetch = globalThis.fetch;
   globalThis.fetch = async url => new Response(JSON.stringify({ _embedded: { records: url.includes("/ledgers?") ? [{ sequence: 42, closed_at: "2026-10-14T10:00:00Z", successful_transaction_count: 2, failed_transaction_count: 3, operation_count: 2, protocol_version: null }] : url.includes("/operations?") ? [{ id: "1", type: "payment", asset_type: "native", amount: "12.5000000" }, { id: "2", type: "payment", asset_type: "credit_alphanum4", amount: "50.0000000" }] : [{ hash: "fixture", fee_charged: "100000", operation_count: null }] } }));
@@ -26,9 +86,9 @@ test("Horizon mapping preserves native amounts and derives ledger transaction to
 });
 
 test("Pi runtime rejects Mainnet Sandbox and inconsistent client/server settings", () => {
-  const keys = ["PI_NETWORK", "PI_SDK_MODE", "NEXT_PUBLIC_PI_SDK_MODE", "PI_API_KEY"];
+  const keys = ["PI_NETWORK", "PI_SDK_MODE", "NEXT_PUBLIC_PI_SDK_MODE"];
   const previous = keys.map(key => process.env[key]);
-  const { getPiRuntimeConfig, isPiPaymentReady } = loader()("@/lib/zaf/pi/runtime");
+  const { getPiRuntimeConfig } = loader()("@/lib/zaf/pi/runtime");
   try {
     for (const key of keys) delete process.env[key];
     assert.equal(getPiRuntimeConfig().compatible, true);
@@ -39,8 +99,6 @@ test("Pi runtime rejects Mainnet Sandbox and inconsistent client/server settings
     assert.equal(getPiRuntimeConfig().compatible, false);
     process.env.NEXT_PUBLIC_PI_SDK_MODE = "hosted";
     assert.equal(getPiRuntimeConfig().compatible, true);
-    process.env.PI_API_KEY = "   ";
-    assert.equal(isPiPaymentReady(), false);
     process.env.PI_NETWORK = "invalid";
     assert.equal(getPiRuntimeConfig().compatible, false);
   } finally {

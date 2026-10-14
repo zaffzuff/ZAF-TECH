@@ -133,10 +133,11 @@ function observedPerHour(count: number, windowMinutes: number | null): number | 
 export async function getZafSnapshot(): Promise<ZafSnapshot> {
   const generatedAt = new Date().toISOString();
   try {
-    const [ledgerPage, transactionPage, operationPage] = await Promise.all([
+    const [ledgerPage, transactionPage, operationPage, root] = await Promise.all([
       horizon("/ledgers?order=desc&limit=100"),
       horizon("/transactions?order=desc&limit=100&include_failed=true"),
       horizon("/operations?order=desc&limit=100"),
+      horizon("/").catch(() => null),
     ]);
 
     const recentLedgers = recordsFromPage(ledgerPage).map(mapLedger);
@@ -233,6 +234,12 @@ export async function getZafSnapshot(): Promise<ZafSnapshot> {
       networkScope: "mainnet",
       source: "Pi Mainnet Horizon",
       generatedAt,
+      protocol: root ? {
+        current: numberOrNull(root.current_protocol_version),
+        horizonSupported: numberOrNull(root.supported_protocol_version),
+        coreSupported: numberOrNull(root.core_supported_protocol_version),
+        observedAt: new Date().toISOString(), source: BASE,
+      } : null,
       latestLedger: recentLedgers[0] ?? null,
       recentLedgers,
       transactions,

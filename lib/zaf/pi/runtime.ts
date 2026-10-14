@@ -32,7 +32,6 @@ export type PiRuntimeConfig = {
   sdkScriptUrl: string;
   platformApiBaseUrl: string;
   horizonBaseUrl: string;
-  apiKeyConfigured: boolean;
   compatible: boolean;
   configurationError: string | null;
 };
@@ -74,7 +73,6 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
     sdkScriptUrl: PI_SDK_SCRIPT_URL,
     platformApiBaseUrl: cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT),
     horizonBaseUrl: cleanBaseUrl(process.env.PI_HORIZON_BASE_URL?.trim() || HORIZON_DEFAULTS[network]),
-    apiKeyConfigured: Boolean(process.env.PI_API_KEY?.trim()),
     compatible: compatible && !invalidSetting,
     configurationError: invalidSetting ? "Pi network or SDK mode configuration is invalid or inconsistent." : configurationError,
   };
@@ -91,9 +89,4 @@ export function assertPiRuntimeCompatible(
 /** True when the configured runtime targets the Mainnet app outside Sandbox. */
 export function isPiMainnetRuntimeReady(config = getPiRuntimeConfig()) {
   return config.network === "mainnet" && config.sdkMode === "hosted" && config.compatible;
-}
-
-/** Payment routes need the app's server-side API key in addition to a Mainnet runtime. */
-export function isPiPaymentReady(config = getPiRuntimeConfig()) {
-  return isPiMainnetRuntimeReady(config) && config.apiKeyConfigured;
 }

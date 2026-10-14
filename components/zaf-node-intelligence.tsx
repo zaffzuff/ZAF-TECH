@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import type { ZafSnapshot } from "@/lib/zaf/types";
+import { requestJson } from "@/lib/zaf/client-request";
+import { isMobileConnectorUnavailable, mobileConnectorMessage } from "@/lib/zaf/local-connector-client";
 import { calculateNodeHealth } from "@/lib/zaf/node-health";
 
 const NODE_KEY_STORAGE = "zaf-tech-node-public-key-v1";
@@ -45,6 +47,7 @@ type LocalNodeData = {
     state?: string;
     image?: string;
     protocol?: number | string | null;
+    protocolSource?: "ledger" | "core" | "image" | "unknown";
     protocolSupport?: "supported" | "newer_or_unsupported" | "unknown";
     compatibility?: { supportedProtocols?: number[]; status?: string };
     sync?: string;
@@ -128,20 +131,21 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
   const [localNodeLoading, setLocalNodeLoading] = useState(true);
   const [localNodeError, setLocalNodeError] = useState(false);
   const [localResources, setLocalResources] = useState<LocalResourcesData | null>(null);
+  const [localMobile, setLocalMobile] = useState(false);
 
   async function refreshLocalNode() {
+    if (isMobileConnectorUnavailable()) {
+      setLocalMobile(true); setLocalNodeLoading(false); setLocalNodeError(true); return;
+    }
     setLocalNodeLoading(true);
     try {
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 5000);
-      const [nodeResponse, resourcesResponse] = await Promise.all([
-        fetch("http://127.0.0.1:39100/node", { cache: "no-store", signal: controller.signal }),
-        fetch("http://127.0.0.1:39100/resources", { cache: "no-store", signal: controller.signal }),
+      const [node, resources] = await Promise.all([
+        requestJson<LocalNodeData>("http://127.0.0.1:39100/node", { cache: "no-store" }, 5000),
+        requestJson<LocalResourcesData>("http://127.0.0.1:39100/resources", { cache: "no-store" }, 5000).catch(() => null),
       ]);
-      window.clearTimeout(timeout);
-      if (!nodeResponse.ok) throw new Error("Local Connector Unavailable");
-      setLocalNode((await nodeResponse.json()) as LocalNodeData);
-      setLocalResources(resourcesResponse.ok ? ((await resourcesResponse.json()) as LocalResourcesData) : null);
+      if (!node.response.ok) throw new Error("Local Connector Unavailable");
+      setLocalNode(node.body);
+      setLocalResources(resources?.response.ok ? resources.body : null);
       setLocalNodeError(false);
     } catch {
       setLocalNode(null);
@@ -159,7 +163,8 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
   }, []);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(NODE_KEY_STORAGE);
+    let stored: string | null = null;
+    try { stored = window.localStorage.getItem(NODE_KEY_STORAGE); } catch { /* The public key is optional. */ }
     if (stored) {
       setPublicKey(stored);
       setSaved(true);
@@ -177,12 +182,13 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
     restarts: localNode?.node?.restartCount ?? null,
   }), [localNode, localNodeError]);
 
+  const activeProtocol = localNode?.node?.ledger?.version ?? (localNode?.node?.protocolSource === "ledger" ? localNode.node.protocol : null);
   const keyValid = useMemo(() => isPiPublicKey(publicKey.trim()), [publicKey]);
 
   function saveIdentity() {
     const value = publicKey.trim();
     if (!value) {
-      window.localStorage.removeItem(NODE_KEY_STORAGE);
+      try { window.localStorage.removeItem(NODE_KEY_STORAGE); } catch { /* Session-only state. */ }
       setSaved(false);
       return;
     }
@@ -190,7 +196,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
       setSaved(false);
       return;
     }
-    window.localStorage.setItem(NODE_KEY_STORAGE, value);
+    try { window.localStorage.setItem(NODE_KEY_STORAGE, value); } catch { /* Session-only state. */ }
     setSaved(true);
   }
 
@@ -207,6 +213,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
 
   return (
     <section className="mt-7">
+      {localMobile ? <p className="mb-3 rounded-xl border border-border bg-card p-3 text-xs text-muted-foreground">{mobileConnectorMessage[locale]}</p> : null}
       <div className="mb-3">
         <h2 className="text-sm font-semibold text-foreground">{tr("Node Observatory", "Node Gözlemleri")}</h2>
         <p className="text-[11px] text-muted-foreground">
@@ -219,7 +226,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
         <NodeMetric label={tr("Connector Status", "Connector Durumu")} value={localNodeLoading ? "…" : localNodeError ? tr("Offline", "Çevrimdışı") : tr("Connected", "Bağlı")} detail={tr("Live localhost diagnostic connection", "Canlı localhost teşhis bağlantısı")} />
-        <NodeMetric label={tr("Observed Protocol", "Gözlemlenen Protokol")} value={localNode?.node?.protocol != null ? `v${localNode.node.protocol}` : "—"} detail={tr("Reported by the local Pi Node when available", "Yerel Pi Node tarafından bildirildiğinde gösterilir")} />
+        <NodeMetric label={tr("Observed Protocol", "Gözlemlenen Protokol")} value={activeProtocol != null ? `v${String(activeProtocol).replace(/^v/i, "")}` : "—"} detail={tr("Reported by the local Pi Node when available", "Yerel Pi Node tarafından bildirildiğinde gösterilir")} />
         <NodeMetric label={tr("Local Listeners", "Yerel Dinleyiciler")} value={localNode?.ports ? `${localNode.ports.filter((item) => item.listeningLocally).length}/10` : "—"} detail={tr("Local port listeners only; not an Internet reachability test", "Yalnızca Yerel port dinleyicileri; Internet erişilebilirlik testi değildir")} />
         <NodeMetric label={tr("Ledger Age", "Ledger Yaşı")} value={localNode?.node?.ledger?.age != null ? `${localNode.node.ledger.age}s` : "—"} detail={tr("Age reported by local Stellar Core", "Yerel Stellar Core tarafından bildirilen yaş")} />
         <NodeMetric label={tr("Restart Count", "Yeniden Başlatma")} value={localNode?.node?.restartCount != null ? formatNumber(localNode.node.restartCount, locale) : "—"} detail={tr("Docker restart counter for the detected Node Container", "Algılanan Node Container'ının Docker yeniden başlatma sayacı")} />
@@ -298,6 +305,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
+            aria-label={tr("Public Node Key", "Herkese Açık Node Anahtarı")}
             value={publicKey}
             onChange={(event) => {
               setPublicKey(event.target.value.trim().toUpperCase());
@@ -305,7 +313,6 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
               setCopied(false);
             }}
             placeholder="G..."
-            aria-label={tr("Node Public Key", "Node Public Key")}
             className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground outline-none focus:ring-2 focus:ring-ring"
           />
           <button
@@ -490,7 +497,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-border px-3 py-3">
             <div className="text-[10px] text-muted-foreground">{tr("Protocol", "Protokol")}</div>
-            <div className="mt-1 text-sm font-semibold text-foreground">{localNode?.node?.protocol || "—"}</div>
+            <div className="mt-1 text-sm font-semibold text-foreground">{activeProtocol ?? "—"}</div>
             <div className="mt-1 min-w-0 break-words text-[10px] text-muted-foreground">{localNode?.node?.image || tr("No Pi Container Detected", "Pi Container Bulunamadı")}</div>
           </div>
           <div className="rounded-lg border border-border px-3 py-3">

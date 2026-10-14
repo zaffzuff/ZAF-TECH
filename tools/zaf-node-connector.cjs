@@ -27,7 +27,7 @@ function decodeWindowsCommandOutput(value) {
 }
 
 const HOST = "127.0.0.1";
-const VERSION = "1.6.6";
+const VERSION = "1.6.8";
 const SUPPORTED_PROTOCOLS = new Set([27, 28]);
 const PORT = Number(process.env.ZAF_NODE_CONNECTOR_PORT || 39100);
 const HISTORY_INTERVAL_MS = 60_000;
@@ -199,9 +199,22 @@ async function readResources(containerId) {
   return { observedAt: new Date().toISOString(), host, docker: dockerStats, wsl };
 }
 
+function normalizeProtocol(value) {
+  if (typeof value === "number") return Number.isInteger(value) && value > 0 ? value : null;
+  if (typeof value !== "string") return null;
+  const match = value.trim().match(/^v?(\d+)(?:\.\d+)*$/i);
+  return match && Number(match[1]) > 0 ? Number(match[1]) : null;
+}
 function parseProtocol(image) {
-  const match = image.match(/(?:^|[-_:])p(\d+(?:\.\d+)?)(?:$|[-_:])/i);
-  return match ? `v${match[1]}` : null;
+  const match = String(image ?? "").match(/(?:^|[-_:])p(\d+(?:\.\d+)*)(?:$|[-_:])/i);
+  return match ? normalizeProtocol(match[1]) : null;
+}
+function observedProtocol(coreInfo, image) {
+  return normalizeProtocol(coreInfo?.ledger?.version) ?? normalizeProtocol(coreInfo?.protocol_version) ?? parseProtocol(image);
+}
+function protocolSupport(protocol) {
+  const value = normalizeProtocol(protocol);
+  return value == null ? "unknown" : SUPPORTED_PROTOCOLS.has(value) ? "supported" : "newer_or_unsupported";
 }
 
 function portCheck(port, timeoutMs = 700) {
@@ -364,22 +377,15 @@ async function readNode() {
       containerId: String(candidate.ID || "").slice(0, 12),
       state: running ? "running" : String(detail?.State?.Status || candidate.State || "unknown"),
       image,
-      protocol: coreInfo?.protocol_version ?? coreInfo?.ledger?.version ?? parseProtocol(image),
-      protocolSupport: (() => {
-        const protocol = Number(coreInfo?.protocol_version ?? coreInfo?.ledger?.version ?? parseProtocol(image));
-        if (!Number.isFinite(protocol)) return "unknown";
-        return SUPPORTED_PROTOCOLS.has(protocol) ? "supported" : "newer_or_unsupported";
-      })(),
+      protocol: observedProtocol(coreInfo, image),
+      protocolSource: normalizeProtocol(coreInfo?.ledger?.version) != null ? "ledger" : normalizeProtocol(coreInfo?.protocol_version) != null ? "core" : parseProtocol(image) != null ? "image" : "unknown",
+      protocolSupport: protocolSupport(observedProtocol(coreInfo, image)),
       sync: coreInfo?.state ? String(coreInfo.state).toLowerCase() : inferSync(logs),
       coreBuild: coreInfo?.build ?? null,
       network: coreInfo?.network ?? null,
       compatibility: {
         supportedProtocols: [...SUPPORTED_PROTOCOLS],
-        status: (() => {
-          const protocol = Number(coreInfo?.protocol_version ?? coreInfo?.ledger?.version ?? parseProtocol(image));
-          if (!Number.isFinite(protocol)) return "unknown";
-          return SUPPORTED_PROTOCOLS.has(protocol) ? "supported" : "newer_or_unsupported";
-        })(),
+        status: protocolSupport(observedProtocol(coreInfo, image)),
       },
       ledger: coreInfo?.ledger ? {
         number: Number(coreInfo.ledger.num ?? 0) || null,
@@ -646,7 +652,8 @@ async function main() {
   });
 }
 
-main().catch((error) => {
+module.exports = { start: main, normalizeProtocol, parseProtocol, observedProtocol, protocolSupport };
+if (require.main === module) main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

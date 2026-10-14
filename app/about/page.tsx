@@ -5,6 +5,7 @@ import { useState } from "react";
 import { LanguageSelector } from "@/components/zaf-language-selector";
 
 import type { Locale } from "@/lib/zaf/i18n";
+import { servicePolicy } from "@/lib/zaf/service-policy";
 
 const copy = {
   "en": {
@@ -147,6 +148,10 @@ export default function AboutPage() {
         </div>
         <h1 className="mt-6 text-2xl font-bold">{t.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{t.subtitle}</p>
+        <section className="mt-5 rounded-xl border border-border bg-card p-4 text-sm">
+          <h2 className="font-semibold">{servicePolicy[locale].label}</h2>
+          <p className="mt-2 leading-relaxed text-muted-foreground">{servicePolicy[locale].detail}</p>
+        </section>
         <div className="mt-6 space-y-5 text-sm leading-relaxed text-muted-foreground">
           <section><h2 className="font-semibold text-foreground">{t.what}</h2><p className="mt-2">{t.whatText}</p></section>
           <section><h2 className="font-semibold text-foreground">{t.scope}</h2><p className="mt-2">{t.scopeText}</p></section>

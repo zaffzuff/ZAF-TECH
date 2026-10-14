@@ -12,6 +12,7 @@ const checks = [
   { path: "/privacy", status: 200 },
   { path: "/start-with-pi", status: 200 },
   { path: "/signin/callback", status: 200 },
+  { path: "/api/zaf/status", status: 200 },
   { path: "/api/zaf/wallet?address=BAD", status: 400 },
   { path: "/api/tools/transaction?id=BAD", status: 400 },
   { path: "/api/apps/check?url=http://127.0.0.1:3000", status: 400 },

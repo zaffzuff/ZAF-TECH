@@ -13,6 +13,14 @@ export interface ZafLedger {
   baseFeePi: number | null;
 }
 
+export type PiProtocolObservation = {
+  current: number | null;
+  horizonSupported: number | null;
+  coreSupported: number | null;
+  observedAt: string;
+  source: string;
+};
+
 export interface ZafTransaction {
   hash: string;
   ledger: string | null;
@@ -75,6 +83,7 @@ export interface ZafIntelligence {
 }
 
 export interface ZafSnapshot {
+  protocol?: PiProtocolObservation | null;
   network: "Pi Network";
   networkScope: ZafNetworkScope;
   source: "Pi Mainnet Horizon";
