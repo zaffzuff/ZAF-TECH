@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runEcosystemHealthChecks } from "@/lib/zaf/app-health-runner";
 import { cleanupZafRateLimits } from "@/lib/zaf/rate-limit";
+import { getUnifiedObservation } from "@/lib/zaf/observation-engine";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const result = await runEcosystemHealthChecks();
+  const observation = await getUnifiedObservation({ force: true });
+  const result = await runEcosystemHealthChecks(observation.ecosystem);
   const rateLimitRowsRemoved = await cleanupZafRateLimits();
 
   return NextResponse.json(
@@ -30,6 +32,12 @@ export async function GET(request: Request) {
       ok: true,
       scheduled: true,
       rateLimitRowsRemoved,
+      observation: {
+        generatedAt: observation.generatedAt,
+        networkObserved: Boolean(observation.network?.latestLedger),
+        news: observation.ecosystem?.newsMetadata ?? null,
+        errors: observation.errors,
+      },
       ...result,
     },
     {

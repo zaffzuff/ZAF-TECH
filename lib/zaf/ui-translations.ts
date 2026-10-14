@@ -4,6 +4,19 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Connecting…","Conectando…","正在连接…","Connessione…","Connexion…","Verbindung wird hergestellt…","A ligar…"],
+  ["Pi Verified","Pi verificado","Pi 已验证","Pi verificato","Pi vérifié","Pi verifiziert","Pi verificado"],
+  ["Pi actions","Acciones de Pi","Pi 操作","Azioni Pi","Actions Pi","Pi-Aktionen","Ações Pi"],
+  ["Automatic updates","Actualizaciones automáticas","自动更新","Aggiornamenti automatici","Mises à jour automatiques","Automatische Aktualisierungen","Atualizações automáticas"],
+  ["Published","Publicado","发布日期","Pubblicato","Publié","Veröffentlicht","Publicado"],
+  ["Last checked","Última comprobación","上次检查","Ultimo controllo","Dernière vérification","Zuletzt geprüft","Última verificação"],
+  ["Last successful check","Última comprobación correcta","上次成功检查","Ultimo controllo riuscito","Dernière vérification réussie","Letzte erfolgreiche Prüfung","Última verificação bem-sucedida"],
+  ["Source could not be refreshed. Showing the last successful observation.","No se pudo actualizar la fuente. Se muestra la última observación correcta.","无法刷新来源。显示上次成功的观察结果。","Impossibile aggiornare la fonte. Viene mostrata l’ultima osservazione riuscita.","La source n’a pas pu être actualisée. La dernière observation réussie est affichée.","Die Quelle konnte nicht aktualisiert werden. Die letzte erfolgreiche Beobachtung wird angezeigt.","Não foi possível atualizar a fonte. É apresentada a última observação bem-sucedida."],
+  ["Official news source is temporarily unavailable.","La fuente oficial de noticias no está disponible temporalmente.","官方新闻来源暂时不可用。","La fonte ufficiale delle notizie è temporaneamente indisponibile.","La source officielle d’actualités est temporairement indisponible.","Die offizielle Nachrichtenquelle ist vorübergehend nicht verfügbar.","A fonte oficial de notícias está temporariamente indisponível."],
+  ["How updates work","Cómo funcionan las actualizaciones","更新方式","Come funzionano gli aggiornamenti","Fonctionnement des mises à jour","So funktionieren Aktualisierungen","Como funcionam as atualizações"],
+  ["Official news refreshes automatically while this page is open.","Las noticias oficiales se actualizan automáticamente mientras esta página está abierta.","此页面打开时，官方新闻会自动刷新。","Le notizie ufficiali si aggiornano automaticamente mentre questa pagina è aperta.","Les actualités officielles s’actualisent automatiquement lorsque cette page est ouverte.","Offizielle Nachrichten werden automatisch aktualisiert, solange diese Seite geöffnet ist.","As notícias oficiais são atualizadas automaticamente enquanto esta página estiver aberta."],
+  ["Daily background observations require scheduled monitoring to be enabled.","Las observaciones diarias en segundo plano requieren activar el seguimiento programado.","每日后台观察需要启用定时监测。","Le osservazioni giornaliere in background richiedono l’attivazione del monitoraggio programmato.","Les observations quotidiennes en arrière-plan nécessitent l’activation du suivi programmé.","Tägliche Hintergrundbeobachtungen setzen eine aktivierte geplante Überwachung voraus.","As observações diárias em segundo plano exigem que a monitorização agendada esteja ativa."],
+  ["Guides, explanations and published statistics need periodic editorial review.","Las guías, explicaciones y estadísticas publicadas necesitan una revisión editorial periódica.","指南、说明和已发布的统计数据需要定期人工审核。","Guide, spiegazioni e statistiche pubblicate richiedono una revisione editoriale periodica.","Les guides, explications et statistiques publiées nécessitent une révision éditoriale régulière.","Anleitungen, Erläuterungen und veröffentlichte Statistiken benötigen regelmäßige redaktionelle Prüfung.","Os guias, explicações e estatísticas publicadas precisam de revisão editorial periódica."],
   ["No matching observable results.","No hay resultados observables coincidentes.","没有匹配的可观测结果。","Nessun risultato osservabile corrispondente.","Aucun résultat observable correspondant.","Keine passenden beobachtbaren Ergebnisse.","Não há resultados observáveis correspondentes."],
   ["Open search","Abrir búsqueda","打开搜索","Apri la ricerca","Ouvrir la recherche","Suche öffnen","Abrir pesquisa"],
   ["Search","Buscar","搜索","Cerca","Rechercher","Suchen","Pesquisar"],
@@ -519,6 +532,19 @@ export const supplementalUiTranslations: Record<string, Partial<Record<Supplemen
 
 
 export const supplementalRussianUiTranslations: Record<string, string> = {
+  "Connecting…": "Подключение…",
+  "Pi Verified": "Pi подтверждён",
+  "Pi actions": "Действия Pi",
+  "Automatic updates": "Автоматические обновления",
+  "Published": "Опубликовано",
+  "Last checked": "Последняя проверка",
+  "Last successful check": "Последняя успешная проверка",
+  "Source could not be refreshed. Showing the last successful observation.": "Не удалось обновить источник. Показано последнее успешное наблюдение.",
+  "Official news source is temporarily unavailable.": "Официальный источник новостей временно недоступен.",
+  "How updates work": "Как работают обновления",
+  "Official news refreshes automatically while this page is open.": "Официальные новости обновляются автоматически, пока эта страница открыта.",
+  "Daily background observations require scheduled monitoring to be enabled.": "Для ежедневных фоновых наблюдений необходимо включить плановый мониторинг.",
+  "Guides, explanations and published statistics need periodic editorial review.": "Руководства, пояснения и опубликованная статистика требуют регулярной редакционной проверки.",
   "No rolling comparison": "Нет скользящего сравнения",
   "Live Mainnet observations are still forming. The dashboard will surface concrete movements as the observation window fills.": "Наблюдения Mainnet в реальном времени ещё накапливаются. По мере заполнения окна наблюдений панель будет показывать конкретные изменения.",
   "PI MAINNET · BLOCKCHAIN · WEB3 · LIVE OBSERVATION": "PI MAINNET · БЛОКЧЕЙН · WEB3 · НАБЛЮДЕНИЕ В РЕАЛЬНОМ ВРЕМЕНИ",

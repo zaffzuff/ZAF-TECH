@@ -1,4 +1,4 @@
-import { getEcosystemSnapshot } from "@/lib/zaf/ecosystem";
+import { getEcosystemSnapshot, type EcosystemSnapshot } from "@/lib/zaf/ecosystem";
 import { checkAppHealth, type AppHealthCheck } from "@/lib/zaf/app-health";
 import { saveAppChecks } from "@/lib/zaf/app-check-history";
 import { saveEcosystemSnapshot } from "@/lib/zaf/ecosystem-history";
@@ -35,8 +35,8 @@ export type EcosystemHealthRun = {
   }>;
 };
 
-export async function runEcosystemHealthChecks(): Promise<EcosystemHealthRun> {
-  const ecosystem = await getEcosystemSnapshot();
+export async function runEcosystemHealthChecks(observedEcosystem?: EcosystemSnapshot | null): Promise<EcosystemHealthRun> {
+  const ecosystem = observedEcosystem ?? await getEcosystemSnapshot();
   const apps = ecosystem.apps.items.slice(0, MAX_APPS);
 
   const results = await Promise.all(

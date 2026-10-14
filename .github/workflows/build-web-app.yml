@@ -49,6 +49,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Regression checks
         run: npm run regression
+      - name: Official news behavior
+        run: npm run test:news
       - name: Build
         run: npm run build
       - name: Smoke checks

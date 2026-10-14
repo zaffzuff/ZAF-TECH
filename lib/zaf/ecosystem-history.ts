@@ -1,4 +1,5 @@
 import { ensureZafSchema, getZafDb, isZafDatabaseConfigured } from "@/lib/zaf/db";
+import type { EcosystemNewsItem, OfficialNewsMetadata } from "./official-news-parser";
 
 export type EcosystemSnapshotRecord = {
   generatedAt: string;
@@ -64,4 +65,23 @@ export async function getEcosystemSnapshotHistory(limit = 50) {
   } catch {
     return [];
   }
+}
+
+export async function getLastSuccessfulOfficialNews() {
+  const sql = getZafDb();
+  if (!sql || !(await ensureZafSchema())) return null;
+  try {
+    const records = await sql`
+      SELECT payload
+      FROM zaf_ecosystem_snapshots
+      WHERE payload->'newsMetadata'->>'lastSuccessfulAt' IS NOT NULL
+        AND jsonb_array_length(COALESCE(payload->'news', '[]'::jsonb)) > 0
+      ORDER BY generated_at DESC
+      LIMIT 1
+    `;
+    const payload = records[0]?.payload as { news?: EcosystemNewsItem[]; newsMetadata?: OfficialNewsMetadata } | undefined;
+    const metadata = payload?.newsMetadata;
+    if (!Array.isArray(payload?.news) || !metadata?.lastSuccessfulAt) return null;
+    return { items: payload.news, lastSuccessfulAt: metadata.lastSuccessfulAt, sourceUrl: metadata.sourceUrl, mode: metadata.mode };
+  } catch { return null; }
 }

@@ -17,6 +17,7 @@ const checks = [
   { path: "/api/apps/check?url=http://127.0.0.1:3000", status: 400 },
   { path: "/api/zaf/defi?network=mainnet", status: 400 },
   { path: "/api/zaf/assets?network=mainnet", status: 400 },
+  { path: "/api/apps/health/cron", status: 401 },
 ];
 
 const requiredHeaders = [

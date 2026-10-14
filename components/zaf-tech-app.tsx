@@ -44,6 +44,8 @@ type LedgerObservation = {
 };
 type EcosystemPayload = {
   generatedAt: string;
+  news?: import("@/lib/zaf/official-news-parser").EcosystemNewsItem[];
+  newsMetadata?: import("@/lib/zaf/official-news-parser").OfficialNewsMetadata;
   apps: { sourceAvailable: boolean; totalCount: number | null; items: AppItem[]; note: string };
   sources: Array<{ label: string; status: string; url: string; detail: string }>;
   officialSignals?: Array<{ title: string; value: string; observedAt: string; sourceUrl: string }>;
