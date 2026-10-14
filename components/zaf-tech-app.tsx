@@ -1197,16 +1197,22 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
   const [timeline, setTimeline] = useState<ObservationTimelinePayload | null>(null);
   const [historyRange, setHistoryRange] = useState<HistoryRange>("24h");
   const [loadingStats, setLoadingStats] = useState(true);
+  const [requestFailed, setRequestFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    setRequestFailed(false);
+    const read = <T,>(url: string) => requestJson<T>(url, { cache: "no-store", signal: controller.signal }, 20_000)
+      .then(({ response, body }) => { if (response.ok) return body; if (active) setRequestFailed(true); return null; })
+      .catch(() => { if (active) setRequestFailed(true); return null; });
     Promise.all([
-      fetch("/api/zaf/ecosystem/statistics", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/ecosystem/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/ecosystem/trends", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/history?limit=" + historyLimit(historyRange), { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/changes", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
-      fetch("/api/zaf/observations/timeline", { cache: "no-store" }).then(response => response.ok ? response.json() : null),
+      read<EcosystemStatisticsPayload>("/api/zaf/ecosystem/statistics"),
+      read<EcosystemChangePayload>("/api/zaf/ecosystem/changes"),
+      read<EcosystemTrendPayload>("/api/zaf/ecosystem/trends"),
+      read<ObservationHistoryPayload>("/api/zaf/observations/history?limit=" + historyLimit(historyRange)),
+      read<ObservationChangePayload>("/api/zaf/observations/changes"),
+      read<ObservationTimelinePayload>("/api/zaf/observations/timeline"),
     ])
       .then(([statistics, changeData, trendData, historyData, observationChangeData, timelineData]) => {
         if (!active) return;
@@ -1223,7 +1229,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
         setChanges(null);
       })
       .finally(() => { if (active) setLoadingStats(false); });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, [refreshNonce, historyRange]);
 
   if (loadingStats) return <div className="py-10 text-center text-xs text-muted-foreground">{tr("Loading Statistics…", "İstatistikler Yükleniyor…")}</div>;
@@ -1232,6 +1238,7 @@ function ObservatoryStatisticsView({ locale, tr, refreshNonce, currentProtocol, 
     <section className="mt-5 sm:mt-7">
       <div className="mb-3">
         <h2 className="text-sm font-semibold text-foreground">{tr("Activity Signals", "Aktivite Sinyalleri")}</h2>
+        {requestFailed ? <p role="status" className="mt-2 text-xs text-muted-foreground">{tr("Request failed", "İstek başarısız")}</p> : null}
         <p className="text-[11px] text-muted-foreground">{tr("Current observations, stored snapshots and detected changes from public ecosystem sources.", "Herkese açık ekosistem kaynaklarından mevcut gözlemler, kayıtlı snapshot'lar ve tespit edilen değişiklikler.")}</p>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
