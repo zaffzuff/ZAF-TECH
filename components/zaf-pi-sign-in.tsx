@@ -342,23 +342,23 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div data-testid="zaf-pi-sign-in" className="mt-3 flex min-w-0 max-w-full flex-wrap items-center gap-2">
+    <div data-testid="zaf-pi-sign-in" className="relative flex min-w-0 max-w-full items-center gap-2">
       <button
         type="button"
         onClick={() => void signIn()}
         disabled={busy}
-        className="zaf-pi-signin-button inline-flex max-w-full items-center gap-2 rounded-lg border border-ty-active/40 bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-wait disabled:opacity-60"
+        className="zaf-pi-signin-button inline-flex h-8 w-[min(48vw,168px)] min-w-[132px] shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-lg border border-ty-active/40 bg-card px-2 text-[10px] font-semibold text-foreground transition-colors hover:bg-muted disabled:cursor-wait disabled:opacity-60"
         aria-label={tr("Sign in with Pi", "Pi ile giriş yap")}
       >
         <span aria-hidden="true" className="text-sm font-bold">π</span>
-        <span>{busy ? tr("Connecting to Pi…", "Pi'ye bağlanılıyor…") : user ? tr("Pi Account Verified", "Pi Hesabı Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="truncate">{busy ? tr("Connecting…", "Bağlanıyor…") : user ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
       </button>
       {user ? (
         <span className="min-w-0 break-all text-[10px] text-muted-foreground" aria-live="polite">
           {tr("Verified username:", "Doğrulanan kullanıcı adı:")} @{user.username}
         </span>
       ) : message ? (
-        <span className="zaf-pi-status-bubble block w-fit min-w-0 max-w-full break-words whitespace-normal rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]" role="status" aria-live="polite">
+        <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-red-500/50 bg-red-50 px-2.5 py-1.5 text-[10px] leading-relaxed text-red-700 shadow-md [overflow-wrap:anywhere] dark:border-red-400/50 dark:bg-red-950 dark:text-red-200" role="status" aria-live="polite">
           {message}
         </span>
       ) : null}
