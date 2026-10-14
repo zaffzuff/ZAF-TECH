@@ -248,8 +248,12 @@ export default function PrivacyPage() {
         <div className="mt-6 space-y-5 text-sm leading-relaxed text-muted-foreground">
           <section><h2 className="font-semibold text-foreground">{t.scope}</h2><p className="mt-2">{t.scopeText}</p></section>
           <section><h2 className="font-semibold text-foreground">{t.wallet}</h2><p className="mt-2">{t.walletText}</p></section>
+          <section><h2 className="font-semibold text-foreground">{t.signin}</h2><p className="mt-2">{t.signinText}</p></section>
           <section><h2 className="font-semibold text-foreground">{t.local}</h2><p className="mt-2">{t.localText}</p></section>
-          <section><h2 className="font-semibold text-foreground">{t.public}</h2><p className="mt-2">{t.publicText}</p></section>
+          <section><h2 className="font-semibold text-foreground">{t.logs}</h2><p className="mt-2">{t.logsText}</p></section>
+          <section><h2 className="font-semibold text-foreground">{t.providers}</h2><p className="mt-2">{t.providersText}</p></section>
+          <section><h2 className="font-semibold text-foreground">{t.retention}</h2><p className="mt-2">{t.retentionText}</p></section>
+          <section><h2 className="font-semibold text-foreground">{t.contact}</h2><p className="mt-2">{t.contactText}</p><p className="mt-2"><a href="https://github.com/zaffzuff/ZAF-TECH" target="_blank" rel="noreferrer" className="underline underline-offset-2 text-foreground">{t.repository}</a></p></section>
           <section><h2 className="font-semibold text-foreground">{t.boundary}</h2><p className="mt-2">{t.boundaryText}</p></section>
         </div>
       </article>
