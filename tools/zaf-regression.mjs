@@ -115,9 +115,9 @@ for (const token of [
   'import { isIP } from "node:net";',
   "(a === 100 && b >= 64 && b <= 127)",
   "(a === 198 && (b === 18 || b === 19))",
-  "function ipv6ToBigInt(value: string): bigint | null",
-  "firstSegment < 0x2000 || firstSegment > 0x3fff",
-  "(address >> 96n) === 0x20010db8n",
+  "function expandIpv6Segments(value: string): number[] | null",
+  "first < 0x2000 || first > 0x3fff",
+  "parts[0] === 0x2001 && parts[1] === 0x0db8",
   'redirect: "manual"',
   "resolvesToPublicAddress",
 ]) {

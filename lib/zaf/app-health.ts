@@ -38,7 +38,7 @@ function isPrivateIpv4(value: string) {
   );
 }
 
-function ipv6ToBigInt(value: string): bigint | null {
+function expandIpv6Segments(value: string): number[] | null {
   const host = value.toLowerCase().split("%")[0].replace(/^\[|\]$/g, "");
   if (isIP(host) !== 6 || host.includes(".")) return null;
 
@@ -49,24 +49,23 @@ function ipv6ToBigInt(value: string): bigint | null {
   const missing = 8 - left.length - right.length;
   if ((halves.length === 1 && missing !== 0) || (halves.length === 2 && missing < 1)) return null;
 
-  const parts = [...left, ...Array(missing).fill("0"), ...right];
-  if (parts.length !== 8 || parts.some(part => !/^[0-9a-f]{1,4}$/.test(part))) return null;
-
-  return parts.reduce((address, part) => (address << 16n) | BigInt("0x" + part), 0n);
+  const segments = [...left, ...Array(missing).fill("0"), ...right];
+  if (segments.length !== 8 || segments.some(segment => !/^[0-9a-f]{1,4}$/.test(segment))) return null;
+  return segments.map(segment => Number.parseInt(segment, 16));
 }
 
 function isPrivateIpv6(value: string) {
-  const address = ipv6ToBigInt(value);
-  if (address === null) return true;
+  const parts = expandIpv6Segments(value);
+  if (parts === null) return true;
 
   // Only global-unicast 2000::/3 addresses are accepted. This rejects
   // unspecified, loopback, link-local, unique-local, multicast, IPv4-mapped,
   // NAT64 and other non-global IPv6 address spaces by default.
-  const firstSegment = Number(address >> 112n);
-  if (firstSegment < 0x2000 || firstSegment > 0x3fff) return true;
+  const first = parts[0];
+  if (first < 0x2000 || first > 0x3fff) return true;
 
   // Documentation-only prefix: 2001:db8::/32.
-  if ((address >> 96n) === 0x20010db8n) return true;
+  if (parts[0] === 0x2001 && parts[1] === 0x0db8) return true;
 
   return false;
 }
