@@ -2016,3 +2016,50 @@
     line-height: 1.35;
   }
 }
+
+
+/* Containment correction: auth feedback stays inside the sticky header at every breakpoint. */
+@media (min-width: 1024px) {
+  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
+  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
+    left: auto !important;
+    right: 0 !important;
+    width: max-content;
+    max-width: min(300px, calc(100vw - 48px));
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 1023px) {
+  .zaf-sticky-header {
+    overflow: visible;
+  }
+
+  .zaf-mobile-pi-actions {
+    align-items: flex-start !important;
+    padding-bottom: 8px !important;
+  }
+
+  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] {
+    position: static !important;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: calc(100% - 68px);
+    align-items: flex-start !important;
+  }
+
+  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
+  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
+    position: static !important;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 3px 0 0;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
