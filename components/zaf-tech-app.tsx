@@ -664,9 +664,9 @@ export function ZafTechApp() {
           </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
-              <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={36} height={36} className="h-9 w-9 shrink-0 object-contain" priority />
+              <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={44} height={44} className="zaf-mobile-brand-logo h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="whitespace-nowrap text-[clamp(1rem,4.5vw,1.25rem)] font-bold tracking-tight ty-brand-text">ZAF Tech</div>
+                <div className="whitespace-nowrap text-[clamp(1.12rem,5vw,1.4rem)] font-bold tracking-tight ty-brand-text">ZAF Tech</div>
                 <p className="truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
@@ -677,15 +677,9 @@ export function ZafTechApp() {
               <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
             </div>
           </div>
-          <div className="zaf-mobile-pi-actions">
-            <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">Start Pi</a>
+          <div className="zaf-mobile-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
+            <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
             <ZafPiSignIn locale={locale} />
-          </div>
-          <div className="zaf-header-status-row flex flex-wrap items-center gap-2 py-2 text-[11px]">
-            <span className="rounded-full border border-violet-300/35 px-2.5 py-1 font-semibold"><span className="zaf-pi-gradient-text">{tr("Pi Network", "Pi Network")}</span></span>
-            <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
-            <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Read-only", "Salt-okunur")}</span>
-            <span className={`rounded-full border px-2.5 py-1 ${loading ? "border-border text-muted-foreground" : sourceOnline ? "border-ty-active/40 text-foreground" : "border-border text-muted-foreground"}`}>{loading ? tr("Checking Source…", "Kaynak Kontrol Ediliyor…") : sourceOnline ? tr("Ecosystem Source Online", "Ekosistem Kaynağı Çevrimiçi") : tr("Source Unavailable", "Kaynak Kullanılamıyor")}</span>
           </div>
         </header>
         <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
