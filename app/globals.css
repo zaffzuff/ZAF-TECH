@@ -2120,3 +2120,19 @@
     line-height: 1.35;
   }
 }
+
+
+/* Preserve the compact two-button row; status text spans the full row below it. */
+@media (max-width: 1023px) {
+  .zaf-mobile-pi-actions {
+    grid-template-columns: max-content minmax(0, 1fr) !important;
+    column-gap: 6px !important;
+  }
+
+  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-signin-button {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 168px;
+    justify-self: start !important;
+  }
+}
