@@ -91,6 +91,8 @@ for (const token of ["0002_rate_limits", "CREATE TABLE IF NOT EXISTS zaf_rate_li
 }
 const rateLimitedRoutes = [
   "app/api/apps/check/route.ts",
+  "app/api/apps/health/route.ts",
+  "app/api/tools/transaction/route.ts",
   "app/api/zaf/search/route.ts",
   "app/api/zaf/wallet/route.ts",
   "app/api/zaf/radar/route.ts",
@@ -108,6 +110,20 @@ for (const file of rateLimitedRoutes) {
     throw new Error("Rate-limit route coverage regression: " + file);
   }
 }
+const appHealthGuard = fs.readFileSync(path.join(root, "lib/zaf/app-health.ts"), "utf8");
+for (const token of [
+  'import { isIP } from "node:net";',
+  "(a === 100 && b >= 64 && b <= 127)",
+  "(a === 198 && (b === 18 || b === 19))",
+  "function ipv6ToBigInt(value: string): bigint | null",
+  "firstSegment < 0x2000 || firstSegment > 0x3fff",
+  "(address >> 96n) === 0x20010db8n",
+  'redirect: "manual"',
+  "resolvesToPublicAddress",
+]) {
+  if (!appHealthGuard.includes(token)) throw new Error("Public URL/SSRF guard regression: " + token);
+}
+
 const cronRateLimit = fs.readFileSync(path.join(root, "app/api/apps/health/cron/route.ts"), "utf8");
 if (!cronRateLimit.includes("cleanupZafRateLimits")) throw new Error("Rate-limit cleanup cron regression");
 const piRuntime = fs.readFileSync(path.join(root, "lib/zaf/pi/runtime.ts"), "utf8");

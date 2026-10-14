@@ -510,6 +510,9 @@ const rows: TranslationRow[] = [
   ["Begin with clarity.","Empieza con claridad.","从清晰的第一步开始。","Inizia con chiarezza.","Commencez en toute clarté.","Beginne mit Klarheit.","Comece com clareza."],
   ["Registration · Mining · Wallet · KYC · Security","Registro · Minería · Wallet · KYC · Seguridad","注册 · 挖矿 · 钱包 · KYC · 安全","Registrazione · Mining · Wallet · KYC · Sicurezza","Inscription · Mining · Portefeuille · KYC · Sécurité","Registrierung · Mining · Wallet · KYC · Sicherheit","Registo · Mineração · Wallet · KYC · Segurança"],
   ["Start Pi","Empezar con Pi","从 Pi 开始","Inizia con Pi","Commencer avec Pi","Mit Pi starten","Começar com Pi"],
+  ["Connecting…","Conectando…","正在连接…","Connessione…","Connexion…","Verbindung…","A ligar…"],
+  ["Pi Verified","Pi verificada","Pi 已验证","Pi verificato","Pi vérifié","Pi verifiziert","Pi verificada"],
+  ["Pi actions","Acciones de Pi","Pi 操作","Azioni Pi","Actions Pi","Pi-Aktionen","Ações Pi"],
 ];
 
 const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"];
@@ -583,6 +586,9 @@ export const supplementalRussianUiTranslations: Record<string, string> = {
   "Insufficient Data": "Недостаточно данных",
 
   "Sign in with Pi": "Войти через Pi",
+  "Connecting…": "Подключение…",
+  "Pi Verified": "Pi подтверждён",
+  "Pi actions": "Действия Pi",
   "Connecting to Pi…": "Подключение к Pi…",
   "Pi Account Verified": "Аккаунт Pi подтверждён",
   "Verified username:": "Подтверждённое имя пользователя:",

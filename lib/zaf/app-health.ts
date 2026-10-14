@@ -1,4 +1,5 @@
 import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 
 export type AppHealthCheck = {
   url: string;
@@ -13,27 +14,68 @@ export type AppHealthCheck = {
 };
 
 function isPrivateIpv4(value: string) {
+  if (isIP(value) !== 4) return true;
   const parts = value.split(".").map(Number);
-  if (parts.length !== 4 || parts.some(part => !Number.isInteger(part) || part < 0 || part > 255)) return false;
-  const [a, b] = parts;
+  const [a, b, c] = parts;
+
+  // Private, loopback, link-local, shared, documentation, benchmarking,
+  // multicast and reserved IPv4 space must never be probed by this endpoint.
   return (
     a === 0 ||
     a === 10 ||
     a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
     (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168)
+    (a === 192 && b === 0 && c === 0) ||
+    (a === 192 && b === 0 && c === 2) ||
+    (a === 192 && b === 88 && c === 99) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 198 && b === 51 && c === 100) ||
+    (a === 203 && b === 0 && c === 113) ||
+    a >= 224
   );
 }
 
+function ipv6ToBigInt(value: string): bigint | null {
+  const host = value.toLowerCase().split("%")[0].replace(/^\[|\]$/g, "");
+  if (isIP(host) !== 6 || host.includes(".")) return null;
+
+  const halves = host.split("::");
+  if (halves.length > 2) return null;
+  const left = halves[0] ? halves[0].split(":") : [];
+  const right = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const missing = 8 - left.length - right.length;
+  if ((halves.length === 1 && missing !== 0) || (halves.length === 2 && missing < 1)) return null;
+
+  const parts = [...left, ...Array(missing).fill("0"), ...right];
+  if (parts.length !== 8 || parts.some(part => !/^[0-9a-f]{1,4}$/.test(part))) return null;
+
+  return parts.reduce((address, part) => (address << 16n) | BigInt("0x" + part), 0n);
+}
+
 function isPrivateIpv6(value: string) {
-  const host = value.toLowerCase().split("%")[0];
-  if (host === "::1" || host === "::") return true;
-  return host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe8") || host.startsWith("fe9") || host.startsWith("fea") || host.startsWith("feb");
+  const address = ipv6ToBigInt(value);
+  if (address === null) return true;
+
+  // Only global-unicast 2000::/3 addresses are accepted. This rejects
+  // unspecified, loopback, link-local, unique-local, multicast, IPv4-mapped,
+  // NAT64 and other non-global IPv6 address spaces by default.
+  const firstSegment = Number(address >> 112n);
+  if (firstSegment < 0x2000 || firstSegment > 0x3fff) return true;
+
+  // Documentation-only prefix: 2001:db8::/32.
+  if ((address >> 96n) === 0x20010db8n) return true;
+
+  return false;
 }
 
 function isPrivateIp(value: string) {
-  return value.includes(":") ? isPrivateIpv6(value) : isPrivateIpv4(value);
+  const version = isIP(value);
+  if (version === 4) return isPrivateIpv4(value);
+  if (version === 6) return isPrivateIpv6(value);
+  return false;
 }
 
 function isPrivateHostname(hostname: string) {
@@ -41,9 +83,6 @@ function isPrivateHostname(hostname: string) {
   if (
     host === "localhost" ||
     host.endsWith(".localhost") ||
-    host === "127.0.0.1" ||
-    host === "::1" ||
-    host === "[::1]" ||
     host.endsWith(".local") ||
     host.endsWith(".internal")
   ) return true;
