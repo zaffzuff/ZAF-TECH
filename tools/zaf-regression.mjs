@@ -186,19 +186,17 @@ if (!zafAppSource.includes('import { ZafPiSignIn } from "@/components/zaf-pi-sig
   throw new Error("Pi Sign-In must be mounted in the main ZAF Tech interface");
 }
 
-const mobileHeaderStart = zafAppSource.indexOf('<div className="zaf-mobile-header flex');
-const mobileActionsStart = zafAppSource.indexOf('<div className="zaf-mobile-pi-actions">');
-const mobileHeaderMarkup = mobileHeaderStart >= 0 && mobileActionsStart > mobileHeaderStart
-  ? zafAppSource.slice(mobileHeaderStart, mobileActionsStart)
-  : "";
-if (mobileHeaderMarkup.includes('className="zaf-start-pi-link') ||
-    mobileHeaderMarkup.includes('<ZafPiSignIn locale={locale} />')) {
-  throw new Error("Mobile Pi action links should not compete with the icon row");
-}
-const mobileActionsEnd = zafAppSource.indexOf('<div className="zaf-header-status-row', mobileActionsStart);
+const mobileActionsStart = zafAppSource.indexOf('<div className="zaf-mobile-pi-actions"');
+const mobileActionsEnd = zafAppSource.indexOf('</div>', mobileActionsStart);
 const mobileActionsMarkup = mobileActionsStart >= 0 && mobileActionsEnd > mobileActionsStart
   ? zafAppSource.slice(mobileActionsStart, mobileActionsEnd)
   : "";
+if (zafAppSource.includes('className="zaf-header-status-row')) {
+  throw new Error("Mobile header should not render the removed status-pill row");
+}
+if (!zafAppSource.includes('zaf-mobile-brand-logo')) {
+  throw new Error("Mobile brand logo should use the enlarged header treatment");
+}
 const startPiPosition = mobileActionsMarkup.indexOf('className="zaf-start-pi-link');
 const mobileSignInPosition = mobileActionsMarkup.indexOf('<ZafPiSignIn locale={locale} />');
 if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileSignInPosition) {
