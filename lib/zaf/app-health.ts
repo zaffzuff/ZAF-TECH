@@ -64,8 +64,13 @@ function isPrivateIpv6(value: string) {
   const first = parts[0];
   if (first < 0x2000 || first > 0x3fff) return true;
 
-  // Documentation-only prefix: 2001:db8::/32.
-  if (parts[0] === 0x2001 && parts[1] === 0x0db8) return true;
+  // Reject special-purpose IPv6 blocks even when they fall inside 2000::/3.
+  // These conservative exclusions cover IETF protocol assignments, 6to4,
+  // and the dedicated IPv6 documentation prefix.
+  if (parts[0] === 0x2001 && parts[1] <= 0x01ff) return true; // 2001::/23
+  if (parts[0] === 0x2002) return true; // 2002::/16 (6to4)
+  if (parts[0] === 0x3fff && parts[1] <= 0x000f) return true; // 3fff::/20 docs
+  if (parts[0] === 0x2001 && parts[1] === 0x0db8) return true; // 2001:db8::/32 docs
 
   return false;
 }
