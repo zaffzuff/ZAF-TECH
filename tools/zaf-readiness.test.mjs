@@ -112,19 +112,44 @@ test("only explicit Testnet Sandbox permits the official Sandbox frame", async (
   const { default: config } = await import("../next.config.mjs");
   try {
     process.env.PI_NETWORK = "mainnet"; process.env.PI_SDK_MODE = "hosted";
-    const hosted = (await config.headers())[0].headers;
+    const rules = await config.headers();
+    const hosted = rules[1].headers;
+    const frameMatcher = new RegExp('^' + rules[1].source + '$');
+    assert.equal(frameMatcher.test('/about'), true);
+    assert.equal(frameMatcher.test('/signin/callback'), true);
+    assert.equal(frameMatcher.test('/browser-check.html'), false);
+    const diagnostic = rules.find(rule => rule.source === '/browser-check.html').headers;
+    assert.equal(diagnostic.some(header => header.key === 'X-Frame-Options'), false);
+    assert.equal(diagnostic.find(header => header.key === 'Content-Security-Policy').value.includes('frame-ancestors'), false);
+    assert.equal(diagnostic.find(header => header.key === 'Cache-Control').value.includes('no-store'), true);
     assert.equal(hosted.find(header => header.key === "X-Frame-Options").value, "SAMEORIGIN");
     assert.equal(hosted.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self';");
     process.env.PI_NETWORK = "testnet"; process.env.PI_SDK_MODE = "sandbox";
-    const sandbox = (await config.headers())[0].headers;
+    const sandbox = (await config.headers())[1].headers;
     assert.equal(sandbox.some(header => header.key === "X-Frame-Options"), false);
     assert.equal(sandbox.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://sandbox.minepi.com;");
     process.env.PI_NETWORK = "mainnet";
-    assert.equal((await config.headers())[0].headers.some(header => header.key === "X-Frame-Options"), true);
+    assert.equal((await config.headers())[1].headers.some(header => header.key === "X-Frame-Options"), true);
   } finally {
     keys.forEach((key, index) => { if (previous[index] === undefined) delete process.env[key]; else process.env[key] = previous[index]; });
   }
 });
+test("standalone browser check reports frame origins even when iOS storage is blocked", () => {
+  const html = fs.readFileSync(path.join(root, "public/browser-check.html"), "utf8");
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  const result = { textContent: "" };
+  const fakeWindow = { top: {}, self: {}, location: { ancestorOrigins: ["https://wrapper.example/private?token=hidden"] }, fetch() {}, isSecureContext: true };
+  for (const key of ["localStorage", "sessionStorage"]) Object.defineProperty(fakeWindow, key, { get() { throw new Error("Blocked"); } });
+  vm.runInNewContext(script, { window: fakeWindow, document: { referrer: "https://wrapper.example/private?token=hidden", getElementById: () => result }, navigator: { userAgent: "PiBrowser fixture" }, URL });
+  assert.match(result.textContent, /JavaScript: OK/);
+  assert.match(result.textContent, /Frame: embedded/);
+  assert.match(result.textContent, /Local storage: blocked/);
+  assert.match(result.textContent, /Session storage: blocked/);
+  assert.match(result.textContent, /Ancestor origins: https:\/\/wrapper.example/);
+  assert.equal(result.textContent.includes("hidden"), false);
+  assert.equal(html.includes("sdk.minepi.com"), false);
+});
+
 function loader(mocks = {}) {
   const cache = new Map();
   return function load(name, parent = root) {
