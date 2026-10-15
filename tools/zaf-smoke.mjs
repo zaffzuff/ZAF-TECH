@@ -24,7 +24,7 @@ const checks = [
 const requiredHeaders = [
   ["x-content-type-options", "nosniff"],
   ["referrer-policy", "strict-origin-when-cross-origin"],
-  ["x-frame-options", "SAMEORIGIN"],
+  ["content-security-policy", "frame-ancestors 'self' https://app-cdn.minepi.com;"],
   ["permissions-policy", "camera=(), microphone=(), geolocation=()"],
   ["strict-transport-security", "max-age=31536000; includeSubDomains; preload"],
 ];
