@@ -10,6 +10,8 @@ const checks = [
   { path: "/", status: 200 },
   { path: "/about", status: 200 },
   { path: "/privacy", status: 200 },
+  { path: "/terms", status: 200 },
+  { path: "/terms?lang=tr", status: 200 },
   { path: "/start-with-pi", status: 200 },
   { path: "/signin/callback", status: 200 },
   { path: "/api/zaf/status", status: 200 },
@@ -114,6 +116,17 @@ try {
     const response = await request(check.path);
     if (response.status !== check.status) {
       throw new Error(`${check.path} expected ${check.status}, received ${response.status}: ${response.text.slice(0, 220)}`);
+    }
+  }
+
+  // Policy pages must work before hydration, including direct Turkish terms.
+  for (const [path, title] of [["/privacy", "Privacy"], ["/terms", "Terms of Service"], ["/terms?lang=tr", "Kullanım Koşulları"]]) {
+    const page = await request(path);
+    if (!page.text.includes(title) || !page.text.includes("Zafer TEKYILDIZ") || !page.text.includes("mailto:zaftech.contact@gmail.com")) {
+      throw new Error(`Policy page missing rendered identity, contact or language: ${path}`);
+    }
+    if (!(page.headers["content-security-policy"] ?? "").includes("https://app-cdn.minepi.com")) {
+      throw new Error(`Policy page must remain accessible inside verified Pi Browser shell: ${path}`);
     }
   }
 

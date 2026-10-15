@@ -37,7 +37,11 @@ Phones skip local Connector queries and explain the desktop requirement; public 
 
 The protected daily collection persists a small monitor checkpoint with source availability and whether history was actually stored. `/api/zaf/status` reads that checkpoint and the most recent history record without triggering collection, exposing no credentials or user identity. No scheduled record is reported as unknown; more than 36 hours since a daily run is overdue. Verify the first real scheduled checkpoint after release.
 
-Daily Codex heartbeat at 10:00 Europe/Istanbul checks meaningful failures/protocol changes and stays quiet otherwise. Sunday 19:00 reminds the owner to review maintenance together. The app's scheduled collection remains daily at 03:00 UTC. These reminders do not merge or deploy automatically.
+The daily Codex heartbeat is paused at the owner's request to conserve usage. Sunday 19:00 Europe/Istanbul reminds the owner to review maintenance together. The app's scheduled collection remains daily at 03:00 UTC. These reminders do not merge or deploy automatically.
+
+## Privacy and terms release
+
+The confirmed individual operator/data controller is Zafer TEKYILDIZ, Türkiye; the official contact is zaftech.contact@gmail.com. `/privacy` preserves nine language descriptions and adds explicitly marked English/Turkish sections on purposes, processing grounds, recipients, retention and rights. `/terms` is server-rendered in English; `/terms?lang=tr` is Turkish. Both are linked from the interface. Do not claim the publication proves full legal compliance: provider-specific retention and a lawful KVKK Article 9 mechanism for international processing have not been verified. No signed safeguards, address or company identity are invented. Review these operational arrangements before presenting a listing application as legally complete.
 
 Automatic Git deployments are disabled in `vercel.json` to conserve quota. Publish reviewed batches manually once, with the exact tested production commit and production environment. GitHub test workflows still run. Do not enable preview deployments during routine development without reviewing the quota impact.
 
