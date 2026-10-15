@@ -170,3 +170,7 @@ A successful build alone does not guarantee that every external data source or o
 ZAF Tech is actively evolving. The current focus is a stable, observation-first platform, clearer ecosystem discovery, guided Pi onboarding, transparent data limitations, and local read-only node diagnostics.
 
 The repository does not currently declare an open-source license. Unless a license is added, its contents remain subject to the default copyright protections that apply to them.
+
+## Contact
+
+For general ZAF Tech questions and privacy requests: [zaftech.contact@gmail.com](mailto:zaftech.contact@gmail.com). Do not post personal information, access tokens, or other sensitive data in public issues.
