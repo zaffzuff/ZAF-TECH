@@ -106,7 +106,7 @@ test("Pi runtime rejects Mainnet Sandbox and inconsistent client/server settings
   }
 });
 
-test("only explicit Testnet Sandbox permits the official Sandbox frame", async () => {
+test("verified Pi Browser shell is allowed while Sandbox requires explicit Testnet mode", async () => {
   const keys = ["PI_NETWORK", "PI_SDK_MODE", "NEXT_PUBLIC_PI_SDK_MODE"];
   const previous = keys.map(key => process.env[key]);
   const { default: config } = await import("../next.config.mjs");
@@ -122,14 +122,14 @@ test("only explicit Testnet Sandbox permits the official Sandbox frame", async (
     assert.equal(diagnostic.some(header => header.key === 'X-Frame-Options'), false);
     assert.equal(diagnostic.find(header => header.key === 'Content-Security-Policy').value.includes('frame-ancestors'), false);
     assert.equal(diagnostic.find(header => header.key === 'Cache-Control').value.includes('no-store'), true);
-    assert.equal(hosted.find(header => header.key === "X-Frame-Options").value, "SAMEORIGIN");
-    assert.equal(hosted.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self';");
+    assert.equal(hosted.some(header => header.key === "X-Frame-Options"), false);
+    assert.equal(hosted.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com;");
     process.env.PI_NETWORK = "testnet"; process.env.PI_SDK_MODE = "sandbox";
     const sandbox = (await config.headers())[1].headers;
     assert.equal(sandbox.some(header => header.key === "X-Frame-Options"), false);
-    assert.equal(sandbox.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://sandbox.minepi.com;");
+    assert.equal(sandbox.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com https://sandbox.minepi.com;");
     process.env.PI_NETWORK = "mainnet";
-    assert.equal((await config.headers())[1].headers.some(header => header.key === "X-Frame-Options"), true);
+    assert.equal((await config.headers())[1].headers.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com;");
   } finally {
     keys.forEach((key, index) => { if (previous[index] === undefined) delete process.env[key]; else process.env[key] = previous[index]; });
   }

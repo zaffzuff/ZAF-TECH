@@ -21,12 +21,13 @@ const nextConfig = {
       },
       {
         // A standalone, anonymous diagnostic must be visible inside the native
-        // browser shell so its actual frame origin can be identified. Keep the
-        // app and OAuth callback protected until that origin is verified.
+        // browser shell so its actual frame origin can be identified.
         source: "/((?!browser-check\\.html$).*)",
         headers: [
-          ...(sandbox ? [] : [{ key: "X-Frame-Options", value: "SAMEORIGIN" }]),
-          { key: "Content-Security-Policy", value: `frame-ancestors 'self'${sandbox ? " https://sandbox.minepi.com" : ""};` },
+          // Verified on physical iOS Pi Browser: its ancestor is app-cdn.minepi.com.
+          // CSP keeps all other external embedders blocked. SAMEORIGIN would
+          // conflict with the required cross-origin Pi host, so do not emit it.
+          { key: "Content-Security-Policy", value: `frame-ancestors 'self' https://app-cdn.minepi.com${sandbox ? " https://sandbox.minepi.com" : ""};` },
         ],
       },
       {

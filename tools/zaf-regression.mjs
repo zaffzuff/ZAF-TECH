@@ -381,7 +381,8 @@ for (const token of [
   "poweredByHeader: false",
   "X-Content-Type-Options",
   "Referrer-Policy",
-  "X-Frame-Options",
+  "Content-Security-Policy",
+  "frame-ancestors 'self' https://app-cdn.minepi.com",
   "Permissions-Policy",
   "Strict-Transport-Security",
 ]) {
