@@ -15,10 +15,26 @@ const nextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          ...(sandbox ? [] : [{ key: "X-Frame-Options", value: "SAMEORIGIN" }]),
-          { key: "Content-Security-Policy", value: `frame-ancestors 'self'${sandbox ? " https://sandbox.minepi.com" : ""};` },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+        ],
+      },
+      {
+        // A standalone, anonymous diagnostic must be visible inside the native
+        // browser shell so its actual frame origin can be identified.
+        source: "/((?!browser-check\\.html$).*)",
+        headers: [
+          // Verified on physical iOS Pi Browser: its ancestor is app-cdn.minepi.com.
+          // CSP keeps all other external embedders blocked. SAMEORIGIN would
+          // conflict with the required cross-origin Pi host, so do not emit it.
+          { key: "Content-Security-Policy", value: `frame-ancestors 'self' https://app-cdn.minepi.com${sandbox ? " https://sandbox.minepi.com" : ""};` },
+        ],
+      },
+      {
+        source: "/browser-check.html",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "Content-Security-Policy", value: "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none';" },
         ],
       },
     ];

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>ZAF Tech · Tarayıcı kontrolü</title>
+  <style>
+    body{margin:0;padding:24px 16px;background:#f7f8fb;color:#201a2b;font:16px/1.5 -apple-system,BlinkMacSystemFont,Arial,sans-serif}
+    main{max-width:640px;margin:auto}h1{font-size:23px;color:#7928ca}pre{padding:16px;border:1px solid #dfc47d;border-radius:10px;background:#fff3c4;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.6 monospace}a{color:#7928ca}
+  </style>
+</head>
+<body>
+<main>
+  <h1>ZAF Tech · Tarayıcı kontrolü</h1>
+  <p>Bu yazı görünüyorsa sade sayfa açıldı. Aşağıdaki kontrol sonucunu ZAF Tech geliştirme sohbetinde paylaşabilirsin.</p>
+  <pre id="result">ZAF-CHECK-1
+HTML: OK
+JavaScript: henüz çalışmadı</pre>
+  <p>Bu kontrol giriş yapmaz, Pi SDK yüklemez ve sonucu bir sunucuya göndermez. Şifre veya erişim anahtarı içermez.</p>
+  <a href="/">ZAF Tech'e dön</a>
+</main>
+<script>
+(function () {
+  var lines = ['ZAF-CHECK-1', 'HTML: OK', 'JavaScript: OK'];
+  function originOnly(value) {
+    if (!value) return '(yok)';
+    try { var url = new URL(value); return url.protocol + '//' + url.host; }
+    catch (_) { return '(okunamadı)'; }
+  }
+  lines.push('Frame: ' + (window.top === window.self ? 'top-level' : 'embedded'));
+  lines.push('Referrer origin: ' + originOnly(document.referrer));
+  try {
+    var origins = window.location.ancestorOrigins;
+    var ancestors = [];
+    if (origins) for (var i = 0; i < origins.length; i++) ancestors.push(originOnly(origins[i]));
+    lines.push('Ancestor origins: ' + (ancestors.length ? ancestors.join(', ') : '(erişilemiyor veya yok)'));
+  } catch (_) { lines.push('Ancestor origins: (engelli)'); }
+  try { void window.localStorage; lines.push('Local storage: available'); }
+  catch (_) { lines.push('Local storage: blocked'); }
+  try { void window.sessionStorage; lines.push('Session storage: available'); }
+  catch (_) { lines.push('Session storage: blocked'); }
+  lines.push('Fetch: ' + typeof window.fetch);
+  lines.push('Array.at: ' + typeof Array.prototype.at);
+  lines.push('Promise.allSettled: ' + typeof Promise.allSettled);
+  lines.push('Secure context: ' + String(window.isSecureContext));
+  lines.push('User agent: ' + navigator.userAgent);
+  document.getElementById('result').textContent = lines.join('\n');
+})();
+</script>
+</body>
+</html>
