@@ -21,6 +21,31 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <script dangerouslySetInnerHTML={{ __html: `
           (function () {
+            // Pi Browser 1.17.x can use an older WebView than current Safari.
+            // Install tiny standards-only fallbacks before the React bundle runs
+            // so the observatory does not turn into a blank screen after data loads.
+            if (!Array.prototype.at) {
+              Array.prototype.at = function (index) {
+                var position = Math.trunc(index) || 0;
+                if (position < 0) position += this.length;
+                return this[position];
+              };
+            }
+            if (!Array.prototype.flatMap) {
+              Array.prototype.flatMap = function (callback, thisArg) {
+                return Array.prototype.concat.apply([], this.map(callback, thisArg));
+              };
+            }
+            if (!Promise.allSettled) {
+              Promise.allSettled = function (items) {
+                return Promise.all(Array.from(items, function (item) {
+                  return Promise.resolve(item).then(
+                    function (value) { return { status: "fulfilled", value: value }; },
+                    function (reason) { return { status: "rejected", reason: reason }; },
+                  );
+                }));
+              };
+            }
             try {
               var saved = localStorage.getItem("zaf-tech-theme-v1");
               var dark = saved === "dark" || (saved !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
