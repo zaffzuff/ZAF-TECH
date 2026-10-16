@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPiRuntimeConfig } from "@/lib/zaf/pi/runtime";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
+import { readPiAuthInput, PiInputError, validPiProfile, piRetryAfter } from "@/lib/zaf/pi/auth-input";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,23 +15,12 @@ export async function POST(request: Request) {
   const rateLimit = await enforceRateLimit(request, "pi-auth-verify", { limit: 12, windowMs: 60_000 });
   if (rateLimit) return rateLimit;
 
-  let body: unknown;
+  let accessToken: string;
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "A valid JSON body is required." }, {
-      status: 400,
-      headers: { "Cache-Control": "no-store" },
-    });
-  }
-
-  const accessToken = body && typeof body === "object" && "accessToken" in body
-    ? (body as { accessToken?: unknown }).accessToken
-    : undefined;
-
-  if (typeof accessToken !== "string" || accessToken.trim().length === 0 || accessToken.length > 4096) {
-    return NextResponse.json({ error: "A valid Pi access token is required." }, {
-      status: 400,
+    accessToken = await readPiAuthInput(request);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof PiInputError ? error.message : "Invalid request." }, {
+      status: error instanceof PiInputError ? error.status : 400,
       headers: { "Cache-Control": "no-store" },
     });
   }
@@ -51,6 +41,7 @@ export async function POST(request: Request) {
         Accept: "application/json",
       },
       cache: "no-store",
+      redirect: "error",
       signal: AbortSignal.timeout(10_000),
     });
 
@@ -61,6 +52,11 @@ export async function POST(request: Request) {
       });
     }
 
+    if (piResponse.status === 429) {
+      return NextResponse.json({ error: "Pi verification is busy. Please retry later." }, {
+        status: 429, headers: { "Cache-Control": "no-store", "Retry-After": String(piRetryAfter(piResponse.headers.get("retry-after"))) },
+      });
+    }
     if (!piResponse.ok) {
       return NextResponse.json({ error: "Pi verification is temporarily unavailable." }, {
         status: 502,
@@ -69,8 +65,7 @@ export async function POST(request: Request) {
     }
 
     const user = await piResponse.json() as PiUserResponse;
-    if (typeof user.uid !== "string" || user.uid.length === 0 ||
-        typeof user.username !== "string" || user.username.trim().length === 0) {
+    if (!validPiProfile(user)) {
       return NextResponse.json({ error: "Pi returned an incomplete user profile." }, {
         status: 502,
         headers: { "Cache-Control": "no-store" },

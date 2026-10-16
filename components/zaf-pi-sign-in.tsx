@@ -1,36 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
-import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_VERIFIED_USERNAME_KEY, PI_DISPLAY_CHANGE_EVENT, clearPiDisplay, notifyPiDisplayChange } from "@/lib/zaf/pi/oauth";
-
-type VerifiedPiUser = { username: string };
-
-type PiAuthResult = {
-  accessToken: string;
-  user?: { username?: string; uid?: string };
-};
-
-type PiSdk = {
-  init: (options: { version: "2.0"; sandbox: boolean }) => Promise<unknown> | void;
-  authenticate: (
-    scopes: string[],
-    onIncompletePaymentFound?: (payment: unknown) => void,
-  ) => Promise<PiAuthResult>;
-  getPiHostAppInfo?: () => Promise<{ hostApp?: string }>;
-};
-
-declare global {
-  interface Window {
-    Pi?: PiSdk;
-  }
-}
-
-let sdkLoadPromise: Promise<void> | null = null;
-let initializedSandboxMode: boolean | null = null;
-let sdkInitializationPromise: Promise<PiSdk> | null = null;
+import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_STARTED_KEY, PI_DISPLAY_CHANGE_EVENT, clearPiDisplay, readPiDisplay, savePiDisplay, acquirePiSignIn, releasePiSignIn, isPiSignInBusy, type PiDisplay } from "@/lib/zaf/pi/oauth";
+import { loadPiSdk, initializePiSdk, authenticatePi, piReloadRequired, withPiTimeout as withTimeout, type PiSdk } from "@/lib/zaf/pi/sdk";
 
 function beginPiOAuthSignIn(clientId: string) {
   const bytes = new Uint8Array(24);
@@ -40,6 +15,7 @@ function beginPiOAuthSignIn(clientId: string) {
   const returnTo = window.location.pathname + window.location.search;
 
   sessionStorage.setItem(PI_SIGNIN_STATE_KEY, state);
+  sessionStorage.setItem(PI_SIGNIN_STARTED_KEY, String(Date.now()));
   sessionStorage.setItem(PI_SIGNIN_RETURN_TO_KEY, returnTo);
 
   const authorizationUrl = new URL("https://accounts.pinet.com/oauth/authorize");
@@ -72,22 +48,6 @@ function safePiErrorDetail(error: unknown): string {
     .slice(0, 140);
 }
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs);
-    promise.then(
-      (value) => {
-        window.clearTimeout(timeoutId);
-        resolve(value);
-      },
-      (error: unknown) => {
-        window.clearTimeout(timeoutId);
-        reject(error);
-      },
-    );
-  });
-}
-
 function isPiBrowserUserAgent() {
   const userAgent = navigator.userAgent.toLowerCase();
   return userAgent.includes("pibrowser") ||
@@ -115,77 +75,23 @@ async function detectPiBrowser(pi: PiSdk): Promise<boolean> {
   return isPiBrowserUserAgent();
 }
 
-function loadPiSdk() {
-  if (typeof window !== "undefined" && window.Pi) return Promise.resolve();
-  if (sdkLoadPromise) return sdkLoadPromise;
-
-  sdkLoadPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = "https://sdk.minepi.com/pi-sdk.js";
-    script.async = true;
-    script.onload = () => {
-      if (window.Pi) resolve();
-      else {
-        sdkLoadPromise = null;
-        reject(new Error("Pi SDK did not initialize."));
-      }
-    };
-    script.onerror = () => {
-      sdkLoadPromise = null;
-      reject(new Error("Pi SDK could not be loaded."));
-    };
-    document.head.appendChild(script);
-  });
-
-  return sdkLoadPromise;
-}
-
-async function initializePiSdk(): Promise<PiSdk> {
-  const pi = window.Pi;
-  if (!pi) throw new Error("Pi SDK is unavailable.");
-
-  // Sandbox is an environment setting, separate from the app's Mainnet/Testnet choice.
-  const configuredMode = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase();
-  const requestedByUrl = new URLSearchParams(window.location.search).get("pi_sandbox") === "true";
-  const sandbox = configuredMode
-    ? configuredMode === "sandbox"
-    : requestedByUrl || window.location.hostname === "sandbox.minepi.com";
-
-  if (initializedSandboxMode === sandbox) return pi;
-  if (sdkInitializationPromise) return sdkInitializationPromise;
-
-  // Share one init promise so a slow Pi Browser cannot trigger racing Pi.init() calls.
-  sdkInitializationPromise = Promise.resolve(pi.init({ version: "2.0", sandbox }))
-    .then(() => {
-      initializedSandboxMode = sandbox;
-      return pi;
-    })
-    .catch((error: unknown) => {
-      sdkInitializationPromise = null;
-      throw error;
-    });
-
-  return sdkInitializationPromise;
-}
-
 export function ZafPiSignIn({ locale }: { locale: Locale }) {
-  const [user, setUser] = useState<VerifiedPiUser | null>(null);
+  const [user, setUser] = useState<PiDisplay | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [reload, setReload] = useState(false);
+  const mounted = useRef(true);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
   useEffect(() => {
-    const sync = () => {
-      try {
-        const username = sessionStorage.getItem(PI_SIGNIN_VERIFIED_USERNAME_KEY)?.trim();
-        setUser(username && username.length <= 100 ? { username } : null);
-        setMessage("");
-      } catch { /* Storage may be blocked; keep the current view usable. */ }
-    };
+    mounted.current = true;
+    const sync = () => { setUser(readPiDisplay()); setBusy(isPiSignInBusy()); setReload(piReloadRequired()); };
     sync();
+    const timer = window.setInterval(sync, 30_000);
     window.addEventListener(PI_DISPLAY_CHANGE_EVENT, sync);
-    return () => window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync);
+    window.addEventListener("pageshow", sync);
+    return () => { mounted.current = false; window.clearInterval(timer); window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync); window.removeEventListener("pageshow", sync); };
   }, []);
 
   useEffect(() => {
@@ -194,8 +100,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     let cancelled = false;
     void (async () => {
       try {
-        await withTimeout(loadPiSdk(), 12_000, "Pi SDK loading timed out.");
-        await withTimeout(initializePiSdk(), 12_000, "Pi SDK initialization timed out.");
+        await loadPiSdk();
+        await initializePiSdk();
       } catch (error) {
         if (!cancelled) {
           // Delay visible errors until the user taps Sign in; log only sanitized details.
@@ -213,7 +119,9 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   }, []);
 
   async function signIn() {
-    if (busy) return;
+    if (busy || isPiSignInBusy()) return;
+    if (piReloadRequired()) { window.location.reload(); return; }
+    if (!acquirePiSignIn()) return;
     clearPiDisplay();
     setUser(null);
     setBusy(true);
@@ -221,23 +129,15 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
     let phase: "oauth-start" | "sdk-load" | "browser-detection" | "sdk-init" | "authentication" | "verification" = "sdk-load";
     try {
-      await withTimeout(
-        loadPiSdk(),
-        12_000,
-        "Pi SDK loading timed out.",
-      );
-
+      await loadPiSdk();
       phase = "sdk-init";
-      const pi = await withTimeout(
-        initializePiSdk(),
-        12_000,
-        "Pi SDK initialization timed out.",
-      );
+      const pi = await initializePiSdk();
 
       // The Pi SDK requires init() before any other SDK method. Detect the
       // host only after initialization so Pi Browser auth isn't disrupted.
       phase = "browser-detection";
       const insidePiBrowser = await detectPiBrowser(pi);
+      if (!mounted.current) return;
       const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
 
       if (!insidePiBrowser) {
@@ -253,11 +153,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
       // Inside Pi Browser, use the native Pi Apps SDK flow instead of OAuth.
       phase = "authentication";
-      const auth = await withTimeout(
-        pi.authenticate(["username"], () => undefined),
-        45_000,
-        "Pi Browser did not respond to the sign-in request within 45 seconds.",
-      );
+      const auth = await authenticatePi(pi);
+      if (!mounted.current) return;
       if (!auth?.accessToken || typeof auth.accessToken !== "string") {
         throw new Error("Pi did not return an access token.");
       }
@@ -283,16 +180,13 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       }
 
       const username = typeof body?.user?.username === "string" ? body.user.username.trim() : "";
+      if (!mounted.current) return;
       if (!username) throw new Error("Pi verified the request but returned no username.");
-      setUser({ username });
-      try {
-        sessionStorage.setItem(PI_SIGNIN_VERIFIED_USERNAME_KEY, username);
-      } catch {
-        // Username is presentation-only; the access token is never stored.
-      }
-      setMessage(tr("Pi account verified.", "Pi hesabı doğrulandı."));
-      notifyPiDisplayChange();
+      savePiDisplay(username);
+      setUser(readPiDisplay());
+      setMessage("");
     } catch (error) {
+      if (!mounted.current) return;
       // Ordinary browsers can use Pi OAuth even when the native SDK cannot
       // initialize there. Native Pi Browser errors stay on the native path.
       const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
@@ -345,7 +239,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       const [enMessage, trMessage] = failureCopy[phase];
       setMessage(tr(enMessage, trMessage));
     } finally {
-      setBusy(false);
+      releasePiSignIn();
+      if (mounted.current) { setReload(piReloadRequired()); setBusy(false); }
     }
   }
 
@@ -359,12 +254,12 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         aria-label={tr("Sign in with Pi", "Pi ile giriş yap")}
       >
         <span aria-hidden="true" className="text-sm font-bold">π</span>
-        <span className="hidden truncate lg:inline">{busy ? tr("Connecting to Pi…", "Pi'ye bağlanılıyor…") : user ? tr("Pi Account Verified", "Pi Hesabı Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
-        <span className="inline truncate lg:hidden">{busy ? tr("Connecting…", "Bağlanıyor…") : user ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="hidden truncate lg:inline">{busy ? tr("Connecting to Pi…", "Pi'ye bağlanılıyor…") : reload ? tr("Reload and retry", "Yenile ve tekrar dene") : user?.current ? tr("Pi Account Verified", "Pi Hesabı Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="inline truncate lg:hidden">{busy ? tr("Connecting…", "Bağlanıyor…") : reload ? tr("Reload and retry", "Yenile ve tekrar dene") : user?.current ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
       </button>
       {user ? (
         <span className="min-w-0 break-all text-[10px] text-muted-foreground" aria-live="polite">
-          {tr("Verified username:", "Doğrulanan kullanıcı adı:")} @{user.username}
+          {user.current ? tr("Verified username:", "Doğrulanan kullanıcı adı:") : tr("Previously verified:", "Önceden doğrulanan:")} @{user.username}
         </span>
       ) : message ? (
         <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-red-500/50 bg-red-50 px-2.5 py-1.5 text-[10px] leading-relaxed text-red-700 shadow-md [overflow-wrap:anywhere] dark:border-red-400/50 dark:bg-red-950 dark:text-red-200" role="status" aria-live="polite">

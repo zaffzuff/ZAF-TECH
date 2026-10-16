@@ -129,7 +129,11 @@ if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
   throw new Error("Pi username-only authentication must not require payment credentials or scope");
 }
 const piSignIn = readText(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
-for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init", "Promise.resolve(pi.init({ version: \"2.0\", sandbox }))", "await withTimeout(\n        initializePiSdk(),", "Pi SDK initialization timed out.", "Pi account verified.", 'authenticate(["username"]', "/api/zaf/pi/auth", "sandbox.minepi.com", "NEXT_PUBLIC_PI_SDK_MODE", "pi_sandbox", "new URLSearchParams(window.location.search)", "function withTimeout", "sdk-init", "12_000", "45_000"]) {
+const piSdk = readText(path.join(root, "lib/zaf/pi/sdk.ts"), "utf8");
+for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init({ version: \"2.0\", sandbox })", "Pi SDK initialization timed out.", 'pi.authenticate(["username"]', "NEXT_PUBLIC_PI_SDK_MODE", "12_000", "45_000", "reloadRequired"]) {
+  if (!piSdk.includes(token)) throw new Error("Pi SDK lifecycle regression: " + token);
+}
+for (const token of ["/api/zaf/pi/auth", "initializePiSdk", "authenticatePi", "acquirePiSignIn", "readPiDisplay", "savePiDisplay"]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Sign-In UI regression: " + token);
 }
 
@@ -145,11 +149,11 @@ for (const token of [
 }
 
 const piBrowserDetectionStart = piSignIn.indexOf("async function detectPiBrowser");
-const sdkInitializationCall = piSignIn.indexOf("const pi = await withTimeout(", piSignIn.indexOf("async function signIn()"));
+const sdkInitializationCall = piSignIn.indexOf("const pi = await initializePiSdk(", piSignIn.indexOf("async function signIn()"));
 const piBrowserDetectionBranch = piSignIn.indexOf("const insidePiBrowser = await detectPiBrowser(pi);");
 const nativePiAuthBranch = piSignIn.indexOf("if (!insidePiBrowser)");
 const oauthRedirectBranch = piSignIn.indexOf("beginPiOAuthSignIn(oauthClientId)");
-const nativeAuthenticateBranch = piSignIn.indexOf('pi.authenticate(["username"]');
+const nativeAuthenticateBranch = piSignIn.indexOf('await authenticatePi(pi)');
 for (const [name, index] of [
   ["detector", piBrowserDetectionStart],
   ["SDK initialization call", sdkInitializationCall],
@@ -170,9 +174,8 @@ if (!(sdkInitializationCall >= 0 &&
 }
 for (const token of [
   "function safePiErrorDetail",
-  "let sdkInitializationPromise: Promise<PiSdk> | null = null;",
   "useEffect(() => {",
-  "await withTimeout(initializePiSdk(), 12_000, \"Pi SDK initialization timed out.\")",
+  "await initializePiSdk();",
   'userAgent.includes("pibrowser")',
   'userAgent.includes("pi-browser")',
   'info?.hostApp === "pi-browser"',
@@ -241,7 +244,7 @@ for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNI
   if (!piOAuthHelpers.includes(token)) throw new Error("Pi OAuth state/redirect safety regression: " + token);
 }
 const piSignInCallback = readText(path.join(root, "app/signin/callback/page.tsx"), "utf8");
-for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/auth", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "window.location.replace"]) {
+for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/auth", "savePiDisplay", "isPiOAuthStateFresh", "window.location.replace"]) {
   if (!piSignInCallback.includes(token)) throw new Error("Pi OAuth callback regression: " + token);
 }
 

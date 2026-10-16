@@ -7,7 +7,8 @@ import {
   getSafePiSignInReturnPath,
   PI_SIGNIN_RETURN_TO_KEY,
   PI_SIGNIN_STATE_KEY,
-  PI_SIGNIN_VERIFIED_USERNAME_KEY,
+  PI_SIGNIN_STARTED_KEY,
+  isPiOAuthStateFresh, clearPiDisplay, savePiDisplay,
 } from "@/lib/zaf/pi/oauth";
 
 export default function PiSignInCallbackPage() {
@@ -29,20 +30,25 @@ export default function PiSignInCallbackPage() {
       // Clear credentials before storage access: restricted browsers may throw.
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
+      let startedAt: string | null = null;
       let expectedState: string | null = null;
       let returnTo: string | null = null;
       try {
+        startedAt = sessionStorage.getItem(PI_SIGNIN_STARTED_KEY);
         expectedState = sessionStorage.getItem(PI_SIGNIN_STATE_KEY);
         returnTo = sessionStorage.getItem(PI_SIGNIN_RETURN_TO_KEY);
         sessionStorage.removeItem(PI_SIGNIN_STATE_KEY);
         sessionStorage.removeItem(PI_SIGNIN_RETURN_TO_KEY);
+        sessionStorage.removeItem(PI_SIGNIN_STARTED_KEY);
       } catch {
         setFailed(true);
         setMessage("Sign-in security storage is unavailable. Try again in the same browser. / Güvenlik depolaması kullanılamıyor. Aynı tarayıcıda tekrar dene.");
         return;
       }
 
-      if (!expectedState || !returnedState || returnedState !== expectedState) {
+      clearPiDisplay();
+      const duplicate = ["access_token", "state", "error", "token_type", "expires_in"].some(key => fragment.getAll(key).length > 1);
+      if (duplicate || !isPiOAuthStateFresh(startedAt) || !expectedState || !returnedState || returnedState !== expectedState) {
         setFailed(true);
         setMessage("Pi sign-in could not be verified because the security state did not match. Start again. / Güvenlik doğrulaması eşleşmedi. Yeniden başlat.");
         return;
@@ -81,7 +87,7 @@ export default function PiSignInCallbackPage() {
       }
 
       // Persist only the verified display name, never the access token.
-      sessionStorage.setItem(PI_SIGNIN_VERIFIED_USERNAME_KEY, username);
+      savePiDisplay(username);
       window.location.replace(getSafePiSignInReturnPath(returnTo));
     }
 

@@ -61,7 +61,8 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
   const configuredNetwork = process.env.PI_NETWORK?.trim().toLowerCase();
   const configuredMode = process.env.PI_SDK_MODE?.trim().toLowerCase();
   const clientMode = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase();
-  const invalidSetting = (configuredNetwork && !PI_NETWORKS.includes(configuredNetwork as PiNetwork)) ||
+  const platformApiBaseUrl = cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT);
+  const invalidSetting = platformApiBaseUrl !== PI_PLATFORM_API_DEFAULT || (configuredNetwork && !PI_NETWORKS.includes(configuredNetwork as PiNetwork)) ||
     (configuredMode && !PI_SDK_MODES.includes(configuredMode as PiSdkMode)) ||
     (clientMode && (!PI_SDK_MODES.includes(clientMode as PiSdkMode) || clientMode !== sdkMode));
 
@@ -71,7 +72,7 @@ export function getPiRuntimeConfig(): PiRuntimeConfig {
     sdkSandbox,
     sdkVersion: PI_SDK_VERSION,
     sdkScriptUrl: PI_SDK_SCRIPT_URL,
-    platformApiBaseUrl: cleanBaseUrl(process.env.PI_PLATFORM_API_BASE_URL?.trim() || PI_PLATFORM_API_DEFAULT),
+    platformApiBaseUrl,
     horizonBaseUrl: cleanBaseUrl(process.env.PI_HORIZON_BASE_URL?.trim() || HORIZON_DEFAULTS[network]),
     compatible: compatible && !invalidSetting,
     configurationError: invalidSetting ? "Pi network or SDK mode configuration is invalid or inconsistent." : configurationError,
