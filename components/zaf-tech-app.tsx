@@ -700,9 +700,13 @@ export function ZafTechApp() {
             <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
             <ZafPiSignIn locale={locale} />
           </div>
+          <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-foreground">
+            <strong>{tr("Test environment", "Test ortamı")}</strong>
+            {" · "}{tr("Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.", "Mainnet etiketleri bu uygulamanın Pi ağını değil, herkese açık gözlem verisini belirtir. Diğer veri panelleri kendi kaynak ağını gösterir.")}
+          </div>
           <div className="zaf-desktop-status-row flex flex-wrap items-center gap-2 py-2 text-[11px]">
             <span className="rounded-full border border-violet-300/35 px-2.5 py-1 font-semibold"><span className="zaf-pi-gradient-text">{tr("Pi Network", "Pi Network")}</span></span>
-            <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
+            <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Observation data: Mainnet", "Gözlem verisi: Mainnet")}</span>
             <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Read-only", "Salt-okunur")}</span>
             <span className={`rounded-full border px-2.5 py-1 ${loading ? "border-border text-muted-foreground" : sourceOnline ? "border-ty-active/40 text-foreground" : "border-border text-muted-foreground"}`}>{loading ? tr("Checking Source…", "Kaynak Kontrol Ediliyor…") : sourceOnline ? tr("Ecosystem Source Online", "Ekosistem Kaynağı Çevrimiçi") : tr("Source Unavailable", "Kaynak Kullanılamıyor")}</span>
           </div>
@@ -1003,7 +1007,7 @@ export function ZafTechApp() {
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span>ZAF Tech · Pi Ecosystem Observatory</span>
+            <span>ZAF Tech Testnet · Pi Ecosystem Observatory</span>
             <span>{servicePolicy[locale].label}</span>
             <span>{tr("Independent community-developed technology project", "Bağımsız topluluk geliştirimi teknoloji projesi")}</span>
           </div>

@@ -215,6 +215,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Filters and search apply to the latest transaction sample returned by Pi Mainnet Horizon.": "Filtreler ve arama, Pi Mainnet Horizon tarafından döndürülen son işlem örneklemine uygulanır.",
   },
   es: {
+    "Test environment": "Entorno de pruebas",
+    "Observation data: Mainnet": "Datos observados: Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Las etiquetas Mainnet identifican datos públicos observados, no la red Pi de esta aplicación. Los demás paneles indican su propia red de origen.",
     "Current Day": "Día Actual",
     "Previous Day": "Día Anterior",
     "App Change": "Cambio De Aplicaciones",
@@ -594,6 +597,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "La Solicitud Falló",
   },
   zh: {
+    "Test environment": "测试环境",
+    "Observation data: Mainnet": "观测数据：Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Mainnet 标签表示公开观测数据的来源，而非此应用的 Pi 网络。其他数据面板会标明各自的来源网络。",
     "Current Day": "当前日期",
     "Previous Day": "前一天",
     "App Change": "应用变化",
@@ -1076,6 +1082,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "请求失败",
   },
   it: {
+    "Test environment": "Ambiente di test",
+    "Observation data: Mainnet": "Dati osservati: Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Le etichette Mainnet indicano i dati pubblici osservati, non la rete Pi di questa app. Gli altri pannelli indicano la propria rete di origine.",
     "Current Day": "Giorno Corrente",
     "Previous Day": "Giorno Precedente",
     "App Change": "Variazione App",
@@ -1614,6 +1623,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "Richiesta Non Riuscita",
   },
   de: {
+    "Test environment": "Testumgebung",
+    "Observation data: Mainnet": "Beobachtungsdaten: Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Mainnet-Angaben kennzeichnen öffentliche Beobachtungsdaten, nicht das Pi-Netzwerk dieser App. Andere Datenbereiche zeigen ihr eigenes Quellnetzwerk an.",
     "Current Day": "Aktueller Tag",
     "Previous Day": "Vortag",
     "App Change": "App-Änderung",
@@ -1994,6 +2006,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Independent Community-Developed Technology Project": "Unabhängiges, Von Der Community Entwickeltes Technologieprojekt",
   },
   pt: {
+    "Test environment": "Ambiente de teste",
+    "Observation data: Mainnet": "Dados observados: Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "As etiquetas Mainnet identificam dados públicos observados, não a rede Pi desta aplicação. Os outros painéis indicam a sua própria rede de origem.",
     "Current Day": "Dia Atual",
     "Previous Day": "Dia Anterior",
     "App Change": "Variação De Apps",
@@ -2374,6 +2389,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Independent Community-Developed Technology Project": "Projeto Tecnológico Independente Desenvolvido Pela Comunidade",
   },
   ru: {
+    "Test environment": "Тестовая среда",
+    "Observation data: Mainnet": "Данные наблюдений: Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Метки Mainnet обозначают общедоступные данные наблюдений, а не сеть Pi этого приложения. Другие панели указывают собственную сеть источника.",
     "ZAF Tech does not claim Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet status or application health until the relevant property has been independently verified by an observable check. Category is a ZAF Tech classification based on the public name/URL signal and is not an official Pi category.": "ZAF Tech не заявляет о наличии Pi Authentication, Pi Payments, PiNet, статусе Mainnet/Testnet или состоянии приложения, пока соответствующее свойство не подтверждено независимой наблюдаемой проверкой. Категория ZAF Tech основана на публичном имени/URL и не является официальной категорией Pi.",
     "Historical storage is optional. Set DATABASE_URL to enable persistent DeFi history and change alerts.": "Историческое хранилище необязательно. Настройте DATABASE_URL, чтобы включить сохранение истории DeFi и уведомления об изменениях.",
     "Boundary: alerts are generated from observable sample changes only. They do not prove network-wide activity, intent, ownership, or economic significance.": "Граница: уведомления формируются только по изменениям наблюдаемой выборки. Они не доказывают активность всей сети, намерения, владение или экономическую значимость.",
@@ -3183,6 +3201,9 @@ const translations: Record<Locale, Record<string, string>> = {
     "Coming soon target": "Ближайшая цель",
   },
   fr: {
+    "Test environment": "Environnement de test",
+    "Observation data: Mainnet": "Données observées : Mainnet",
+    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Les mentions Mainnet désignent les données publiques observées, pas le réseau Pi de cette application. Les autres panneaux indiquent leur propre réseau source.",
     "Current Day": "Jour Actuel",
     "Previous Day": "Jour Précédent",
     "App Change": "Variation Des Apps",
