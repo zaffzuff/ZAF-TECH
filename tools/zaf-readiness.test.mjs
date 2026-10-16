@@ -11,6 +11,69 @@ import ts from "typescript";
 const require = createRequire(import.meta.url);
 const root = process.cwd();
 
+test("ledger freshness ages without a new request and rejects invalid or future timestamps", () => {
+  const { observationFreshness } = loader()("@/lib/zaf/freshness");
+  const time = Date.parse("2026-10-16T09:00:00Z");
+  const stamp = new Date(time).toISOString();
+  assert.equal(observationFreshness(stamp, time).state, "fresh");
+  assert.equal(observationFreshness(stamp, time + 31_000).state, "aging");
+  assert.equal(observationFreshness(stamp, time + 121_000).state, "stale");
+  assert.equal(observationFreshness("invalid", time).state, "unknown");
+  assert.equal(observationFreshness(new Date(time + 60_000).toISOString(), time).state, "unknown");
+});
+
+test("a successful request for an old ledger is stale and never stored as a new measurement", async () => {
+  let writes = 0;
+  const snapshot = {generatedAt:new Date().toISOString(),latestLedger:{sequence:"42",closedAt:"2020-01-01T00:00:00Z"},recentLedgers:[],metrics:{latestProtocolVersion:28},error:null};
+  const {getUnifiedObservation} = loader({
+    "@/lib/zaf/horizon-client":{getZafSnapshot:async()=>snapshot},
+    "@/lib/zaf/ecosystem":{getEcosystemSnapshot:async()=>null},
+    "@/lib/zaf/observation-history":{saveObservationSnapshot:async()=>{writes++;return true;}},
+  })("@/lib/zaf/observation-engine");
+  const result = await getUnifiedObservation({force:true});
+  assert.equal(result.freshness.state,"stale");
+  assert.equal(result.historyStored,false);
+  assert.equal(writes,0);
+});
+
+test("monitor status distinguishes a fresh collection then from current stored data age", async () => {
+  const route=loader({
+    "next/server":responseMock,
+    "@/lib/zaf/monitor-status":{readMonitorStatus:async()=>({storage:"available",latestScheduledRun:null})},
+    "@/lib/zaf/observation-history":{getObservationHistory:async()=>[{generatedAt:"2020-01-01T00:00:00Z",freshnessState:"fresh"}]},
+  })("@/app/api/zaf/status/route");
+  const result=await route.GET();
+  assert.equal(result.body.latestObservation.freshnessAtCollection,"fresh");
+  assert.equal(result.body.latestObservation.freshness,"stale");
+});
+
+test("public address checksum rejects a same-length corruption", () => {
+  const { isValidPublicAddress } = loader()("@/lib/zaf/public-address");
+  const address = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+  assert.equal(isValidPublicAddress(address), true);
+  assert.equal(isValidPublicAddress(address.slice(0, -1) + "A"), false);
+  assert.equal(isValidPublicAddress("S" + address.slice(1)), false);
+});
+
+test("transaction lookup distinguishes missing records, throttling and source failures", async () => {
+  const original = globalThis.fetch;
+  const id = "a".repeat(64);
+  const route = loader({ "next/server": responseMock, "@/lib/zaf/rate-limit": { enforceRateLimit: async () => null } })("@/app/api/tools/transaction/route");
+  try {
+    for (const [sourceStatus, expected] of [[404,404],[429,429],[500,502],[403,502]]) {
+      globalThis.fetch = async () => new Response(JSON.stringify({title:"Source error"}), {status:sourceStatus});
+      assert.equal((await route.GET(new Request(`https://example.com/api?id=${id}`))).status, expected);
+    }
+    globalThis.fetch = async () => new Response(JSON.stringify({hash:id}));
+    const result = await route.GET(new Request(`https://example.com/api?id=${id}`));
+    assert.equal(result.body.found, true);
+    assert.ok(result.body.checkedAt);
+    assert.equal(result.body.sourceUrl, `https://api.mainnet.minepi.com/transactions/${id}`);
+    globalThis.fetch = async () => new Response('{}');
+    assert.equal((await route.GET(new Request(`https://example.com/api?id=${id}`))).status, 502);
+  } finally { globalThis.fetch = original; }
+});
+
 test("Connector distinguishes active ledger protocol from binary support and handles v28 image tags", () => {
   const connector = require("./zaf-node-connector.cjs");
   assert.equal(connector.observedProtocol({ protocol_version: 28, ledger: { version: 27 } }, ""), 27);
@@ -44,7 +107,7 @@ test("protocol 27/28 transition and unfamiliar operations remain observable with
 test("source failure retains an explicitly stale sample without recording a new historical measurement", async () => {
   let reads = 0, writes = 0;
   const now = new Date().toISOString();
-  const snapshot = { generatedAt: now, latestLedger:{sequence:"42"}, recentLedgers:[], metrics:{ latestProtocolVersion:28 }, error:null };
+  const snapshot = { generatedAt: now, latestLedger:{sequence:"42",closedAt:now}, recentLedgers:[], metrics:{ latestProtocolVersion:28 }, error:null };
   const load=loader({
     "@/lib/zaf/horizon-client":{getZafSnapshot:async()=>{reads++;return reads===1?snapshot:{...snapshot,latestLedger:null,error:"Source timed out"};}},
     "@/lib/zaf/ecosystem":{getEcosystemSnapshot:async()=>({generatedAt:now,apps:{items:[],totalCount:null},sources:[]})},

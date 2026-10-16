@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ZafBrand } from "@/components/zaf-brand";
 import { LEGAL_UPDATED, privacySupplement } from "@/lib/zaf/legal-notice";
 import { useState } from "react";
 import { LanguageSelector } from "@/components/zaf-language-selector";
@@ -242,6 +243,7 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-background px-4 py-8 text-foreground">
       <article className="mx-auto max-w-2xl">
+        <ZafBrand className="mb-6" />
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="text-xs underline underline-offset-2">{t.back}</Link>
           <LanguageSelector locale={locale} onChange={changeLocale} />

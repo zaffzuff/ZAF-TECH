@@ -1,4 +1,5 @@
 "use client";
+import { ZafBrand } from "@/components/zaf-brand";
 
 import { useState } from "react";
 
@@ -98,7 +99,7 @@ export default function StartWithPiPage() {
     <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-8 sm:py-10">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex items-center justify-between gap-4 border-b border-border pb-4">
-          <a href="/" className="text-sm font-semibold tracking-[0.12em] text-foreground">ZAF <span className="text-[#b98745]">Tech</span></a>
+          <ZafBrand />
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => setLocale(locale === "en" ? "tr" : "en")} className="border border-border px-3 py-1.5 text-[10px] font-semibold hover:bg-muted" aria-label="Switch language">{locale === "en" ? "TR" : "EN"}</button>
             <a href="/" className="hidden text-[10px] text-muted-foreground underline underline-offset-4 sm:inline">{t.back}</a>

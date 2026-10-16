@@ -11,6 +11,7 @@ export type OfficialNewsMetadata = {
   sourceUrl: string;
   mode: "rss" | "html" | null;
   stale: boolean;
+  sourcesChecked?: Array<{ url: string; mode: "rss" | "html"; readable: boolean; latestPublishedAt: string | null }>;
 };
 
 export function decodeNewsText(value: string) {

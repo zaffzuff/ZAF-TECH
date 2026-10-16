@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { ZafWordmark } from "@/components/zaf-brand";
 import { servicePolicy } from "@/lib/zaf/service-policy";
 import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
+import { ZafObservationStatus } from "@/components/zaf-observation-status";
 import { requestJson } from "@/lib/zaf/client-request";
 import type { UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type React from "react";
@@ -666,7 +668,7 @@ export function ZafTechApp() {
             <div className="flex min-w-0 items-center gap-3">
               <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={44} height={44} className="h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="text-[1.45rem] font-bold tracking-tight ty-brand-text">ZAF Tech</div>
+                <ZafWordmark className="text-[1.45rem]" />
                 <p className="text-[11px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
@@ -683,7 +685,7 @@ export function ZafTechApp() {
             <div className="flex min-w-0 items-center gap-2">
               <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={44} height={44} className="zaf-mobile-brand-logo h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
-                <div className="whitespace-nowrap text-[clamp(1.12rem,5vw,1.4rem)] font-bold tracking-tight ty-brand-text">ZAF Tech</div>
+                <ZafWordmark className="text-[clamp(1.12rem,5vw,1.4rem)]" />
                 <p className="truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
@@ -706,10 +708,7 @@ export function ZafTechApp() {
           </div>
         </header>
         <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
-        <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-muted-foreground">
-          <span><span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${loading ? "bg-muted-foreground" : loadError ? "bg-destructive" : "bg-ty-active"}`} />{loading ? tr("Checking Observations", "Gözlemler Kontrol Ediliyor") : loadError ? tr("Observation Error", "Gözlem Hatası") : tr("Live Observations", "Canlı Gözlemler")}</span>
-          <span>{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
-        </div>
+        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} failed={Boolean(loadError)} />
 
         {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
         {!loading && loadError ? (

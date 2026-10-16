@@ -109,19 +109,37 @@ test("complete source failure without history yields no invented publication", a
   assert.equal(result.metadata.lastSuccessfulAt, null);
 });
 
-test("concurrent reads share one request and respect the five-minute cache", async () => {
+test("concurrent reads share one two-source comparison and respect the five-minute cache", async () => {
   let calls = 0;
   let time = 0;
   const read = createOfficialNewsReader(async () => { calls++; await Promise.resolve(); return feed; }, () => time);
   const results = await Promise.all([read(), read(), read()]);
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   assert.equal(results[0], results[1]);
   time += 299_999;
   await read();
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
   time++;
   await read();
-  assert.equal(calls, 2);
+  assert.equal(calls, 4);
+});
+
+test("a readable but lagging RSS feed cannot hide a newer official blog article", async () => {
+  const latest = '<article><h2><a href="/blog/introducing-ecosystem-summit/">Ecosystem Summit</a></h2><time datetime="2026-10-15T12:00:00Z"></time></article>';
+  const result = await createOfficialNewsReader(async url => url === OFFICIAL_NEWS_FEED ? feed : latest)();
+  assert.equal(result.items[0].title, "Ecosystem Summit");
+  assert.equal(result.metadata.mode, "html");
+  assert.equal(result.metadata.sourcesChecked.length, 2);
+  assert.ok(result.metadata.sourcesChecked.every(source => source.readable));
+});
+
+test("older successful responses cannot roll back previously observed news", async () => {
+  const saved = { items: [{ title: 'Summit', url: 'https://minepi.com/blog/introducing-ecosystem-summit/', publishedAt: '2026-10-15T12:00:00Z' }], lastSuccessfulAt: '2026-10-15T13:00:00Z', sourceUrl: OFFICIAL_NEWS_BLOG, mode: 'html' };
+  const result = await createOfficialNewsReader(async url => url === OFFICIAL_NEWS_FEED ? feed : article)(async () => saved);
+  assert.equal(result.items[0].title, 'Summit');
+  assert.equal(result.metadata.status, 'unavailable');
+  assert.equal(result.metadata.stale, true);
+  assert.equal(result.metadata.lastSuccessfulAt, saved.lastSuccessfulAt);
 });
 
 test("scheduled collection requires authorization and reuses the collected ecosystem for app checks", async () => {
