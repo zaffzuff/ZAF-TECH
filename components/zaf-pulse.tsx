@@ -2,6 +2,7 @@
 
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import { normalizeOfficialNews } from "@/lib/zaf/official-news-parser";
+import { ZafWordmark } from "@/components/zaf-brand";
 import type { EcosystemNewsItem, OfficialNewsMetadata } from "@/lib/zaf/official-news-parser";
 import type { Locale } from "@/lib/zaf/i18n";
 import type { RadarObservation, RadarSignal } from "@/lib/zaf/radar";
@@ -96,14 +97,6 @@ function Icon({ kind, size = 18 }: { kind: "pulse" | "rising" | "signal" | "new"
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{body}</svg>;
 }
 
-function Sparkline({ rising }: { rising: boolean }) {
-  return (
-    <svg className="zaf-sparkline" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true">
-      <path d={rising ? "M1 23 L18 22 L34 20 L48 21 L63 15 L77 16 L91 10 L104 12 L119 4" : "M1 10 L18 13 L34 9 L48 15 L63 12 L77 18 L91 15 L104 21 L119 19"} />
-    </svg>
-  );
-}
-
 function StatusBadge({ state, locale }: { state: string; locale: Locale }) {
   const text = activityLabel(state, locale);
   const tone = state === "rising" ? "positive" : state === "falling" ? "negative" : "neutral";
@@ -139,7 +132,6 @@ export function ZafPulse({
 }) {
   const total = radar?.sourceCoverage.total ?? 0;
   const available = radar?.sourceCoverage.available ?? 0;
-  const coverage = total ? Math.round((available / total) * 100) : 0;
   const paceStates = (radar?.signals ?? []).filter(signal => ["transaction-pace", "operation-pace"].includes(signal.id) && signal.changePercent != null).map(signal => signal.state);
   const activity = paceStates.length === 2
     ? paceStates[0] === paceStates[1] ? paceStates[0] : "mixed"
@@ -193,6 +185,7 @@ export function ZafPulse({
             <StatusBadge state={activity} locale={locale} />
           </div>
           <p>{brief}</p>
+          <p className="text-[11px] text-muted-foreground">{tx(locale, "Daily pace is extrapolated from the observed ledger window; it is not a full calendar-day count.", "Günlük tempo gözlemlenen ledger penceresinden hesaplanır; tam bir takvim günü toplamı değildir.")}</p>
         </div>
 
         <div className="zaf-pulse-metrics mt-4">
@@ -203,7 +196,7 @@ export function ZafPulse({
         </div>
 
         <div className="zaf-pulse-source-line mt-3">
-          <span>{tx(locale, "Public Source Coverage", "Herkese Açık Kaynak Kapsamı")} {coverage}%</span>
+          <span>{tx(locale, "Active sources", "Aktif kaynak")}: {available}/{total || "—"}</span>
           <span>·</span>
           <span>{tx(locale, "Latest observation", "Son gözlem")} {observationTime(radar?.generatedAt ?? snapshot?.generatedAt, locale)}</span>
           <span>·</span>
@@ -231,7 +224,8 @@ export function ZafPulse({
             </div>
           </div>
           <div className="flex flex-col justify-between border-t border-[#d9c6a4] bg-white/60 p-5 md:border-l md:border-t-0 sm:p-7">
-            <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#93672f]">ZAF Tech / Field Guide</div>
+            <ZafWordmark className="text-xs" />
+            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.18em] text-[#93672f]">Field Guide</div>
             <div className="my-5">
               <div className="text-3xl font-semibold leading-none tracking-tight text-[#1d2933]">PI<span className="text-[#b98745]">.</span></div>
               <div className="mt-2 text-xs font-semibold text-[#1d2933]">{tx(locale, "Begin with clarity.", "Bilinçli bir başlangıç yap.")}</div>
@@ -262,7 +256,6 @@ export function ZafPulse({
                   {signal.value != null ? ` · ${typeof signal.value === "number" ? metricValue(signal.value, locale, signal.id === "transaction-success" ? 1 : 0) : signal.value}` : ""}
                 </div>
               </div>
-              <Sparkline rising={signal.state === "rising"} />
             </div>
           )) : <div className="zaf-pulse-empty">{tx(locale, "Concrete movement signals are not available yet.", "Somut hareket sinyalleri henüz oluşmadı.")}</div>}
         </article>
@@ -296,6 +289,7 @@ export function ZafPulse({
           <div className="mt-3 space-y-1 text-[10px] text-muted-foreground">
             <div>{tx(locale, "Last checked", "Son kontrol")}: {observationTime(newsMetadata?.checkedAt, locale)}</div>
             <div>{tx(locale, "Last successful check", "Son başarılı kontrol")}: {observationTime(newsMetadata?.lastSuccessfulAt, locale)}</div>
+            {newsMetadata?.sourcesChecked?.map(source => <div key={source.url}><a href={source.url} target="_blank" rel="noreferrer" className="underline">{source.mode === "rss" ? "RSS" : "Blog"}</a>: {source.readable ? tx(locale, "Read", "Okundu") : tx(locale, "Unavailable", "Okunamadı")}</div>)}
           </div>
           {newsMetadata?.status === "unavailable" ? <p role="status" className="mt-2 text-[10px] text-amber-600 dark:text-amber-400">{newsMetadata.stale
             ? tx(locale, "Source could not be refreshed. Showing the last successful observation.", "Kaynak yenilenemedi. Son başarılı gözlem gösteriliyor.")

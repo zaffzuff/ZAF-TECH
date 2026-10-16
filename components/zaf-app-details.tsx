@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ZafBrand } from "@/components/zaf-brand";
 import Link from "next/link";
 import type { DirectoryApp } from "@/lib/zaf/app-directory";
 import { useCallback, useEffect, useState } from "react";
@@ -131,10 +131,10 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 pb-10">
         <header className="border-b border-border pb-5 pt-7">
+          <ZafBrand className="mb-5" />
           <div className="flex items-center justify-between gap-3">
             <Link href="/" className="text-xs font-medium text-muted-foreground hover:text-foreground">{tr("← Back To ZAF Tech", "← ZAF Tech'e Dön")}</Link>
             <LanguageSelector locale={locale} onChange={setLocale} />
-            <Image src="/zaf-tech-logo.png" alt="ZAF Tech" width={38} height={38} className="h-9 w-9 object-contain" priority />
           </div>
           <div className="mt-6">
             <div className="text-[10px] tracking-wider text-muted-foreground">{tr("Pi App Directory", "Pi Uygulama Dizini")}</div>

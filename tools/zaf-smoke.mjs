@@ -84,8 +84,8 @@ try {
     await waitForServer();
   } else {
     server = spawn(
-      process.platform === "win32" ? "npm.cmd" : "npm",
-      ["start", "--", "-p", String(port)],
+      process.execPath,
+      ["node_modules/next/dist/bin/next", "start", "-p", String(port)],
       {
         cwd: root,
         env: { ...process.env, PORT: String(port) },

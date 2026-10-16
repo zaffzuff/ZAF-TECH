@@ -1,4 +1,5 @@
 "use client";
+import { ZafBrand } from "@/components/zaf-brand";
 
 import { useEffect, useRef, useState } from "react";
 import { requestJson } from "@/lib/zaf/client-request";
@@ -93,7 +94,8 @@ export default function PiSignInCallbackPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">ZAF Tech · Pi Sign-In</div>
+        <ZafBrand className="mb-4" />
+        <div className="text-xs text-muted-foreground">Pi Sign-In</div>
         <h1 className="mt-2 text-xl font-semibold">Pi account verification</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground" role="status" aria-live="polite">{message}</p>
         {failed ? (

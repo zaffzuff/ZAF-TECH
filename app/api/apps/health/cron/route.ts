@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   const observation = await getUnifiedObservation({ force: true });
   const result = await runEcosystemHealthChecks(observation.ecosystem);
   const rateLimitRowsRemoved = await cleanupZafRateLimits();
-  const networkObserved = Boolean(observation.network?.latestLedger) && !observation.network?.error;
+  const networkObserved = Boolean(observation.network?.latestLedger) && !observation.network?.error && observation.freshness?.state !== "stale" && observation.freshness?.state !== "unknown";
   const newsAvailable = observation.ecosystem?.newsMetadata.status === "available";
   const historyStored = observation.historyStored === true;
   const monitorStored = await saveMonitorRun({
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
       rateLimitRowsRemoved,
       observation: {
         generatedAt: observation.generatedAt,
-        networkObserved: Boolean(observation.network?.latestLedger),
+        networkObserved,
         news: observation.ecosystem?.newsMetadata ?? null,
         errors: observation.errors,
       },

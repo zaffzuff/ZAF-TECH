@@ -2274,3 +2274,19 @@
   .bg-card { background-color: var(--card); }
   .text-muted-foreground { color: var(--muted-foreground); }
 }
+
+/* Shared ZAF Tech identity: distinct from Pi's purple/gold interface. */
+.zaf-brand-lockup { display: inline-flex; align-items: center; gap: .75rem; min-width: 0; text-decoration: none; }
+.zaf-brand-lockup .zaf-wordmark { font-size: clamp(1.05rem, 4.5vw, 1.45rem); }
+.ty-brand-text.zaf-wordmark { background: none; color: inherit; font-family: var(--font-michroma), sans-serif; font-weight: 400; letter-spacing: .035em; white-space: nowrap; text-transform: none; line-height: 1.35; }
+.zaf-wordmark-gold { color: #90681e; }
+.zaf-wordmark-silver { color: #565d66; }
+.dark .zaf-wordmark-gold { color: #f3d690; }
+.dark .zaf-wordmark-silver { color: #d5dbe3; }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .zaf-wordmark-gold { background: linear-gradient(115deg, #7c571a, #b18a39 48%, #81601e); }
+  .zaf-wordmark-silver { background: linear-gradient(115deg, #424b57, #717780 48%, #444b55); }
+  .dark .zaf-wordmark-gold { background: linear-gradient(115deg, #dfb45d, #fff0bf 48%, #dcb15a); }
+  .dark .zaf-wordmark-silver { background: linear-gradient(115deg, #b6c0cd, #f1f3f6 48%, #b1bac7); }
+  .zaf-wordmark span { -webkit-background-clip: text; background-clip: text; color: transparent; }
+}

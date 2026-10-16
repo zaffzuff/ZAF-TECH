@@ -25,6 +25,8 @@ Phones skip local Connector queries and explain the desktop requirement; public 
 
 ## Release gates
 
+The owner reported successful Pi Browser opening/sign-in on two Android devices on October 16, in addition to iPhone 8 Plus, iPhone 11 and desktop Edge/Opera. Remaining cancellation/retry tests are still pending. See `ecosystem-listing-readiness.md` for the mandatory model-upgrade reminder and final application gate; no final listing submission is authorized before that review.
+
 1. Run `npm run test:news`, `npm run test:readiness`, `npm run regression`, `npm run build`, and smoke checks against that build.
 2. In Pi Developer Portal, match the app network, hosted URL, and OAuth callback/client registration. Rebuild when changing SDK mode: the client receives the selected mode at build time. Use a separate Testnet app for Sandbox. Physical iPhone Pi Browser 1.17.1 diagnostics confirmed its frame ancestor is `https://app-cdn.minepi.com`; CSP permits that exact host in hosted and Sandbox builds. Sandbox additionally permits `https://sandbox.minepi.com` only for explicit Testnet Sandbox. Do not add X-Frame-Options SAMEORIGIN: it blocks the required native shell. All other external frame ancestors remain blocked. The anonymous standalone `/browser-check.html` is intentionally frameable for troubleshooting and sends no telemetry.
 3. During the subsequent Pi integration phase, test actual iOS and Android Pi Browser sign-in/cancellation/retry/sign-out and Safari/Chrome OAuth. The reference iPhone is 8 Plus / Pi Browser 1.17.1. Never record tokens, wallet passphrases, or secret variable values in test evidence.

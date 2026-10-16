@@ -2,6 +2,7 @@ import { getEcosystemSnapshot, type EcosystemSnapshot } from "@/lib/zaf/ecosyste
 import { getZafSnapshot } from "@/lib/zaf/horizon-client";
 import { saveObservationSnapshot, type ObservationHistoryRecord } from "@/lib/zaf/observation-history";
 import type { ZafSnapshot } from "@/lib/zaf/types";
+import { observationFreshness } from "@/lib/zaf/freshness";
 
 export type FreshnessState = "fresh" | "aging" | "stale" | "unknown";
 export type ObservationFreshness = { state: FreshnessState; ageSeconds: number; maxAgeSeconds: number; generatedAt: string | null };
@@ -24,13 +25,6 @@ const CACHE_TTL_MS = 15000;
 let cached: { expiresAt: number; value: UnifiedObservation } | null = null;
 let pending: Promise<UnifiedObservation> | null = null;
 let lastSuccessfulNetwork: ZafSnapshot | null = null;
-
-function freshnessFor(generatedAt: string | null): ObservationFreshness {
-  if (!generatedAt) return { state: "unknown", ageSeconds: 0, maxAgeSeconds: 60, generatedAt: null };
-  const ageSeconds = Math.max(0, Math.floor((Date.now() - Date.parse(generatedAt)) / 1000));
-  const maxAgeSeconds = 120;
-  return { state: ageSeconds <= 30 ? "fresh" : ageSeconds <= maxAgeSeconds ? "aging" : "stale", ageSeconds, maxAgeSeconds, generatedAt };
-}
 
 function confidenceFor(network: ZafSnapshot | null, ecosystem: EcosystemSnapshot | null, freshness: ObservationFreshness, errors: string[]): ObservationConfidence {
   let score = 0;
@@ -96,8 +90,9 @@ async function collect(): Promise<UnifiedObservation> {
     .map(result => result.reason instanceof Error ? result.reason.message : "Observation source failed");
   if (network?.error) errors.push(network.error);
   const generatedAt = new Date().toISOString();
-  const sourceGeneratedAt = network?.generatedAt ?? ecosystem?.generatedAt ?? null;
-  const freshness = freshnessFor(sourceGeneratedAt);
+  // A successful HTTP request must not make a frozen ledger look fresh.
+  const sourceGeneratedAt = network?.latestLedger?.closedAt ?? null;
+  const freshness = observationFreshness(sourceGeneratedAt);
   if (networkFailed && lastSuccessfulNetwork) freshness.state = "stale";
   const value: UnifiedObservation = {
     version: "1.1", generatedAt, freshness,
@@ -106,7 +101,7 @@ async function collect(): Promise<UnifiedObservation> {
     network, ecosystem, errors,
   };
   // A retained old sample is displayed as stale, never stored as a new measurement.
-  value.historyStored = networkFailed ? false : await saveObservationSnapshot(historyRecord(value)).catch(() => false);
+  value.historyStored = networkFailed || freshness.state === "stale" || freshness.state === "unknown" ? false : await saveObservationSnapshot(historyRecord(value)).catch(() => false);
   return value;
 }
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ZafBrand } from "@/components/zaf-brand";
 import { CONTACT_EMAIL, LEGAL_UPDATED, OPERATOR } from "@/lib/zaf/legal-notice";
 
 const terms = {
@@ -38,6 +39,7 @@ export default async function TermsPage({ searchParams }: { searchParams: Promis
   return (
     <main lang={locale} className="min-h-screen bg-background px-4 py-8 text-foreground">
       <article className="mx-auto max-w-2xl">
+        <ZafBrand className="mb-6" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link href="/" className="text-sm underline underline-offset-2">← {t.back}</Link>
           <nav aria-label={locale === "tr" ? "Metin dili" : "Document language"} className="flex gap-2 text-sm">

@@ -27,23 +27,30 @@ export function createOfficialNewsReader(fetchText = fetchNewsText, now = () => 
     if (cached && now() < expiresAt) return cached;
     if (pending) return pending;
     pending = (async () => {
-      for (const [sourceUrl, mode, parse] of [
+      // RSS may lag behind the blog while still returning HTTP 200. Compare both.
+      const candidates = await Promise.all(([
         [OFFICIAL_NEWS_FEED, "rss", parseOfficialNewsRss],
         [OFFICIAL_NEWS_BLOG, "html", parseOfficialNewsHtml],
-      ] as const) {
+      ] as const).map(async ([sourceUrl, mode, parse]) => {
         try {
-          const items = parse(await fetchText(sourceUrl));
-          if (!items.length) continue;
-          const checkedAt = new Date(now()).toISOString();
-          cached = { items, metadata: { status: "available", checkedAt, lastSuccessfulAt: checkedAt, sourceUrl, mode, stale: false } };
-          expiresAt = now() + 5 * 60_000;
-          return cached;
-        } catch { /* Try the other official source before using saved evidence. */ }
-      }
+          return { sourceUrl, mode, items: parse(await fetchText(sourceUrl)) };
+        } catch { return { sourceUrl, mode, items: [] as EcosystemNewsItem[] }; }
+      }));
+      const current = normalizeOfficialNews(candidates.flatMap(candidate => candidate.items));
       const saved = cached?.items.length && cached.metadata.lastSuccessfulAt
         ? { items: cached.items, ...cached.metadata, lastSuccessfulAt: cached.metadata.lastSuccessfulAt }
         : await loadSaved?.().catch(() => null);
-      const items = normalizeOfficialNews(saved?.items ?? []);
+      const previous = normalizeOfficialNews(saved?.items ?? []);
+      const regressed = Boolean(previous[0] && current[0] && Date.parse(previous[0].publishedAt!) > Date.parse(current[0].publishedAt!));
+      const sourcesChecked = candidates.map(candidate => ({ url: candidate.sourceUrl, mode: candidate.mode, readable: candidate.items.length > 0, latestPublishedAt: candidate.items[0]?.publishedAt ?? null }));
+      if (current.length && !regressed) {
+        const selected = candidates.find(candidate => candidate.items.some(item => item.url === current[0].url))!;
+        const checkedAt = new Date(now()).toISOString();
+        cached = { items: normalizeOfficialNews([...current, ...previous]), metadata: { status: "available", checkedAt, lastSuccessfulAt: checkedAt, sourceUrl: selected.sourceUrl, mode: selected.mode, stale: false, sourcesChecked } };
+        expiresAt = now() + 5 * 60_000;
+        return cached;
+      }
+      const items = normalizeOfficialNews([...previous, ...current]);
       cached = {
         items,
         metadata: {
@@ -51,6 +58,7 @@ export function createOfficialNewsReader(fetchText = fetchNewsText, now = () => 
           lastSuccessfulAt: items.length ? saved?.lastSuccessfulAt ?? null : null,
           sourceUrl: saved?.sourceUrl ?? OFFICIAL_NEWS_FEED,
           mode: saved?.mode ?? null, stale: items.length > 0,
+          sourcesChecked,
         },
       };
       expiresAt = now() + 60_000;
