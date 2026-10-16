@@ -23,7 +23,7 @@ Develop → ZAF Tech (Mainnet) → App Configuration:
 - Privacy / TOS: https://zaf-tech.vercel.app/privacy and https://zaf-tech.vercel.app/terms . Owner reported Submit completed.
 - API Key: no regeneration required; regeneration invalidates earlier keys. Never request secret keys in chat.
 - App Wallets: no payments; do not add wallets or payments to satisfy an assumed checklist.
-- Pi Sign-In active; callback https://zaf-tech.vercel.app/signin/callback . Native SDK and official Pi OAuth are both Pi identity flows. The current public listing guide explicitly says SDK-only login; document the desktop OAuth flow and check current Pi guidance before asserting its checkbox compatibility. No email/social login exists. Public anonymous access is not a different login method.
+- Pi Sign-In active; callback https://zaf-tech.vercel.app/signin/callback . Official Pi Sign-in documentation explicitly supports ordinary desktop/mobile browsers through either Pi.signIn SDK helper or standard OAuth, with username scope. Our native Pi Browser flow uses Pi.authenticate; desktop uses the documented OAuth flow with state and server identity verification. This confirms technical support, not a guarantee about the portal's SDK-exclusive declaration. No email/social login exists. Public anonymous access is not a different login method.
 
 Develop → ZAF Tech → Ecosystem Listing:
 
@@ -35,8 +35,9 @@ Develop → ZAF Tech → Ecosystem Listing:
 - Contact Email: zaftech.contact@gmail.com . Version: align with package.json (currently 1.1.0).
 - PiOS Compatible: not Apple iOS support. Leave No unless license compliance is reviewed and established.
 - Pi Exclusive Transactions: app accepts no payments and has no non-Pi transaction flow; verify wording and don't add paid features to manufacture compliance.
-- Pi SDK Exclusive Authentication: review SDK plus official desktop OAuth against current guidance before checking.
-- KYC: owner must confirm developer KYC completion; do not collect identity documents here.
+- Pi SDK Exclusive Authentication: disclose the documented Pi OAuth desktop fallback when reviewing this declaration. Do not silently disable working desktop access or assert an official listing exemption. Any ambiguity remains for the final application review.
+- KYC: owner explicitly confirmed developer account KYC approved on October 16. This is owner-reported confirmation, not access to identity documents or independent KYC certification. Do not request identity documents here.
+- Domain: owner decided tekyildiz.pi will be connected only after remaining work is complete. Keep existing hosted URL and registered callback until then; revisit domain verification and callback registration as one later change.
 - External links: source citations are essential to the observatory. Describe their purpose; current guidance evaluates necessary external links case by case. Do not promise automatic compliance or remove evidence citations blindly.
 
 PiNet is a separate later setup. Ads Checklist is for ads; ads remain disabled. Summit participation/showcase is a separate process and has no guaranteed acceptance or listing deadline inferred here.
@@ -56,7 +57,7 @@ Do not call viewport emulation a physical-device test. Never record access token
 
 Public status API checked October 16: storage available; scheduled run October 16 03:55 UTC stored history; status limited because directoryRecords=0, not because the scheduler failed. Timestamp reflects observed execution, not a promise that cron runs at the exact configured minute.
 
-Before declaring legal/operational completion, confirm provider-specific log/backup retention and international transfer arrangements. The app stores public observations and hashed rate-limit windows; no server-side personal session is currently claimed. Publishing notices is not proof of a signed DPA or KVKK Article 9 mechanism. No such contracts or account settings are fabricated or accepted on the owner's behalf.
+Before declaring legal/operational completion, confirm provider-specific log/backup retention and international transfer arrangements. The app stores public observations and hashed rate-limit windows; no server-side personal session is currently claimed. Publishing notices is not proof of a signed DPA or KVKK Article 9 mechanism. No such contracts or account settings are fabricated or accepted on the owner's behalf. The former high-resolution logo gap is resolved: the owner supplied a 1254×1254 transparent PNG, preserved byte-for-byte. The new Clear username action clears ZAF Tech presentation state only, not the Pi account's global session. Automated cancellation/retry tests supplement rather than replace real-device tests.
 
 Daily Codex check remains paused; existing weekly Sunday 19:00 Istanbul review remains the intended cadence. No additional daily model-usage automation is needed. Keep one reviewed Vercel deployment per batch and automatic Git deployments disabled.
 
@@ -64,4 +65,5 @@ Daily Codex check remains paused; existing weekly Sunday 19:00 Istanbul review r
 
 - https://developers.minepi.com/docs/build-first-app/MainnetListing
 - https://developers.minepi.com/docs/build-first-app/PiNet
+- https://developers.minepi.com/docs/use-native-features/PiSignIn
 - https://minepi.com/blog/introducing-ecosystem-summit/ (Summit announcement; not a listing approval)

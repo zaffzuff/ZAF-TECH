@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true,
+    // Serve responsive derivatives of the owner's full-resolution PNG.
+    unoptimized: false,
   },
   poweredByHeader: false,
   // Embed the server's selected SDK mode in the client build so a URL flag

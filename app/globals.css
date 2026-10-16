@@ -2278,15 +2278,13 @@
 /* Shared ZAF Tech identity: distinct from Pi's purple/gold interface. */
 .zaf-brand-lockup { display: inline-flex; align-items: center; gap: .75rem; min-width: 0; text-decoration: none; }
 .zaf-brand-lockup .zaf-wordmark { font-size: clamp(1.05rem, 4.5vw, 1.45rem); }
-.ty-brand-text.zaf-wordmark { background: none; color: inherit; font-family: var(--font-michroma), sans-serif; font-weight: 400; letter-spacing: .035em; white-space: nowrap; text-transform: none; line-height: 1.35; }
-.zaf-wordmark-gold { color: #90681e; }
-.zaf-wordmark-silver { color: #565d66; }
-.dark .zaf-wordmark-gold { color: #f3d690; }
-.dark .zaf-wordmark-silver { color: #d5dbe3; }
+.ty-brand-text.zaf-wordmark { display: inline-block; width: max-content; max-width: 100%; background: none; color: #a37b2f; font-family: var(--font-michroma), sans-serif; font-weight: 400; letter-spacing: .035em; white-space: nowrap; text-transform: none; line-height: 1.35; }
+.dark .ty-brand-text.zaf-wordmark { color: #f4d990; }
+.zaf-pi-clear-button { white-space: normal; }
+@media (max-width: 1023px) {
+  .zaf-mobile-pi-actions .zaf-pi-clear-button { grid-column: 1 / -1; grid-row: 3; justify-self: start; min-height: 28px !important; font-size: 10px; }
+}
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .zaf-wordmark-gold { background: linear-gradient(115deg, #7c571a, #b18a39 48%, #81601e); }
-  .zaf-wordmark-silver { background: linear-gradient(115deg, #424b57, #717780 48%, #444b55); }
-  .dark .zaf-wordmark-gold { background: linear-gradient(115deg, #dfb45d, #fff0bf 48%, #dcb15a); }
-  .dark .zaf-wordmark-silver { background: linear-gradient(115deg, #b6c0cd, #f1f3f6 48%, #b1bac7); }
-  .zaf-wordmark span { -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .ty-brand-text.zaf-wordmark { background-image: linear-gradient(90deg, #966414 0%, #d3a83d 22%, #bba469 40%, #a9a8a3 62%, #68737f 82%, #b5bec8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 1px 1px #d1ad4c33); }
+  .dark .ty-brand-text.zaf-wordmark { background-image: linear-gradient(90deg, #dbad42 0%, #ffe7a0 22%, #dfd3a6 40%, #d0d2d3 62%, #abb7c5 82%, #f0f4fa 100%); color: transparent; filter: drop-shadow(0 0 5px #e0c77c26); }
 }

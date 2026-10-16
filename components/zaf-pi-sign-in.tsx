@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
-import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_VERIFIED_USERNAME_KEY } from "@/lib/zaf/pi/oauth";
+import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_VERIFIED_USERNAME_KEY, PI_DISPLAY_CHANGE_EVENT, clearPiDisplay, notifyPiDisplayChange } from "@/lib/zaf/pi/oauth";
 
 type VerifiedPiUser = { username: string };
 
@@ -176,12 +176,16 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
   useEffect(() => {
-    try {
-      const username = sessionStorage.getItem(PI_SIGNIN_VERIFIED_USERNAME_KEY)?.trim();
-      if (username && username.length <= 100) setUser({ username });
-    } catch {
-      // Storage may be blocked; sign-in can still work for this page view.
-    }
+    const sync = () => {
+      try {
+        const username = sessionStorage.getItem(PI_SIGNIN_VERIFIED_USERNAME_KEY)?.trim();
+        setUser(username && username.length <= 100 ? { username } : null);
+        setMessage("");
+      } catch { /* Storage may be blocked; keep the current view usable. */ }
+    };
+    sync();
+    window.addEventListener(PI_DISPLAY_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync);
   }, []);
 
   useEffect(() => {
@@ -210,6 +214,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
   async function signIn() {
     if (busy) return;
+    clearPiDisplay();
+    setUser(null);
     setBusy(true);
     setMessage("");
 
@@ -285,6 +291,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         // Username is presentation-only; the access token is never stored.
       }
       setMessage(tr("Pi account verified.", "Pi hesabı doğrulandı."));
+      notifyPiDisplayChange();
     } catch (error) {
       // Ordinary browsers can use Pi OAuth even when the native SDK cannot
       // initialize there. Native Pi Browser errors stay on the native path.
@@ -299,6 +306,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       // Never log access tokens or full URLs. The short message is sanitized.
       console.error("[ZAF Tech] Pi sign-in failed during " + phase, errorName);
       setUser(null);
+      clearPiDisplay();
 
       if (phase === "authentication" && /timed out|did not respond/i.test(errorDetail)) {
         setMessage(tr(
@@ -363,6 +371,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           {message}
         </span>
       ) : null}
+      {user ? <button type="button" disabled={busy} onClick={() => { clearPiDisplay(); setUser(null); setMessage(""); }} className="zaf-pi-clear-button rounded-md border border-border px-2 py-1 text-[10px] text-muted-foreground disabled:opacity-50" title={tr("Clears ZAF Tech's displayed username only; your Pi account stays signed in.", "Yalnızca ZAF Tech'te gösterilen kullanıcı adını temizler; Pi hesabınız açık kalır.")}>{tr("Clear username", "Kullanıcı adını temizle")}</button> : null}
     </div>
   );
 }

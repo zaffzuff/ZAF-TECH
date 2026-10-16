@@ -374,6 +374,39 @@ test("ordinary browsers can enter OAuth if native SDK initialization fails", asy
   } finally { if (previousId === undefined) delete process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID; else process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID = previousId; browser.restore(); }
 });
 
+test("cancelled native sign-in clears the old display and a retry can verify again", async () => {
+  const browser=mockBrowser("PiBrowser"); let attempts=0, verifications=0;
+  try {
+    const keys=browser.load('@/lib/zaf/pi/oauth');
+    browser.storage.set(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY,"previous-account");
+    browser.fakeWindow.Pi={init:async()=>{},getPiHostAppInfo:async()=>({hostApp:"pi-browser"}),authenticate:async()=>{if(++attempts===1)throw new Error("cancelled");return {accessToken:"retry-fixture-token"};}};
+    globalThis.fetch=async()=>{verifications++;return new Response(JSON.stringify({user:{username:"retry-account"}}));};
+    const component=browser.load('@/components/zaf-pi-sign-in').ZafPiSignIn({locale:"en"});
+    component.props.children[0].props.onClick(); await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(verifications,0); assert.equal(browser.storage.has(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY),false);
+    component.props.children[0].props.onClick(); await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(verifications,1); assert.equal(browser.storage.get(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY),"retry-account");
+    keys.clearPiDisplay(); assert.equal(browser.storage.has(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY),false);
+    assert.ok(![...browser.storage.values()].includes("retry-fixture-token"));
+  } finally {browser.restore();}
+});
+
+test("OAuth denial consumes state and clears the URL without verifying an identity", async () => {
+  const browser=mockBrowser(); let calls=0;
+  try {
+    const keys=browser.load('@/lib/zaf/pi/oauth');
+    browser.storage.set(keys.PI_SIGNIN_STATE_KEY,"cancel-fixture");
+    browser.fakeWindow.location.pathname="/signin/callback";
+    browser.fakeWindow.location.hash="#error=access_denied&state=cancel-fixture";
+    globalThis.fetch=async()=>{calls++;throw new Error("Must not fetch");};
+    browser.load('@/app/signin/callback/page').default(); browser.effects[0]();
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(calls,0); assert.equal(browser.storage.has(keys.PI_SIGNIN_STATE_KEY),false);
+    assert.deepEqual(browser.navigations,["/signin/callback"]);
+    assert.ok(browser.messages.some(value=>typeof value==="string"&&value.includes("cancelled")));
+  } finally {browser.restore();}
+});
+
 test("JSON request deadlines cover stalled response bodies and support cancellation", async () => {
   const { requestJson } = loader()('@/lib/zaf/client-request'); const originalFetch = globalThis.fetch;
   try {

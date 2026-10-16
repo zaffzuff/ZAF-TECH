@@ -4,6 +4,8 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Clear username","Borrar nombre de usuario","清除用户名","Cancella nome utente","Effacer le nom d'utilisateur","Benutzernamen löschen","Limpar nome de utilizador"],
+  ["Clears ZAF Tech's displayed username only; your Pi account stays signed in.","Solo borra el nombre mostrado por ZAF Tech; la sesión Pi sigue abierta.","仅清除 ZAF Tech 显示的用户名，Pi 账户仍保持登录。","Cancella solo il nome mostrato da ZAF Tech; l'account Pi resta connesso.","Efface seulement le nom affiché par ZAF Tech ; le compte Pi reste connecté.","Löscht nur den bei ZAF Tech angezeigten Namen; das Pi-Konto bleibt angemeldet.","Limpa apenas o nome apresentado pela ZAF Tech; a conta Pi mantém a sessão."],
   ["Request failed or timed out. Retry later.","La solicitud falló o agotó el tiempo. Reintenta más tarde.","请求失败或超时，请稍后重试。","Richiesta fallita o scaduta. Riprova più tardi.","Échec ou expiration de la requête. Réessayez plus tard.","Anfrage fehlgeschlagen oder abgelaufen. Später erneut versuchen.","O pedido falhou ou expirou. Tente mais tarde."],
   ["Request failed or timed out","Solicitud fallida o agotada","请求失败或超时","Richiesta fallita o scaduta","Échec ou expiration de la requête","Anfrage fehlgeschlagen oder abgelaufen","O pedido falhou ou expirou"],
   ["Build with official Pi resources","Desarrolla con recursos oficiales de Pi","使用 Pi 官方资源开发","Sviluppa con risorse ufficiali Pi","Développez avec les ressources officielles Pi","Mit offiziellen Pi-Ressourcen entwickeln","Desenvolva com recursos oficiais Pi"],
@@ -565,6 +567,8 @@ export const supplementalUiTranslations: Record<string, Partial<Record<Supplemen
 
 
 export const supplementalRussianUiTranslations: Record<string, string> = {
+  "Clear username": "Очистить имя пользователя",
+  "Clears ZAF Tech's displayed username only; your Pi account stays signed in.": "Удаляет только имя, отображаемое ZAF Tech; вход в аккаунт Pi сохраняется.",
   "Request failed or timed out. Retry later.": "Ошибка или тайм-аут запроса. Повторите позже.",
   "Request failed or timed out": "Ошибка или тайм-аут запроса",
   "Build with official Pi resources": "Разрабатывайте с официальными ресурсами Pi",
