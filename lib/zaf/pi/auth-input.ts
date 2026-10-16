@@ -7,7 +7,16 @@ export class PiInputError extends Error {
 export async function readPiAuthInput(request: Request) {
   if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") throw new PiInputError(415, "A JSON request is required.");
   const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin) throw new PiInputError(403, "A same-origin request is required.");
+  // Next may reconstruct request.url using its internal localhost name. Host
+  // is the actual HTTP authority; browsers cannot set it via fetch headers.
+  // Do not trust arbitrary x-forwarded-host values for this check.
+  const target = new URL(request.url);
+  const host = request.headers.get("host");
+  if (host) {
+    if (!/^[a-zA-Z0-9.\-:\[\]]+$/.test(host)) throw new PiInputError(403, "Invalid request host.");
+    target.host = host;
+  }
+  if (!origin || origin !== target.origin) throw new PiInputError(403, "A same-origin request is required.");
   const length = request.headers.get("content-length");
   if (length && (!/^\d+$/.test(length) || Number(length) > PI_AUTH_BODY_LIMIT)) throw new PiInputError(413, "Request body is too large.");
   if (!request.body) throw new PiInputError(400, "A valid JSON body is required.");

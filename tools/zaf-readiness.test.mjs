@@ -51,6 +51,9 @@ test("Pi input rejects foreign/missing origin, non-JSON, bad tokens and oversize
   const streamed=new Request('https://zaf-tech.invalid/api',{method:'POST',headers:{origin:'https://zaf-tech.invalid','content-type':'application/json'},body:stream,duplex:'half'});
   await assert.rejects(readPiAuthInput(streamed),error=>error.status===413);
   assert.equal(await readPiAuthInput(make(JSON.stringify({accessToken:'fixture-token'}))),'fixture-token');
+  const internal=new Request('http://localhost:3100/api',{method:'POST',headers:{host:'127.0.0.1:3100',origin:'http://127.0.0.1:3100','content-type':'application/json'},body:JSON.stringify({accessToken:'fixture-token'})});
+  assert.equal(await readPiAuthInput(internal),'fixture-token');
+  await assert.rejects(readPiAuthInput(make('{}',{'x-forwarded-host':'evil.example',origin:'https://evil.example'})),error=>error.status===403);
 });
 
 test("Pi upstream Retry-After is bounded and handles date/invalid values",()=>{
