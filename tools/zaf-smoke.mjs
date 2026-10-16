@@ -133,7 +133,7 @@ try {
 
   const piAuthResponse = await request("/api/zaf/pi/auth", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Origin": baseUrl },
     body: JSON.stringify({}),
   });
   if (piAuthResponse.status !== 400) {
