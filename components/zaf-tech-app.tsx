@@ -578,7 +578,7 @@ export function ZafTechApp() {
     const params = new URLSearchParams(window.location.search);
     params.set("section", section);
     if (subtab) params.set("subtab", subtab);
-    window.history.replaceState(null, "", "/?" + params.toString());
+    window.history.replaceState(null, "", window.location.pathname + "?" + params.toString());
   }, [deepLinkReady, section, subtab]);
 
   useEffect(() => {
@@ -654,7 +654,8 @@ export function ZafTechApp() {
   const navigateResult = useCallback((href: string) => {
     if (href.startsWith("/") && !href.startsWith("//")) {
       if (new URL(href, window.location.origin).pathname === "/") {
-        window.history.pushState(null, "", href);
+        const target = new URL(href, window.location.origin);
+        window.history.pushState(null, "", window.location.pathname + target.search + target.hash);
         applyLocation();
       } else router.push(href);
     } else if (/^https?:\/\//i.test(href)) window.open(href, "_blank", "noopener,noreferrer");
@@ -912,7 +913,7 @@ export function ZafTechApp() {
               <div className="mt-3 rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0 text-xs font-semibold text-foreground">{tr("Linked Ledger Observation", "Bağlantılı Ledger Gözlemi")}</div>
-                  <button type="button" onClick={() => { setLedgerObservation(null); const params = new URLSearchParams(window.location.search); params.delete("ledger"); window.history.replaceState(null, "", "/?" + params.toString()); }} className="text-[10px] text-muted-foreground underline underline-offset-2">{tr("Clear", "Temizle")}</button>
+                  <button type="button" onClick={() => { setLedgerObservation(null); const params = new URLSearchParams(window.location.search); params.delete("ledger"); window.history.replaceState(null, "", window.location.pathname + "?" + params.toString()); }} className="text-[10px] text-muted-foreground underline underline-offset-2">{tr("Clear", "Temizle")}</button>
                 </div>
                 <div className="mt-2 break-all font-mono text-[10px] text-muted-foreground">Ledger {ledgerObservation.sequence} · {ledgerObservation.hash ?? "—"}</div>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">

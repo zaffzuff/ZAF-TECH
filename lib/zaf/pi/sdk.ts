@@ -42,11 +42,16 @@ export function loadPiSdk(): Promise<void> {
   return loading;
 }
 
+export function isPiSandboxRoute() {
+  return process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE === "enabled" &&
+    typeof window !== "undefined" && /^\/sandbox\/?$/.test(window.location.pathname);
+}
+
 export function initializePiSdk(): Promise<PiSdk> {
   if (reloadRequired) return Promise.reject(new Error("Reload ZAF Tech to retry Pi SDK initialization."));
   const pi = window.Pi;
   if (!pi) return Promise.reject(new Error("Pi SDK is unavailable."));
-  const sandbox = process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase() === "sandbox";
+  const sandbox = isPiSandboxRoute() || process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase() === "sandbox";
   if (initializedMode === sandbox) return Promise.resolve(pi);
   if (initializing) return initializing;
   const pending = Promise.resolve().then(() => pi.init({ version: "2.0", sandbox }));

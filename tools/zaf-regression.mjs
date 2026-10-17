@@ -150,7 +150,7 @@ for (const token of [
 
 const piBrowserDetectionStart = piSignIn.indexOf("async function detectPiBrowser");
 const sdkInitializationCall = piSignIn.indexOf("const pi = await initializePiSdk(", piSignIn.indexOf("async function signIn()"));
-const piBrowserDetectionBranch = piSignIn.indexOf("const insidePiBrowser = await detectPiBrowser(pi);");
+const piBrowserDetectionBranch = piSignIn.indexOf("const insidePiBrowser = isPiSandboxRoute() || await detectPiBrowser(pi);");
 const nativePiAuthBranch = piSignIn.indexOf("if (!insidePiBrowser)");
 const oauthRedirectBranch = piSignIn.indexOf("beginPiOAuthSignIn(oauthClientId)");
 const nativeAuthenticateBranch = piSignIn.indexOf('await authenticatePi(pi)');

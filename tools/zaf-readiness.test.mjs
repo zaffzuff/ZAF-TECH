@@ -333,6 +333,9 @@ test("verified Pi Browser shell is allowed while Sandbox requires explicit Testn
     assert.equal(frameMatcher.test('/about'), true);
     assert.equal(frameMatcher.test('/signin/callback'), true);
     assert.equal(frameMatcher.test('/browser-check.html'), false);
+    assert.equal(frameMatcher.test('/sandbox'), false);
+    assert.equal(frameMatcher.test('/sandbox/'), false);
+    assert.equal(rules.find(rule => rule.source === '/sandbox').headers[0].value.includes('https://sandbox.minepi.com'), false);
     const diagnostic = rules.find(rule => rule.source === '/browser-check.html').headers;
     assert.equal(diagnostic.some(header => header.key === 'X-Frame-Options'), false);
     assert.equal(diagnostic.find(header => header.key === 'Content-Security-Policy').value.includes('frame-ancestors'), false);
@@ -343,10 +346,41 @@ test("verified Pi Browser shell is allowed while Sandbox requires explicit Testn
     const sandbox = (await config.headers())[1].headers;
     assert.equal(sandbox.some(header => header.key === "X-Frame-Options"), false);
     assert.equal(sandbox.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com https://sandbox.minepi.com;");
+    process.env.PI_SDK_MODE = "hosted";
+    const testnetHosted = await config.headers();
+    assert.equal(testnetHosted[1].headers[0].value.includes('https://sandbox.minepi.com'), false);
+    assert.equal(testnetHosted.find(rule => rule.source === '/sandbox').headers[0].value.includes('https://sandbox.minepi.com'), true);
     process.env.PI_NETWORK = "mainnet";
     assert.equal((await config.headers())[1].headers.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com;");
   } finally {
     keys.forEach((key, index) => { if (previous[index] === undefined) delete process.env[key]; else process.env[key] = previous[index]; });
+  }
+});
+test("Sandbox SDK mode is confined to the explicitly enabled route, never a query flag", async () => {
+  const browser = mockBrowser();
+  const prior = process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE;
+  const priorMode = process.env.NEXT_PUBLIC_PI_SDK_MODE;
+  try {
+    process.env.NEXT_PUBLIC_PI_SDK_MODE = 'hosted';
+    const modes = [];
+    browser.fakeWindow.Pi = { init: options => modes.push(options.sandbox) };
+    process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE = 'enabled';
+    browser.fakeWindow.location.pathname = '/sandbox';
+    await loader()('@/lib/zaf/pi/sdk').initializePiSdk();
+    assert.deepEqual(modes, [true]);
+    browser.fakeWindow.location.pathname = '/';
+    browser.fakeWindow.location.search = '?pi_sandbox=true';
+    await loader()('@/lib/zaf/pi/sdk').initializePiSdk();
+    assert.deepEqual(modes, [true, false]);
+    process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE = 'disabled';
+    browser.fakeWindow.location.pathname = '/sandbox';
+    await loader()('@/lib/zaf/pi/sdk').initializePiSdk();
+    assert.deepEqual(modes, [true, false, false]);
+  } finally {
+    browser.restore();
+    for (const [key, value] of [['NEXT_PUBLIC_PI_SANDBOX_ROUTE', prior], ['NEXT_PUBLIC_PI_SDK_MODE', priorMode]]) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
   }
 });
 test("standalone browser check reports frame origins even when iOS storage is blocked", () => {
@@ -509,6 +543,28 @@ test("Pi Browser initialization precedes host detection and uses server-verified
   } finally { browser.restore(); }
 });
 
+test("desktop Sandbox uses SDK authentication and server verification without OAuth", async () => {
+  const browser = mockBrowser('Safari');
+  const prior = process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE;
+  try {
+    process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE = 'enabled';
+    browser.fakeWindow.location.pathname = '/sandbox';
+    const calls = [];
+    browser.fakeWindow.Pi = {
+      init: async options => { assert.equal(options.sandbox, true); calls.push('init'); },
+      authenticate: async () => { calls.push('authenticate'); return { accessToken: 'sandbox-fixture-token' }; },
+    };
+    globalThis.fetch = async () => { calls.push('verify'); return new Response(JSON.stringify({user:{username:'sandbox-pioneer'}})); };
+    const component = browser.load('@/components/zaf-pi-sign-in').ZafPiSignIn({locale:'en'});
+    component.props.children[0].props.onClick();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(calls, ['init','authenticate','verify']);
+    assert.equal(browser.navigations.length, 0);
+  } finally {
+    if (prior === undefined) delete process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE; else process.env.NEXT_PUBLIC_PI_SANDBOX_ROUTE = prior;
+    browser.restore();
+  }
+});
 test("ordinary browsers can enter OAuth if native SDK initialization fails", async () => {
   const browser = mockBrowser("Chrome"); const previousId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID;
   try {

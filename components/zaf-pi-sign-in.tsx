@@ -5,7 +5,7 @@ import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
 import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_STARTED_KEY, PI_DISPLAY_CHANGE_EVENT, clearPiDisplay, readPiDisplay, savePiDisplay, acquirePiSignIn, releasePiSignIn, isPiSignInBusy, type PiDisplay } from "@/lib/zaf/pi/oauth";
-import { loadPiSdk, initializePiSdk, authenticatePi, piReloadRequired, withPiTimeout as withTimeout, type PiSdk } from "@/lib/zaf/pi/sdk";
+import { loadPiSdk, initializePiSdk, authenticatePi, piReloadRequired, isPiSandboxRoute, withPiTimeout as withTimeout, type PiSdk } from "@/lib/zaf/pi/sdk";
 
 function beginPiOAuthSignIn(clientId: string) {
   const bytes = new Uint8Array(24);
@@ -95,7 +95,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   }, []);
 
   useEffect(() => {
-    if (!isPiBrowserUserAgent()) return;
+    if (!isPiBrowserUserAgent() && !isPiSandboxRoute()) return;
 
     let cancelled = false;
     void (async () => {
@@ -136,7 +136,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       // The Pi SDK requires init() before any other SDK method. Detect the
       // host only after initialization so Pi Browser auth isn't disrupted.
       phase = "browser-detection";
-      const insidePiBrowser = await detectPiBrowser(pi);
+      const insidePiBrowser = isPiSandboxRoute() || await detectPiBrowser(pi);
       if (!mounted.current) return;
       const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
 
@@ -190,7 +190,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       // Ordinary browsers can use Pi OAuth even when the native SDK cannot
       // initialize there. Native Pi Browser errors stay on the native path.
       const oauthClientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
-      if (["sdk-load", "sdk-init"].includes(phase) && !isPiBrowserUserAgent() && oauthClientId) {
+      if (["sdk-load", "sdk-init"].includes(phase) && !isPiSandboxRoute() && !isPiBrowserUserAgent() && oauthClientId) {
         try { beginPiOAuthSignIn(oauthClientId); return; } catch { phase = "oauth-start"; }
       }
       // Never log the access token or full API request; only log the phase and
