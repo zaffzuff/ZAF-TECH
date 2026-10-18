@@ -71,7 +71,7 @@ export default function PiSignInCallbackPage() {
         return;
       }
 
-      const { response, body } = await requestJson<{ user?: { username?: string } }>("/api/zaf/pi/auth", {
+      const { response, body } = await requestJson<{ user?: { username?: string } }>("/api/zaf/pi/oauth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessToken }),
@@ -82,7 +82,7 @@ export default function PiSignInCallbackPage() {
 
       if (!response.ok || !username) {
         setFailed(true);
-        setMessage("Pi returned, but ZAF Tech could not verify the account. Please start again. / Pi'den dönüş alındı ancak hesap doğrulanamadı. Yeniden başlat.");
+        setMessage(`Pi returned, but ZAF Tech could not verify the account. Please start again. / Pi'den dönüş alındı ancak hesap doğrulanamadı. Yeniden başlat. (ZAF-PI-OAUTH-${response.status})`);
         return;
       }
 

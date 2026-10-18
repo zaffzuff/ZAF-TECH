@@ -45,6 +45,42 @@ test("App Studio exchange trusts only server identity and issues a secure sessio
   } finally {globalThis.fetch=prior;if(priorSecret===undefined)delete process.env.ZAF_PI_SESSION_SECRET;else process.env.ZAF_PI_SESSION_SECRET=priorSecret;}
 });
 
+test("web OAuth verifies with Pi Platform only and isolates its identity from App Studio", async () => {
+  const prior = globalThis.fetch, secret = process.env.ZAF_PI_SESSION_SECRET;
+  process.env.ZAF_PI_SESSION_SECRET = 'ab'.repeat(32);
+  const route = loader({'next/server':responseMock,'@/lib/zaf/rate-limit':{enforceRateLimit:async()=>null}})('@/app/api/zaf/pi/oauth/route');
+  const request = (origin='https://zaf-tech.invalid') => new Request('https://zaf-tech.invalid/api/zaf/pi/oauth', {method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({accessToken:'oauth-fixture',uid:'attacker',username:'attacker'})});
+  try {
+    for (const [status, profile, expected] of [[200,{uid:'fixture-uid',username:'pioneer'},200],[401,{},401],[403,{},401],[404,{},502],[429,{},429],[500,{},502],[200,{user:{uid:'fixture-uid',username:'pioneer'}},502],[200,{uid:'fixture-uid'},502],[200,null,502]]) {
+      let calls=0;
+      globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,'https://api.minepi.com/v2/me');assert.equal(options.method,'GET');assert.equal(options.headers.Authorization,'Bearer oauth-fixture');assert.equal(options.redirect,'error');assert.equal(options.cache,'no-store');assert.equal(options.body,undefined);return new Response(JSON.stringify(profile),{status,headers:{'retry-after':'9999'}});};
+      const result=await route.POST(request());assert.equal(result.status,expected);assert.equal(calls,1);assert.match(result.headers['Cache-Control'],/no-store/);
+      assert.ok(!JSON.stringify(result).includes('oauth-fixture'));
+      if(expected===200){const session=loader()('@/lib/zaf/pi/session').readPiSession(result.cookies.values[0][1]);assert.equal(session.username,'pioneer');assert.match(session.uid,/^pi-oauth:[a-f0-9]{64}$/);assert.notEqual(session.uid,'fixture-uid');assert.equal(result.cookies.values[0][2].httpOnly,true);}
+      else assert.equal(result.cookies.values.length,0);
+      if(status===429)assert.equal(result.headers['Retry-After'],'300');
+    }
+    let calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('private token must not leak');};
+    assert.equal((await route.POST(request('https://evil.invalid'))).status,403);assert.equal(calls,0);
+    assert.equal((await route.POST(request())).status,502);
+    globalThis.fetch=async()=>new Response('not-json');assert.equal((await route.POST(request())).status,502);
+  } finally {globalThis.fetch=prior;if(secret===undefined)delete process.env.ZAF_PI_SESSION_SECRET;else process.env.ZAF_PI_SESSION_SECRET=secret;}
+});
+
+test("OAuth callback sends credentials only to the web verifier and reports safe failure codes", async () => {
+  for (const status of [200,401,429,502]) {
+    const browser=mockBrowser();
+    try {
+      const keys=browser.load('@/lib/zaf/pi/oauth');browser.storage.set(keys.PI_SIGNIN_STATE_KEY,'fixture-state');browser.storage.set(keys.PI_SIGNIN_STARTED_KEY,String(Date.now()));browser.fakeWindow.location.hash='#access_token=oauth-fixture&state=fixture-state';
+      globalThis.fetch=async(url,options)=>{assert.equal(url,'/api/zaf/pi/oauth');assert.deepEqual(JSON.parse(options.body),{accessToken:'oauth-fixture'});return new Response(JSON.stringify(status===200?{user:{username:'pioneer'}}:{error:'private provider detail'}),{status});};
+      browser.load('@/app/signin/callback/page').default();browser.effects[0]();await new Promise(resolve=>setImmediate(resolve));
+      if(status===200)assert.equal(keys.readPiDisplay().username,'pioneer');
+      else {assert.equal(keys.readPiDisplay(),null);assert.ok(browser.messages.some(message=>typeof message==='string'&&message.includes(`ZAF-PI-OAUTH-${status}`)));}
+      assert.ok(!JSON.stringify(browser.messages).includes('private provider detail'));assert.ok(!JSON.stringify([...browser.storage.values()]).includes('oauth-fixture'));
+    } finally {browser.restore();}
+  }
+});
+
 test("own sessions reject tampering, expiry, future issuance and key rotation",()=>{
   const prior=process.env.ZAF_PI_SESSION_SECRET;
   try {process.env.ZAF_PI_SESSION_SECRET='ab'.repeat(32);const api=loader()('@/lib/zaf/pi/session');const now=Date.now();const token=api.sealPiSession({uid:'uid',username:'pioneer'},now);assert.deepEqual(api.readPiSession(token,now),{uid:'uid',username:'pioneer'});assert.equal(api.readPiSession(token,now+1800000),null);assert.equal(api.readPiSession(token,now-1),null);assert.equal(api.readPiSession('X'+token.slice(1),now),null);process.env.ZAF_PI_SESSION_SECRET='cd'.repeat(32);assert.equal(api.readPiSession(token,now),null);delete process.env.ZAF_PI_SESSION_SECRET;assert.throws(()=>api.sealPiSession({uid:'x',username:'pioneer'}));}
