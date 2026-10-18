@@ -19,6 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className="bg-background">
       <head>
+        <script id="zaf-pi-sdk" src="https://sdk.minepi.com/pi-sdk.js" async />
         <script dangerouslySetInnerHTML={{ __html: `
           (function () {
             // Pi Browser 1.17.x can use an older WebView than current Safari.

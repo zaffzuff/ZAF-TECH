@@ -7,6 +7,8 @@ const baseUrl = process.env.SMOKE_BASE_URL ?? `http://127.0.0.1:${port}`;
 const external = Boolean(process.env.SMOKE_LIVE);
 
 const checks = [
+  { path: "/pi-app-validation.txt", status: 200 },
+  { path: "/api/zaf/pi/session", status: 200 },
   { path: "/", status: 200 },
   { path: "/about", status: 200 },
   { path: "/privacy", status: 200 },
@@ -26,7 +28,7 @@ const checks = [
 const requiredHeaders = [
   ["x-content-type-options", "nosniff"],
   ["referrer-policy", "strict-origin-when-cross-origin"],
-  ["content-security-policy", "frame-ancestors 'self' https://app-cdn.minepi.com;"],
+  ["content-security-policy", "connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com;"],
   ["permissions-policy", "camera=(), microphone=(), geolocation=()"],
   ["strict-transport-security", "max-age=31536000; includeSubDomains; preload"],
 ];

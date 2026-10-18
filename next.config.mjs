@@ -28,7 +28,7 @@ const nextConfig = {
           // Verified on physical iOS Pi Browser: its ancestor is app-cdn.minepi.com.
           // CSP keeps all other external embedders blocked. SAMEORIGIN would
           // conflict with the required cross-origin Pi host, so do not emit it.
-          { key: "Content-Security-Policy", value: `frame-ancestors 'self' https://app-cdn.minepi.com${sandbox ? " https://sandbox.minepi.com" : ""};` },
+          { key: "Content-Security-Policy", value: `connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com${sandbox ? " https://sandbox.minepi.com" : ""};` },
         ],
       },
       {

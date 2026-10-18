@@ -23,21 +23,32 @@ test("Pi identity API destination rejects every nonofficial endpoint", () => {
   } finally {if(prior===undefined)delete process.env.PI_PLATFORM_API_BASE_URL;else process.env.PI_PLATFORM_API_BASE_URL=prior;}
 });
 
-test("Pi verifier validates the real upstream profile and never returns credentials", async () => {
-  const prior=globalThis.fetch;
-  const route=loader({'next/server':responseMock,'@/lib/zaf/rate-limit':{enforceRateLimit:async()=>null},'@/lib/zaf/pi/runtime':{getPiRuntimeConfig:()=>({compatible:true,platformApiBaseUrl:'https://api.minepi.com/v2'})}})('@/app/api/zaf/pi/auth/route');
-  const request=()=>new Request('https://zaf-tech.invalid/api/zaf/pi/auth',{method:'POST',headers:{origin:'https://zaf-tech.invalid','content-type':'application/json'},body:JSON.stringify({accessToken:'fixture-token'})});
+test("App Studio exchange trusts only server identity and issues a secure session", async () => {
+  const prior=globalThis.fetch, priorSecret=process.env.ZAF_PI_SESSION_SECRET;
+  process.env.ZAF_PI_SESSION_SECRET='ab'.repeat(32);
+  const route=loader({'next/server':responseMock,'@/lib/zaf/rate-limit':{enforceRateLimit:async()=>null}})('@/app/api/zaf/pi/auth/route');
+  const request=()=>new Request('https://zaf-tech.invalid/api/zaf/pi/auth',{method:'POST',headers:{origin:'https://zaf-tech.invalid','content-type':'application/json'},body:JSON.stringify({accessToken:'fixture-token',uid:'attacker',username:'attacker'})});
   try {
-    for(const [status,profile,expected] of [[200,{uid:'fixture-uid',username:'pioneer'},200],[401,{},401],[403,{},401],[429,{},429],[500,{},502],[200,{username:'pioneer'},502],[200,null,502],[200,{uid:'x',username:'a'.repeat(101)},502],[200,{uid:'x',username:'bad\nname'},502]]) {
-      globalThis.fetch=async(url,options)=>{assert.equal(url,'https://api.minepi.com/v2/me');assert.equal(options.headers.Authorization,'Bearer fixture-token');assert.equal(options.redirect,'error');assert.equal(options.cache,'no-store');return new Response(JSON.stringify(profile),{status,headers:{'retry-after':'99999'}});};
-      const result=await route.POST(request());assert.equal(result.status,expected);
+    for(const [status,profile,expected] of [[200,{sessionToken:'upstream-session',user:{uid:'fixture-uid',username:'pioneer'}},200],[401,{},401],[403,{},401],[429,{},429],[500,{},502],[200,{user:{uid:'x',username:'pioneer'}},502],[200,null,502],[200,{sessionToken:'x',user:{uid:'x',username:'a'.repeat(101)}},502]]) {
+      let calls=0;
+      globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,'https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login');assert.equal(options.method,'POST');assert.deepEqual(JSON.parse(options.body),{accessToken:'fixture-token'});assert.equal(options.redirect,'error');assert.equal(options.cache,'no-store');return new Response(JSON.stringify(profile),{status,headers:{'retry-after':'99999'}});};
+      const result=await route.POST(request());assert.equal(result.status,expected);assert.equal(calls,1);
       assert.match(result.headers['Cache-Control'],/no-store/);
       assert.equal(JSON.stringify(result.body).includes('fixture-token'),false);assert.equal(JSON.stringify(result.body).includes('fixture-uid'),false);
+      assert.equal(JSON.stringify(result).includes('upstream-session'),false);
+      if(expected===200){assert.equal(result.body.user.username,'pioneer');const cookie=result.cookies.values[0];assert.equal(cookie[0],'__Host-zaf-pi-session');assert.deepEqual(cookie[2],{httpOnly:true,secure:true,sameSite:'none',path:'/',maxAge:1800});const session=loader()('@/lib/zaf/pi/session');assert.deepEqual(session.readPiSession(cookie[1]),{uid:'fixture-uid',username:'pioneer'});}
+      else assert.equal(result.cookies.values.length,0);
       if(status===429)assert.equal(result.headers['Retry-After'],'300');
     }
     globalThis.fetch=async()=>{throw new TypeError('fixture');};assert.equal((await route.POST(request())).status,502);
     globalThis.fetch=async()=>new Response('not json');assert.equal((await route.POST(request())).status,502);
-  } finally {globalThis.fetch=prior;}
+  } finally {globalThis.fetch=prior;if(priorSecret===undefined)delete process.env.ZAF_PI_SESSION_SECRET;else process.env.ZAF_PI_SESSION_SECRET=priorSecret;}
+});
+
+test("own sessions reject tampering, expiry, future issuance and key rotation",()=>{
+  const prior=process.env.ZAF_PI_SESSION_SECRET;
+  try {process.env.ZAF_PI_SESSION_SECRET='ab'.repeat(32);const api=loader()('@/lib/zaf/pi/session');const now=Date.now();const token=api.sealPiSession({uid:'uid',username:'pioneer'},now);assert.deepEqual(api.readPiSession(token,now),{uid:'uid',username:'pioneer'});assert.equal(api.readPiSession(token,now+1800000),null);assert.equal(api.readPiSession(token,now-1),null);assert.equal(api.readPiSession('X'+token.slice(1),now),null);process.env.ZAF_PI_SESSION_SECRET='cd'.repeat(32);assert.equal(api.readPiSession(token,now),null);delete process.env.ZAF_PI_SESSION_SECRET;assert.throws(()=>api.sealPiSession({uid:'x',username:'pioneer'}));}
+  finally{if(prior===undefined)delete process.env.ZAF_PI_SESSION_SECRET;else process.env.ZAF_PI_SESSION_SECRET=prior;}
 });
 
 test("Pi input rejects foreign/missing origin, non-JSON, bad tokens and oversized streams", async () => {
@@ -140,7 +151,7 @@ test("two rendered headers cannot start concurrent native authentication",async(
   }finally{browser.restore();}
 });
 
-test("Pi route stops before upstream on local rate limiting or invalid runtime",async()=>{
+test("Pi route stops before upstream on local rate limiting or missing session secret",async()=>{
   const prior=globalThis.fetch;let calls=0;
   const request=()=>new Request('https://zaf-tech.invalid/api',{method:'POST',headers:{origin:'https://zaf-tech.invalid','content-type':'application/json'},body:JSON.stringify({accessToken:'fixture'})});
   try {
@@ -338,13 +349,13 @@ test("verified Pi Browser shell is allowed while Sandbox requires explicit Testn
     assert.equal(diagnostic.find(header => header.key === 'Content-Security-Policy').value.includes('frame-ancestors'), false);
     assert.equal(diagnostic.find(header => header.key === 'Cache-Control').value.includes('no-store'), true);
     assert.equal(hosted.some(header => header.key === "X-Frame-Options"), false);
-    assert.equal(hosted.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com;");
+    assert.equal(hosted.find(header => header.key === "Content-Security-Policy").value, "connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com;");
     process.env.PI_NETWORK = "testnet"; process.env.PI_SDK_MODE = "sandbox";
     const sandbox = (await config.headers())[1].headers;
     assert.equal(sandbox.some(header => header.key === "X-Frame-Options"), false);
-    assert.equal(sandbox.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com https://sandbox.minepi.com;");
+    assert.equal(sandbox.find(header => header.key === "Content-Security-Policy").value, "connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com https://sandbox.minepi.com;");
     process.env.PI_NETWORK = "mainnet";
-    assert.equal((await config.headers())[1].headers.find(header => header.key === "Content-Security-Policy").value, "frame-ancestors 'self' https://app-cdn.minepi.com;");
+    assert.equal((await config.headers())[1].headers.find(header => header.key === "Content-Security-Policy").value, "connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com;");
   } finally {
     keys.forEach((key, index) => { if (previous[index] === undefined) delete process.env[key]; else process.env[key] = previous[index]; });
   }
@@ -428,7 +439,7 @@ test("mixed public/private DNS answers are rejected before connecting", async ()
   assert.equal(result.status, null);
 });
 
-const responseMock = { NextResponse: { json: (body, options) => ({ body, status: options?.status ?? 200, headers: options?.headers }) } };
+const responseMock = { NextResponse: { json: (body, options) => ({ body, status: options?.status ?? 200, headers: options?.headers, cookies: { values: [], set(...args) { this.values.push(args); } } }) } };
 test("rate limits still apply without a database and cannot be reset by changing user agent", async () => {
   const load = loader({ "next/server": responseMock, "@/lib/zaf/db": { getZafDb: () => null, ensureZafSchema: async () => false } });
   const { consumeRateLimit, enforceRateLimit } = load('@/lib/zaf/rate-limit');
@@ -490,12 +501,12 @@ test("callback credentials are cleared even if browser storage throws", async ()
   } finally { browser.restore(); }
 });
 
-test("Pi Browser initialization precedes host detection and uses server-verified identity", async () => {
+for (const hostApp of ["pi-browser", "pi-node", "pi-net"]) test(`Pi host ${hostApp} initializes before native auth and trusts server identity`, async () => {
   const browser = mockBrowser("PiBrowser"); const calls = [];
   try {
     browser.fakeWindow.Pi = {
       init: async () => calls.push("init"),
-      getPiHostAppInfo: async () => { calls.push("host"); return { hostApp: "pi-browser" }; },
+      getPiHostAppInfo: async () => { calls.push("host"); return { hostApp }; },
       authenticate: async scopes => { assert.deepEqual(scopes, ["username"]); calls.push("authenticate"); return { accessToken: "test-fixture-token", user: { username: "untrusted-display" } }; },
     };
     globalThis.fetch = async (url, options) => { assert.equal(url, "/api/zaf/pi/auth"); assert.equal(JSON.parse(options.body).accessToken, "test-fixture-token"); calls.push("verify"); return new Response(JSON.stringify({ user: { username: "verified-display" } })); };
@@ -598,4 +609,31 @@ test("change comparison skips a newly saved current snapshot", async () => {
   assert.equal(result.changes[0].type, "app_count");
   assert.equal(result.changes[0].previous, 0);
   assert.equal(result.changes[0].current, 1);
+});
+
+test("session API reads encrypted identity, forbids foreign logout and clears the cookie", async()=>{
+  const prior=process.env.ZAF_PI_SESSION_SECRET;
+  try {
+    process.env.ZAF_PI_SESSION_SECRET='ab'.repeat(32);
+    const {NextRequest}=require('next/server');
+    const load=loader();const api=load('@/lib/zaf/pi/session'),route=load('@/app/api/zaf/pi/session/route');
+    const cookie=api.sealPiSession({uid:'fixture-uid',username:'pioneer'});
+    const req=(method='GET',origin='https://zaf-tech.invalid',value=cookie)=>new NextRequest('https://zaf-tech.invalid/api/zaf/pi/session',{method,headers:{origin,cookie:`${api.PI_SESSION_COOKIE}=${value}`}});
+    const response=await route.GET(req());assert.deepEqual(await response.json(),{user:{username:'pioneer'}});assert.match(response.headers.get('cache-control'),/no-store/);
+    assert.deepEqual(await (await route.GET(req('GET',undefined,'bad'))).json(),{user:null});
+    assert.equal((await route.DELETE(req('DELETE','https://evil.example'))).status,403);
+    const cleared=await route.DELETE(req('DELETE'));assert.equal(cleared.status,200);assert.match(cleared.headers.get('set-cookie'),/Max-Age=0/);assert.match(cleared.headers.get('set-cookie'),/HttpOnly/);
+  } finally {if(prior===undefined)delete process.env.ZAF_PI_SESSION_SECRET;else process.env.ZAF_PI_SESSION_SECRET=prior;}
+});
+
+test("App Studio SDK awaits v2 initialization without a sandbox option and requests username only",async()=>{
+  const browser=mockBrowser('PiBrowser');const calls=[];let finish;
+  try {
+    browser.fakeWindow.Pi={init:options=>{calls.push(options);return new Promise(resolve=>{finish=resolve;});},authenticate:async(scopes,callback)=>{assert.deepEqual(scopes,['username']);assert.equal(typeof callback,'function');return {accessToken:'fixture'};}};
+    const sdk=browser.load('@/lib/zaf/pi/sdk');const pending=sdk.initializePiSdk();await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(calls,[{version:'2.0'}]);finish();const pi=await pending;assert.equal((await sdk.authenticatePi(pi)).accessToken,'fixture');assert.equal(await sdk.initializePiSdk(),pi);assert.equal(calls.length,1);
+  }finally{browser.restore();}
+});
+
+test("App Studio validation file contains exactly the supplied token bytes",()=>{
+  assert.equal(fs.readFileSync(path.join(root,'public/pi-app-validation.txt'),'utf8'),'piappstudio-W9wJy3EZLX1ybO39fB0uKWEfYtl_N7wW');
 });

@@ -4,6 +4,9 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Sign out","Cerrar sesión","退出","Esci","Se déconnecter","Abmelden","Terminar sessão"],
+  ["Sign-out failed. Please try again.","No se pudo cerrar sesión. Inténtalo de nuevo.","退出失败，请重试。","Uscita non riuscita. Riprova.","Échec de la déconnexion. Réessayez.","Abmeldung fehlgeschlagen. Bitte erneut versuchen.","Não foi possível sair. Tenta novamente."],
+  ["Ends your ZAF Tech session; your Pi account stays signed in.","Cierra tu sesión ZAF Tech; tu cuenta Pi sigue conectada.","结束 ZAF Tech 会话；Pi 账户仍保持登录。","Termina la sessione ZAF Tech; l’account Pi resta connesso.","Termine votre session ZAF Tech ; le compte Pi reste connecté.","Beendet deine ZAF Tech Sitzung; dein Pi-Konto bleibt angemeldet.","Termina a sessão ZAF Tech; a conta Pi mantém a sessão."],
   ["Previously verified:", "Verificado anteriormente:", "此前已验证：", "Verificato in precedenza:", "Vérifié précédemment :", "Zuvor verifiziert:", "Verificado anteriormente:"],
   ["Reload and retry", "Recargar y reintentar", "重新加载并重试", "Ricarica e riprova", "Recharger et réessayer", "Neu laden und erneut versuchen", "Recarregar e tentar novamente"],
 
@@ -703,4 +706,7 @@ export const supplementalRussianUiTranslations: Record<string, string> = {
   "Registration · Mining · Wallet · KYC · Security": "Регистрация · Майнинг · Кошелёк · KYC · Безопасность",
   "Start Pi": "Начать с Pi",
   "Terms of Service": "Условия использования",
+  "Sign out": "Выйти",
+  "Sign-out failed. Please try again.": "Не удалось выйти. Повторите попытку.",
+  "Ends your ZAF Tech session; your Pi account stays signed in.": "Завершает сеанс ZAF Tech; вход в Pi сохраняется.",
 };

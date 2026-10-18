@@ -66,7 +66,7 @@ async function detectPiBrowser(pi: PiSdk): Promise<boolean> {
         1_500,
         "Pi host app detection timed out.",
       );
-      if (info?.hostApp === "pi-browser") return true;
+      if (info?.hostApp && ["pi-browser", "pi-node", "pi-net"].includes(info.hostApp)) return true;
       if (typeof info?.hostApp === "string" && info.hostApp.length > 0) return false;
     }
   } catch {
@@ -266,7 +266,17 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
           {message}
         </span>
       ) : null}
-      {user ? <button type="button" disabled={busy} onClick={() => { clearPiDisplay(); setUser(null); setMessage(""); }} className="zaf-pi-clear-button rounded-md border border-border px-2 py-1 text-[10px] text-muted-foreground disabled:opacity-50" title={tr("Clears ZAF Tech's displayed username only; your Pi account stays signed in.", "Yalnızca ZAF Tech'te gösterilen kullanıcı adını temizler; Pi hesabınız açık kalır.")}>{tr("Clear username", "Kullanıcı adını temizle")}</button> : null}
+      {user && message ? <span role="status" className="text-[10px] text-red-700 dark:text-red-200">{message}</span> : null}
+      {user ? <button type="button" disabled={busy} onClick={() => { void (async () => {
+        if (!acquirePiSignIn()) return;
+        setBusy(true);
+        try {
+          const { response } = await requestJson("/api/zaf/pi/session", { method: "DELETE", credentials: "same-origin" });
+          if (!response.ok) throw new Error("Sign-out failed.");
+          clearPiDisplay(); setUser(null); setMessage("");
+        } catch { setMessage(tr("Sign-out failed. Please try again.", "Çıkış yapılamadı. Lütfen tekrar dene.")); }
+        finally { releasePiSignIn(); if (mounted.current) setBusy(false); }
+      })(); }} className="zaf-pi-clear-button rounded-md border border-border px-2 py-1 text-[10px] text-muted-foreground disabled:opacity-50" title={tr("Ends your ZAF Tech session; your Pi account stays signed in.", "ZAF Tech oturumunu kapatır; Pi hesabınız açık kalır.")}>{tr("Sign out", "Çıkış yap")}</button> : null}
     </div>
   );
 }

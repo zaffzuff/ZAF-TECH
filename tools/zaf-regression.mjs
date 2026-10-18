@@ -122,7 +122,7 @@ if (!piRuntime.includes("const compatible = !(sdkSandbox && network === \"mainne
   throw new Error("Pi SDK Sandbox/network compatibility guard regression");
 }
 const piAuthRoute = readText(path.join(root, "app/api/zaf/pi/auth/route.ts"), "utf8");
-for (const token of ["pi-auth-verify", "/me", "Authorization", "Bearer", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
+for (const token of ["pi-auth-verify", "https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", "sealPiSession", "sessionToken", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
   if (!piAuthRoute.includes(token)) throw new Error("Pi authentication verification regression: " + token);
 }
 if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
@@ -130,7 +130,7 @@ if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
 }
 const piSignIn = readText(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
 const piSdk = readText(path.join(root, "lib/zaf/pi/sdk.ts"), "utf8");
-for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init({ version: \"2.0\", sandbox })", "Pi SDK initialization timed out.", 'pi.authenticate(["username"]', "NEXT_PUBLIC_PI_SDK_MODE", "12_000", "45_000", "reloadRequired"]) {
+for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init({ version: \"2.0\" })", "Pi SDK initialization timed out.", 'pi.authenticate(["username"]', "12_000", "45_000", "reloadRequired"]) {
   if (!piSdk.includes(token)) throw new Error("Pi SDK lifecycle regression: " + token);
 }
 for (const token of ["/api/zaf/pi/auth", "initializePiSdk", "authenticatePi", "acquirePiSignIn", "readPiDisplay", "savePiDisplay"]) {
@@ -178,7 +178,7 @@ for (const token of [
   "await initializePiSdk();",
   'userAgent.includes("pibrowser")',
   'userAgent.includes("pi-browser")',
-  'info?.hostApp === "pi-browser"',
+  '["pi-browser", "pi-node", "pi-net"].includes(info.hostApp)',
   "insidePiBrowser",
 ]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
