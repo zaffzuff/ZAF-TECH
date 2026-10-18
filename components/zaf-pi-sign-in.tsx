@@ -128,6 +128,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     setMessage("");
 
     let phase: "oauth-start" | "sdk-load" | "browser-detection" | "sdk-init" | "authentication" | "verification" = "sdk-load";
+    let verificationCode = "ZAF-PI-CONNECTION";
     try {
       await loadPiSdk();
       phase = "sdk-init";
@@ -168,6 +169,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         credentials: "same-origin",
       });
 
+      verificationCode = `ZAF-PI-${response.status}`;
       if (!response.ok) {
         const serverMessage = typeof body?.error === "string" ? body.error : "";
         if (response.status === 401) {
@@ -237,7 +239,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         ],
       } as const;
       const [enMessage, trMessage] = failureCopy[phase];
-      setMessage(tr(enMessage, trMessage));
+      setMessage(tr(enMessage, trMessage) + (phase === "verification" ? ` (${verificationCode})` : ""));
     } finally {
       releasePiSignIn();
       if (mounted.current) { setReload(piReloadRequired()); setBusy(false); }

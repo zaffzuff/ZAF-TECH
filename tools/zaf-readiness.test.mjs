@@ -637,3 +637,17 @@ test("App Studio SDK awaits v2 initialization without a sandbox option and reque
 test("App Studio validation file contains exactly the supplied token bytes",()=>{
   assert.equal(fs.readFileSync(path.join(root,'public/pi-app-validation.txt'),'utf8'),'piappstudio-W9wJy3EZLX1ybO39fB0uKWEfYtl_N7wW');
 });
+
+test("Pi verification failures expose only a safe reference for HTTP and connection errors", async()=>{
+  for(const status of [401,403,429,502,503,null]) {
+    const browser=mockBrowser('PiBrowser');
+    try {
+      browser.fakeWindow.Pi={init:async()=>{},getPiHostAppInfo:async()=>({hostApp:'pi-browser'}),authenticate:async()=>({accessToken:'sensitive-fixture-token'})};
+      globalThis.fetch=async()=>{if(status===null)throw new TypeError('private transport details');return new Response(JSON.stringify({error:'private provider details'}),{status});};
+      const component=browser.load('@/components/zaf-pi-sign-in').ZafPiSignIn({locale:'en'});component.props.children[0].props.onClick();await new Promise(resolve=>setImmediate(resolve));
+      const expected=status===null?'ZAF-PI-CONNECTION':`ZAF-PI-${status}`;
+      assert.ok(browser.messages.some(value=>typeof value==='string'&&value.includes(expected)),expected);
+      assert.ok(!browser.messages.some(value=>typeof value==='string'&&/sensitive-fixture-token|private provider details|private transport details/.test(value)));
+    }finally{browser.restore();}
+  }
+});
