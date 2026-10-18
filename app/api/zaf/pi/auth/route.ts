@@ -15,6 +15,7 @@ export async function POST(request: Request) {
   try {
     accessToken = await readPiAuthInput(request);
   } catch (error) {
+    console.warn("[ZAF Tech] Pi auth rejected", { stage: "request", status: error instanceof PiInputError ? error.status : 400 });
     return NextResponse.json({ error: error instanceof PiInputError ? error.message : "Invalid request." }, {
       status: error instanceof PiInputError ? error.status : 400,
       headers: { "Cache-Control": "no-store" },
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   }
 
   try { assertPiSessionConfigured(); } catch {
+    console.warn("[ZAF Tech] Pi auth rejected", { stage: "session-configuration", status: 503 });
     return NextResponse.json({ error: "Pi session is temporarily unavailable." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
 
@@ -37,6 +39,11 @@ export async function POST(request: Request) {
       redirect: "error",
       signal: AbortSignal.timeout(10_000),
     });
+
+    if (!piResponse.ok) {
+      // Never log the body: upstream errors can contain credentials or identity.
+      console.warn("[ZAF Tech] Pi auth rejected", { stage: "app-studio", status: piResponse.status });
+    }
 
     if (piResponse.status === 401 || piResponse.status === 403) {
       return NextResponse.json({ error: "Pi could not verify this sign-in." }, {
@@ -60,6 +67,10 @@ export async function POST(request: Request) {
     const result: unknown = await piResponse.json();
     const { user, sessionToken } = (result && typeof result === "object" ? result : {}) as { user?: unknown; sessionToken?: unknown };
     if (!validPiProfile(user) || typeof sessionToken !== "string" || !/^[\x21-\x7e]{1,16384}$/.test(sessionToken)) {
+      console.warn("[ZAF Tech] Pi auth rejected", {
+        stage: "app-studio-profile", status: piResponse.status,
+        validProfile: validPiProfile(user), hasSessionToken: typeof sessionToken === "string" && sessionToken.length > 0,
+      });
       return NextResponse.json({ error: "Pi returned an incomplete user profile." }, {
         status: 502,
         headers: { "Cache-Control": "no-store" },
