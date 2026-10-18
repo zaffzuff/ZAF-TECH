@@ -5,6 +5,7 @@ import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import type { ZafWalletSnapshot } from "@/lib/zaf/types";
+import { isValidPublicAddress } from "@/lib/zaf/public-address";
 
 function fmt(value: number | null, locale: Locale) {
   return value == null || !Number.isFinite(value)
@@ -70,10 +71,15 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
   const explorerBase = network === "mainnet" ? "https://blockexplorer.minepi.com/mainnet" : "https://blockexplorer.minepi.com/testnet";
+  const transactionsAvailable = data?.sources?.transactions !== "unavailable";
+  const operationsAvailable = data?.sources?.operations !== "unavailable";
+  const claimablesAvailable = data?.sources?.claimableBalances !== "unavailable";
+  const activityAvailable = transactionsAvailable && operationsAvailable;
+  const partialObservation = !transactionsAvailable || !operationsAvailable || !claimablesAvailable;
 
   async function lookup() {
     const normalized = address.trim().toUpperCase();
-    if (!/^G[A-Z2-7]{55}$/.test(normalized)) {
+    if (!isValidPublicAddress(normalized)) {
       setError(tr("Enter a valid public Pi wallet address.", "Geçerli bir herkese açık Pi cüzdan adresi girin."));
       setData(null);
       return;
@@ -117,6 +123,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
     </div>
 
     {data?.exists ? <div className="mt-3 space-y-3">
+      {partialObservation ? <p role="status" className="rounded-xl border border-border bg-card p-3 text-[11px] text-muted-foreground">{tr("Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.", "Bazı cüzdan kaynakları yenilenemedi. Erişilemeyen gözlemler bilinmiyor olarak gösterilir; yeniden denemek için tekrar inceleyin.")}</p> : null}
       <div className="rounded-xl border border-border bg-card p-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0"><div className="text-[10px] text-muted-foreground">{tr("Public Address", "Herkese Açık Adres")}</div><div className="mt-1 break-all font-mono text-[11px] text-foreground">{data.address}</div></div>
@@ -130,9 +137,9 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Card title={tr("Account Balance", "Hesap Bakiyesi")} value={fmt(data.accountBalancePi, locale)} detail="Pi" />
-        <Card title={tr("Transactions", "İşlemler")} value={fmt(data.analytics?.transactionCount ?? null, locale)} detail={tr("Observed Transactions", "Gözlemlenen İşlemler")} />
-        <Card title={tr("Operations", "Operasyonlar")} value={fmt(data.analytics?.operationCount ?? null, locale)} detail={tr("Observed Operations", "Gözlemlenen Operasyonlar")} />
-        <Card title={tr("Success Rate", "Başarı Oranı")} value={data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={tr("Observed Transaction Results", "Gözlemlenen İşlem Sonuçları")} />
+        <Card title={tr("Transactions", "İşlemler")} value={fmt(transactionsAvailable ? data.analytics?.transactionCount ?? null : null, locale)} detail={tr("Observed Transactions", "Gözlemlenen İşlemler")} />
+        <Card title={tr("Operations", "Operasyonlar")} value={fmt(operationsAvailable ? data.analytics?.operationCount ?? null : null, locale)} detail={tr("Observed Operations", "Gözlemlenen Operasyonlar")} />
+        <Card title={tr("Success Rate", "Başarı Oranı")} value={!transactionsAvailable || data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={tr("Observed Transaction Results", "Gözlemlenen İşlem Sonuçları")} />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
@@ -145,7 +152,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         </div>
         <div className="mt-3 space-y-2">
           {(data.assets ?? []).map(asset => (
-            <div key={asset.assetType + "-" + (asset.assetIssuer ?? "native")} className="rounded-lg border border-border p-3">
+            <div key={asset.assetType + "-" + (asset.assetCode ?? "native") + "-" + (asset.assetIssuer ?? "native")} className="rounded-lg border border-border p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold text-foreground">{asset.isNative ? "Pi" : (asset.assetCode ?? "—")}</div>
@@ -161,44 +168,44 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
-        <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(data.analytics?.activeLedgerCount ?? null, locale)} />
-        <Card title={tr("Successful", "Başarılı")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
-        <Card title={tr("Failed", "Başarısız")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
+        <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(transactionsAvailable ? data.analytics?.totalObservedFeesPi ?? null : null, locale)} detail="Pi" />
+        <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(activityAvailable ? data.analytics?.activeLedgerCount ?? null : null, locale)} />
+        <Card title={tr("Successful", "Başarılı")} value={fmt(transactionsAvailable ? data.analytics?.successfulTransactions ?? null : null, locale)} />
+        <Card title={tr("Failed", "Başarısız")} value={fmt(transactionsAvailable ? data.analytics?.failedTransactions ?? null : null, locale)} />
       </div>
 
       <div className="mt-3 rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Observed Operation Types", "Gözlemlenen Operasyon Türleri")}</div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(data.analytics?.operationTypeCounts ?? []).map(item => <div key={item.type} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="truncate text-muted-foreground">{item.type}</div><div className="mt-1 text-sm font-semibold text-foreground">{item.count}</div></div>)}
-          {!data.analytics?.operationTypeCounts?.length ? <div className="text-[10px] text-muted-foreground">{tr("No operation type data returned.", "Operasyon türü verisi döndürülmedi.")}</div> : null}
+          {!data.analytics?.operationTypeCounts?.length ? <div className="text-[10px] text-muted-foreground">{operationsAvailable ? tr("No operation type data returned.", "Operasyon türü verisi döndürülmedi.") : tr("Operation observations are temporarily unavailable.", "Operasyon gözlemlerine geçici olarak erişilemiyor.")}</div> : null}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Card title={tr("Observable Claimable", "Gözlemlenebilir Talep Edilebilir")} value={fmt(data.observableClaimablePi, locale)} detail={tr("Native Claimable Balances", "Native Claimable Bakiyeler")} />
-        <Card title={tr("Last Activity", "Son Aktivite")} value={age(data.lastActivity, locale)} detail={tr("Transactions + Operations", "İşlemler + Operasyonlar")} />
-        <Card title={tr("Active Days", "Aktif Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} detail={tr("Within Observed Window", "Gözlemlenen Pencere İçinde")} />
+        <Card title={tr("Last Activity", "Son Aktivite")} value={age(activityAvailable ? data.lastActivity : null, locale)} detail={tr("Transactions + Operations", "İşlemler + Operasyonlar")} />
+        <Card title={tr("Active Days", "Aktif Günler")} value={fmt(activityAvailable ? data.analytics?.activeDayCount ?? null : null, locale)} detail={tr("Within Observed Window", "Gözlemlenen Pencere İçinde")} />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="text-xs font-semibold text-foreground">{tr("Wallet Activity Timeline", "Cüzdan Aktivite Zaman Çizelgesi")}</div>
         <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Daily buckets from the public transactions and operations returned by Horizon. This is an observed window, not a full wallet history.", "Horizon tarafından döndürülen herkese açık işlemler ve operasyonlardan günlük dilimler. Bu gözlemlenen bir penceredir; tam cüzdan geçmişi değildir.")}</p>
         <div className="mt-3 space-y-2">
-          {(data.analytics?.activityByDay ?? []).slice(-7).reverse().map((day) => (
+          {(activityAvailable ? data.analytics?.activityByDay ?? [] : []).slice(-7).reverse().map((day) => (
             <div key={day.day} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border border-border px-3 py-2.5 text-[10px]">
               <span className="text-muted-foreground">{new Date(day.day + "T00:00:00Z").toLocaleDateString(intlLocale(locale), { year: "numeric", month: "short", day: "2-digit" })}</span>
               <span className="text-foreground">{day.transactions} {tr("tx", "işlem")} · {day.operations} {tr("ops", "op")}</span>
               <span className="text-muted-foreground">{day.successfulTransactions}/{day.failedTransactions}</span>
             </div>
           ))}
-          {!data.analytics?.activityByDay?.length ? <div className="text-[10px] text-muted-foreground">{tr("No dated activity points are available in the observed window.", "Gözlemlenen pencerede tarihli aktivite noktası bulunmuyor.")}</div> : null}
+          {!activityAvailable || !data.analytics?.activityByDay?.length ? <div className="text-[10px] text-muted-foreground">{activityAvailable ? tr("No dated activity points are available in the observed window.", "Gözlemlenen pencerede tarihli aktivite noktası bulunmuyor.") : tr("The activity timeline is temporarily unavailable because a source could not be refreshed.", "Bir kaynak yenilenemediği için aktivite zaman çizelgesine geçici olarak erişilemiyor.")}</div> : null}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Card title={tr("Observed Days", "Gözlemlenen Günler")} value={fmt(data.analytics?.activeDayCount ?? null, locale)} />
-          <Card title={tr("Successful", "Başarılı")} value={fmt(data.analytics?.successfulTransactions ?? null, locale)} />
-          <Card title={tr("Failed", "Başarısız")} value={fmt(data.analytics?.failedTransactions ?? null, locale)} />
-          <Card title={tr("Fees", "Ücretler")} value={fmt(data.analytics?.totalObservedFeesPi ?? null, locale)} detail="Pi" />
+          <Card title={tr("Observed Days", "Gözlemlenen Günler")} value={fmt(activityAvailable ? data.analytics?.activeDayCount ?? null : null, locale)} />
+          <Card title={tr("Successful", "Başarılı")} value={fmt(transactionsAvailable ? data.analytics?.successfulTransactions ?? null : null, locale)} />
+          <Card title={tr("Failed", "Başarısız")} value={fmt(transactionsAvailable ? data.analytics?.failedTransactions ?? null : null, locale)} />
+          <Card title={tr("Fees", "Ücretler")} value={fmt(transactionsAvailable ? data.analytics?.totalObservedFeesPi ?? null : null, locale)} detail="Pi" />
         </div>
       </div>
 
@@ -212,10 +219,10 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{tr("Recent Transactions", "Son İşlemler")}</div><span className="text-[10px] text-muted-foreground">{data.transactions.length}</span></div>
+        <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{tr("Recent Transactions", "Son İşlemler")}</div><span className="text-[10px] text-muted-foreground">{transactionsAvailable ? data.transactions.length : "—"}</span></div>
         <div className="mt-2 grid gap-2 zaf-desktop-two-up">
           {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? tr("Success", "Başarılı") : tx.successful === false ? tr("Failed", "Başarısız") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
-          {!data.transactions.length ? <div className="text-[11px] text-muted-foreground">{tr("No Recent Transactions Returned.", "Son İşlemler Döndürülmedi.")}</div> : null}
+          {!data.transactions.length ? <div className="text-[11px] text-muted-foreground">{transactionsAvailable ? tr("No Recent Transactions Returned.", "Son İşlemler Döndürülmedi.") : tr("Transaction observations are temporarily unavailable.", "İşlem gözlemlerine geçici olarak erişilemiyor.")}</div> : null}
         </div>
       </div>
 
@@ -223,7 +230,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         <div className="text-xs font-semibold text-foreground">{tr("Observable Claimable Balances", "Gözlemlenebilir Claimable Bakiyeler")}</div>
         <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("This section reports public native claimable balances returned by Horizon. It does not infer private Pi lockup commitments.", "Bu bölüm Horizon'un döndürdüğü herkese açık native claimable bakiyeleri raporlar. Özel Pi lockup taahhütlerini çıkarımsamaz.")}</p>
         <div className="mt-2 space-y-2">
-          {Array.isArray(data.lockup?.items) && data.lockup.items.length ? data.lockup.items.map((item: any) => <div key={String(item.id)} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="flex justify-between gap-2"><span className="font-mono text-foreground">{String(item.id)}</span><span className="text-foreground">{fmt(Number(item.amountPi), locale)} Pi</span></div><div className="mt-1 text-muted-foreground">{item.unlockAt ? `${tr("Unlock", "Açılma")}: ${new Date(String(item.unlockAt)).toLocaleString(intlLocale(locale))}` : tr("Unlock Time Not Observable", "Açılma Zamanı Gözlemlenemiyor")}</div></div>) : <div className="text-[11px] text-muted-foreground">{tr("No publicly observable native claimable balances were returned.", "Herkese açık gözlemlenebilir native claimable bakiye döndürülmedi.")}</div>}
+          {Array.isArray(data.lockup?.items) && data.lockup.items.length ? data.lockup.items.map((item: any) => <div key={String(item.id)} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="flex justify-between gap-2"><span className="min-w-0 break-all font-mono text-foreground">{String(item.id)}</span><span className="shrink-0 text-foreground">{fmt(Number(item.amountPi), locale)} Pi</span></div><div className="mt-1 text-muted-foreground">{item.unlockAt ? `${tr("Unlock", "Açılma")}: ${new Date(String(item.unlockAt)).toLocaleString(intlLocale(locale))}` : tr("Unlock Time Not Observable", "Açılma Zamanı Gözlemlenemiyor")}</div></div>) : <div className="text-[11px] text-muted-foreground">{claimablesAvailable ? tr("No publicly observable native claimable balances were returned.", "Herkese açık gözlemlenebilir native claimable bakiye döndürülmedi.") : tr("Claimable balance observations are temporarily unavailable.", "Claimable bakiye gözlemlerine geçici olarak erişilemiyor.")}</div>}
         </div>
       </div>
 

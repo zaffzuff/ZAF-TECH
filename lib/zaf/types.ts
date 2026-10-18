@@ -179,4 +179,10 @@ export interface ZafWalletSnapshot {
   source: string;
   generatedAt: string;
   error: string | null;
+  sources?: {
+    account: "available" | "unavailable";
+    claimableBalances: "available" | "unavailable";
+    transactions: "available" | "unavailable";
+    operations: "available" | "unavailable";
+  };
 }

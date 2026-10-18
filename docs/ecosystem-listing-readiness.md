@@ -6,11 +6,11 @@
 
 No listing application has been submitted. Prepared images have not been uploaded. Do not confuse configuration Submit/Save with the final application.
 
-## October 18 status update
+## October 19 status update
 
-App Studio integration is deployed, but native sign-in currently fails at the App Studio exchange (observed upstream HTTP 404). Do not mark the auth gate complete from mocked tests. The official production frontend separately implements ownership verification/conversion and publication: Verify My App checks the static claim, creates the converted app and waits for a successful native sign-in; the verified screen then offers Publish and states that remaining unlisted is possible. Technical verification may therefore be needed to finish the login test before public listing. No Verify/Publish action has been taken by the agent.
+Real Pi Desktop/App Studio sign-in succeeded and App Studio registered ZAF Tech. After the owner selected Continue and Skip for optional payments, App Studio displayed Published and provided https://zaftechpu0455.pinet.com. This does not prove ecosystem directory acceptance. The owner also confirmed the separate web QR sign-in fix succeeded. SDK tokens are verified through App Studio; web OAuth tokens through the official Pi Platform API, with app-specific identities kept separate.
 
-Current auth behavior is documented in pi-auth-security.md. The October 16 display-only/session/CSP and device evidence below is historical and superseded where it conflicts. Keep the mandatory final review gate above.
+The owner requested the comprehensive final web/mobile audit and authorized fixes on October 19. Evidence and remaining release checks are in final-audit-2026-10-19.md. No new Developer Portal listing submission or payment setup was performed. Earlier October 16 findings below are historical where superseded. Current authentication boundaries are in pi-auth-security.md. Keep the final application gate above; portal declarations must match actual behavior.
 
 ## Product and technical preparation
 

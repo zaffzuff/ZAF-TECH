@@ -46,6 +46,14 @@ const ALLOWED_ORIGINS = new Set(
   ]
 );
 
+function isAllowedConnectorHost(value) {
+  if (typeof value !== "string") return false;
+  const authority = value.toLowerCase();
+  return ["127.0.0.1", "localhost", "[::1]"].some(host =>
+    authority === `${host}:${PORT}` || (PORT === 80 && authority === host)
+  );
+}
+
 function json(res, status, payload, origin) {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
@@ -557,6 +565,15 @@ async function recordHistorySample() {
 
 const server = createServer(async (req, res) => {
   const origin = req.headers.origin || "";
+
+  // CORS controls browser reads, not whether a request executes. Check the
+  // authority as well so a DNS-rebound domain cannot read local node details.
+  if (!isAllowedConnectorHost(req.headers.host) ||
+      (origin && !ALLOWED_ORIGINS.has(origin)) ||
+      (!origin && req.headers["sec-fetch-site"] === "cross-site")) {
+    json(res, 403, { error: "Forbidden" }, "");
+    return;
+  }
 
   if (req.method === "OPTIONS") {
     res.writeHead(204, {

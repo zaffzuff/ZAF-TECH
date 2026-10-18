@@ -202,27 +202,47 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
   const [searchError, setSearchError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
+  const searchRequest = useRef<AbortController | null>(null);
+
+  useEffect(() => () => { searchRequest.current?.abort(); searchRequest.current = null; }, []);
+
+  function changeQuery(value: string) {
+    searchRequest.current?.abort();
+    searchRequest.current = null;
+    setQuery(value);
+    setResults([]);
+    setSearchError("");
+    setSubmittedQuery(null);
+    setLoading(false);
+  }
 
   async function submit() {
     const q = query.trim();
-    if (q.length < 2) { setResults([]); return; }
-    setLoading(true); setSearchError("");
+    if (q.length < 2) { changeQuery(query); return; }
+    searchRequest.current?.abort();
+    const controller = new AbortController();
+    searchRequest.current = controller;
+    setLoading(true); setSearchError(""); setResults([]); setSubmittedQuery(null);
     try {
-      const {response,body}=await requestJson<{results?:SearchResult[]}>("/api/zaf/search?q="+encodeURIComponent(q),{cache:"no-store"});
+      const {response,body}=await requestJson<{results?:SearchResult[]}>("/api/zaf/search?q="+encodeURIComponent(q),{cache:"no-store",signal:controller.signal});
+      if (searchRequest.current !== controller) return;
       if(!response.ok) throw new Error("Search failed");
       setResults(Array.isArray(body?.results) ? body.results : []);
+      setSubmittedQuery(q);
     } catch {
-      setResults([]); setSearchError(tr("Request failed","İstek başarısız"));
+      if (searchRequest.current !== controller) return;
+      setResults([]); setSearchError(tr("Request failed","İstek başarısız")); setSubmittedQuery(q);
     } finally {
-      setLoading(false);
+      if (searchRequest.current === controller) setLoading(false);
     }
   }
 
-  const resultsView = query.trim().length >= 2 && (results.length || (!loading && !results.length)) ? (
+  const resultsView = submittedQuery === query.trim() && !loading ? (
     results.length ? (
       <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
         {results.slice(0, 8).map(result => (
-          <button key={result.type + result.href + result.title} type="button" onClick={() => { setQuery(""); setResults([]); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
+          <button key={result.type + result.href + result.title} type="button" onClick={() => { changeQuery(""); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">{result.title}</span>
               <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
@@ -256,7 +276,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
               <input
                 autoFocus
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={e => changeQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") void submit(); if (e.key === "Escape") setMobileOpen(false); }}
                 placeholder={tr("Search ecosystem…", "Ekosistemde ara…")}
                 aria-label={tr("Global Search", "Genel Arama")}
@@ -276,7 +296,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
       <div className="relative">
         <input
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={e => changeQuery(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") void submit(); }}
           placeholder={searchPlaceholder(locale)}
           aria-label={tr("Global Search", "Genel Arama")}
@@ -580,6 +600,7 @@ export function ZafTechApp() {
     const params = new URLSearchParams(window.location.search);
     params.set("section", section);
     if (subtab) params.set("subtab", subtab);
+    else params.delete("subtab");
     window.history.replaceState(null, "", "/?" + params.toString());
   }, [deepLinkReady, section, subtab]);
 

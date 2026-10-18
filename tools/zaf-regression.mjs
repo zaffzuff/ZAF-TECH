@@ -244,7 +244,7 @@ for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNI
   if (!piOAuthHelpers.includes(token)) throw new Error("Pi OAuth state/redirect safety regression: " + token);
 }
 const piSignInCallback = readText(path.join(root, "app/signin/callback/page.tsx"), "utf8");
-for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/auth", "savePiDisplay", "isPiOAuthStateFresh", "window.location.replace"]) {
+for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/oauth", "savePiDisplay", "isPiOAuthStateFresh", "window.location.replace"]) {
   if (!piSignInCallback.includes(token)) throw new Error("Pi OAuth callback regression: " + token);
 }
 

@@ -96,7 +96,7 @@ export default function StartWithPiPage() {
     { title: "Learn Wallet and security", body: "Begin Wallet setup only through the official Pi Browser flow. Never share your passphrase, and verify the address before using any website.", action: "wallet.pinet.com", href: "https://wallet.pinet.com/" },
   ];
   return (
-    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-8 sm:py-10">
+    <main lang={locale} className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-8 sm:py-10">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex items-center justify-between gap-4 border-b border-border pb-4">
           <ZafBrand />

@@ -20,7 +20,7 @@ async function horizon(path: string): Promise<HorizonResponse> {
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`Pi Horizon request failed: ${response.status}`);
-    return response.json() as Promise<HorizonResponse>;
+    return await response.json() as HorizonResponse;
   } finally {
     clearTimeout(timeout);
   }

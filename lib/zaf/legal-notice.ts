@@ -1,4 +1,4 @@
-export const LEGAL_UPDATED = "2026-10-15";
+export const LEGAL_UPDATED = "2026-10-19";
 export const CONTACT_EMAIL = "zaftech.contact@gmail.com";
 export const OPERATOR = "Zafer TEKYILDIZ";
 

@@ -6,6 +6,7 @@ import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
 import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_STARTED_KEY, PI_DISPLAY_CHANGE_EVENT, clearPiDisplay, readPiDisplay, savePiDisplay, acquirePiSignIn, releasePiSignIn, isPiSignInBusy, type PiDisplay } from "@/lib/zaf/pi/oauth";
 import { loadPiSdk, initializePiSdk, authenticatePi, piReloadRequired, withPiTimeout as withTimeout, type PiSdk } from "@/lib/zaf/pi/sdk";
+import { refreshPiSession } from "@/lib/zaf/pi/session-state";
 
 function beginPiOAuthSignIn(clientId: string) {
   const bytes = new Uint8Array(24);
@@ -87,11 +88,12 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   useEffect(() => {
     mounted.current = true;
     const sync = () => { setUser(readPiDisplay()); setBusy(isPiSignInBusy()); setReload(piReloadRequired()); };
-    sync();
-    const timer = window.setInterval(sync, 30_000);
+    const restore = () => { sync(); void refreshPiSession(); };
+    restore();
+    const timer = window.setInterval(restore, 30_000);
     window.addEventListener(PI_DISPLAY_CHANGE_EVENT, sync);
-    window.addEventListener("pageshow", sync);
-    return () => { mounted.current = false; window.clearInterval(timer); window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync); window.removeEventListener("pageshow", sync); };
+    window.addEventListener("pageshow", restore);
+    return () => { mounted.current = false; window.clearInterval(timer); window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync); window.removeEventListener("pageshow", restore); };
   }, []);
 
   useEffect(() => {

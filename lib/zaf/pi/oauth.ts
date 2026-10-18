@@ -8,6 +8,9 @@ export const PI_DISPLAY_MAX_AGE_MS = 30 * 60_000;
 export type PiDisplay = { username: string; verifiedAt: number; current: boolean };
 let currentDisplay: PiDisplay | null = null;
 let busy = false;
+let displayRevision = 0;
+
+export function getPiDisplayRevision() { return displayRevision; }
 
 export function isPiSignInBusy() { return busy; }
 export function acquirePiSignIn() {
@@ -43,7 +46,14 @@ export function isPiOAuthStateFresh(started: string | null, now = Date.now()) {
 }
 
 export function notifyPiDisplayChange() {
+  displayRevision += 1;
   if (typeof window.dispatchEvent === "function") window.dispatchEvent(new Event(PI_DISPLAY_CHANGE_EVENT));
+}
+
+/** Keep an optional historical name without presenting an unconfirmed session as live. */
+export function markPiDisplayUnconfirmed() {
+  currentDisplay = null;
+  notifyPiDisplayChange();
 }
 
 /** Clear this application's presentation state; never claim to revoke Pi's session. */

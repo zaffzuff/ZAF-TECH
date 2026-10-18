@@ -168,7 +168,10 @@ test("unmounted Pi header ignores an eventual authentication result and releases
   const browser=mockBrowser('PiBrowser');let complete,calls=0;
   try {
     browser.fakeWindow.Pi={init:async()=>{},getPiHostAppInfo:async()=>({hostApp:'pi-browser'}),authenticate:()=>new Promise(resolve=>{complete=resolve;})};
-    globalThis.fetch=async()=>{calls++;throw Error('must not verify after unmount');};
+    globalThis.fetch=async(url,options)=>{
+      if(url==='/api/zaf/pi/session'){assert.equal(options.method,'GET');return new Response(JSON.stringify({user:null}));}
+      assert.equal(url,'/api/zaf/pi/auth');calls++;throw Error('must not verify after unmount');
+    };
     const component=browser.load('@/components/zaf-pi-sign-in').ZafPiSignIn({locale:'en'});
     const cleanup=browser.effects[0]();component.props.children[0].props.onClick();await new Promise(resolve=>setImmediate(resolve));cleanup();
     complete({accessToken:'late-unmounted-token'});await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,0);assert.equal(browser.load('@/lib/zaf/pi/oauth').isPiSignInBusy(),false);
