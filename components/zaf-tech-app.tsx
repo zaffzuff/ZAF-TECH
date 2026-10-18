@@ -6,6 +6,7 @@ import { servicePolicy } from "@/lib/zaf/service-policy";
 import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { ZafObservationStatus } from "@/components/zaf-observation-status";
 import { requestJson } from "@/lib/zaf/client-request";
+import { useObservationFreshness } from "@/lib/zaf/use-observation-freshness";
 import type { UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type React from "react";
 import { useRouter } from "next/navigation";
@@ -525,6 +526,7 @@ export function ZafTechApp() {
   const router = useRouter();
   const loadingObservation = useRef(false);
   const ledgerRequest = useRef<AbortController | null>(null);
+  const liveFreshness = useObservationFreshness(snapshot?.latestLedger?.closedAt, Boolean(loadError || snapshot?.error));
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
@@ -708,7 +710,7 @@ export function ZafTechApp() {
           </div>
         </header>
         <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
-        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} failed={Boolean(loadError)} />
+        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} freshness={liveFreshness} />
 
         {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
         {!loading && loadError ? (
@@ -736,7 +738,7 @@ export function ZafTechApp() {
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Card title={tr("Available Sources", "Kullanılabilir Kaynaklar")} value={ecosystem ? `${ecosystem.sources.filter(source => source.status === "online" || source.status === "available").length}/${ecosystem.sources.length}` : "—"} detail={tr("Public Sources", "Herkese Açık Kaynaklar")} />
                 <Card title={tr("Apps", "Uygulamalar")} value={number(ecosystem?.apps.totalCount, 0, locale)} detail={tr("Currently Observed", "Şu Anda Gözlemlenen")} />
-                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
+                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(liveFreshness.state, locale)} detail={liveFreshness.ageSeconds + "s"} />
                 <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Review source status", "Kaynak durumunu inceleyin") : tr("No source errors", "Kaynak hatası yok")} />
               </div>
             </div>
@@ -981,7 +983,7 @@ export function ZafTechApp() {
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("Observation Status", "Gözlem Durumu")}</div>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
+                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(liveFreshness.state, locale)} detail={liveFreshness.ageSeconds + "s"} />
                 <Card title={tr("Confidence", "Güven")} value={String(observationMeta.confidence.score)} detail={observationMeta.confidence.level} />
                 <Card title={tr("Latest Ledger Hash", "Son Ledger Hash")} value={snapshot?.latestLedger?.hash ? snapshot.latestLedger.hash.slice(0, 10) + "…" : "—"} detail={tr("Observed Mainnet Record", "Gözlemlenen Mainnet Kaydı")} />
                 <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Source issues reported", "Kaynak sorunları bildirildi") : tr("No source errors", "Kaynak hatası yok")} />

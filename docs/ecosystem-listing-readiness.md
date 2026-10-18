@@ -6,6 +6,12 @@
 
 No listing application has been submitted. Prepared images have not been uploaded. Do not confuse configuration Submit/Save with the final application.
 
+## October 18 status update
+
+App Studio integration is deployed, but native sign-in currently fails at the App Studio exchange (observed upstream HTTP 404). Do not mark the auth gate complete from mocked tests. The official production frontend separately implements ownership verification/conversion and publication: Verify My App checks the static claim, creates the converted app and waits for a successful native sign-in; the verified screen then offers Publish and states that remaining unlisted is possible. Technical verification may therefore be needed to finish the login test before public listing. No Verify/Publish action has been taken by the agent.
+
+Current auth behavior is documented in pi-auth-security.md. The October 16 display-only/session/CSP and device evidence below is historical and superseded where it conflicts. Keep the mandatory final review gate above.
+
 ## Product and technical preparation
 
 1. Data: ledger closure determines freshness, not successful request time. Status ages on screen; stale samples are never saved as a new measurement. Source/sample/time and daily-rate limitations are visible. Decorative invented sparklines have been removed.

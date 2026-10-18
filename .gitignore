@@ -33,5 +33,4 @@ next-env.d.ts
 # Local backup files
 /components/zaf-node-intelligence.backup.tsx
 
-# Root npm lockfile generated locally
-/package-lock.json
+# The root lockfile is committed for reproducible web builds.

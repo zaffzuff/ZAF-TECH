@@ -651,3 +651,17 @@ test("Pi verification failures expose only a safe reference for HTTP and connect
     }finally{browser.restore();}
   }
 });
+
+test("one observation clock ages every consumer and refreshes on page resume",()=>{
+  const prior={window:globalThis.window,document:globalThis.document,now:Date.now};let clock=Date.parse('2026-10-18T00:00:00Z'),state=null,effect,tick,cleared=false;const events=new Map();
+  try{
+    Date.now=()=>clock;globalThis.window={setInterval:cb=>{tick=cb;return 42;},clearInterval:id=>{cleared=id===42;},addEventListener:(name,cb)=>events.set(name,cb),removeEventListener:name=>events.delete(name)};
+    globalThis.document={addEventListener:(name,cb)=>events.set(name,cb),removeEventListener:name=>events.delete(name)};
+    const hook=loader({react:{useState:()=>[state,value=>{state=value;}],useEffect:cb=>{effect=cb;}}})('@/lib/zaf/use-observation-freshness').useObservationFreshness;
+    const timestamp=new Date(clock).toISOString();assert.equal(hook(timestamp,false).ready,false);const cleanup=effect();
+    assert.equal(hook(timestamp,false).state,'fresh');clock+=45000;tick();assert.equal(hook(timestamp,false).state,'aging');assert.equal(hook(timestamp,false).ageSeconds,45);
+    clock+=100000;events.get('pageshow')();assert.equal(hook(timestamp,false).state,'stale');assert.equal(hook(timestamp,false).ageSeconds,145);
+    clock+=15000;events.get('visibilitychange')();assert.equal(hook(timestamp,false).ageSeconds,160);assert.equal(hook(new Date(clock).toISOString(),true).state,'stale');
+    cleanup();assert.equal(cleared,true);assert.equal(events.size,0);
+  }finally{Date.now=prior.now;globalThis.window=prior.window;globalThis.document=prior.document;}
+});

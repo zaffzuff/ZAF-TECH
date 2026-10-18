@@ -95,13 +95,5 @@ jobs:
 
           Write-Host "Release assets uploaded successfully to $tag."
 
-          $allReleases = gh release list --repo "$env:GITHUB_REPOSITORY" --limit 100 --json tagName,isDraft,isPrerelease | ConvertFrom-Json
-          foreach ($release in @($allReleases)) {
-            if ($release.tagName -ne $tag -and -not $release.isDraft -and -not $release.isPrerelease) {
-              Write-Host "Removing obsolete release and tag: $($release.tagName)"
-              gh release delete $release.tagName --repo "$env:GITHUB_REPOSITORY" --yes --cleanup-tag
-              if ($LASTEXITCODE -ne 0) { throw "Failed to remove obsolete release $($release.tagName)." }
-            }
-          }
-
-          Write-Host "Release cleanup complete. Keeping only $tag."
+          # Preserve existing releases and tags for rollback and checksum verification.
+          Write-Host "Existing releases and tags have been preserved."
