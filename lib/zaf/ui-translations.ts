@@ -4,6 +4,8 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Open the registered Pi app to sign in.","Abre la app Pi registrada para iniciar sesión.","请打开已注册的 Pi 应用以登录。","Apri l’app Pi registrata per accedere.","Ouvrez l’application Pi enregistrée pour vous connecter.","Öffne die registrierte Pi-App zur Anmeldung.","Abra a aplicação Pi registada para iniciar sessão."],
+  ["Open ZAF Tech in Pi","Abrir ZAF Tech en Pi","在 Pi 中打开 ZAF Tech","Apri ZAF Tech in Pi","Ouvrir ZAF Tech dans Pi","ZAF Tech in Pi öffnen","Abrir ZAF Tech no Pi"],
   ["Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.","No se pudieron actualizar algunas fuentes de la cartera. Los datos no disponibles aparecen como desconocidos; vuelve a inspeccionar para reintentar.","部分钱包数据源无法刷新。不可用的观测显示为未知；请再次查询重试。","Alcune fonti del portafoglio non sono state aggiornate. I dati non disponibili sono indicati come sconosciuti; ripeti l’ispezione.","Certaines sources du portefeuille n’ont pas pu être actualisées. Les observations indisponibles sont inconnues ; relancez l’inspection.","Einige Wallet-Quellen konnten nicht aktualisiert werden. Fehlende Beobachtungen werden als unbekannt angezeigt; erneut prüfen.","Algumas fontes da carteira não puderam ser atualizadas. As observações indisponíveis aparecem como desconhecidas; inspecione novamente."],
   ["Operation observations are temporarily unavailable.","Las observaciones de operaciones no están disponibles temporalmente.","操作观测暂时不可用。","Le osservazioni delle operazioni sono temporaneamente indisponibili.","Les observations des opérations sont temporairement indisponibles.","Operationsbeobachtungen sind vorübergehend nicht verfügbar.","As observações de operações estão temporariamente indisponíveis."],
   ["The activity timeline is temporarily unavailable because a source could not be refreshed.","La cronología no está disponible temporalmente porque no se pudo actualizar una fuente.","由于某个数据源无法刷新，活动时间线暂时不可用。","La cronologia è temporaneamente indisponibile perché una fonte non è stata aggiornata.","La chronologie est temporairement indisponible car une source n’a pas pu être actualisée.","Die Aktivitätszeitleiste ist vorübergehend nicht verfügbar, da eine Quelle nicht aktualisiert werden konnte.","A cronologia está temporariamente indisponível porque uma fonte não pôde ser atualizada."],
@@ -581,6 +583,8 @@ export const supplementalUiTranslations: Record<string, Partial<Record<Supplemen
 
 
 export const supplementalRussianUiTranslations: Record<string, string> = {
+  "Open the registered Pi app to sign in.": "Для входа откройте зарегистрированное приложение Pi.",
+  "Open ZAF Tech in Pi": "Открыть ZAF Tech в Pi",
   "Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.": "Некоторые источники кошелька не обновились. Недоступные данные показаны как неизвестные; повторите проверку.",
   "Operation observations are temporarily unavailable.": "Наблюдения операций временно недоступны.",
   "The activity timeline is temporarily unavailable because a source could not be refreshed.": "Хронология временно недоступна: источник не удалось обновить.",

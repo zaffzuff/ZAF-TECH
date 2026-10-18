@@ -516,7 +516,7 @@ test("OAuth return paths cannot escape the app or loop into its callback", () =>
 function mockBrowser(userAgent = "Chrome") {
   const storage = new Map(), navigations = [], effects = [], messages = [];
   const values = { window: globalThis.window, navigator: globalThis.navigator, sessionStorage: globalThis.sessionStorage, fetch: globalThis.fetch };
-  const fakeWindow = { location: { origin: "https://zaf-tech.invalid", pathname: "/", search: "", hostname: "zaf-tech.invalid", hash: "", assign: value => navigations.push(value), replace: value => navigations.push(value) }, history: { replaceState: (...args) => navigations.push(args[2]) }, crypto: webcrypto, setTimeout, clearTimeout, setInterval, clearInterval, addEventListener() {}, removeEventListener() {} };
+  const fakeWindow = { parent: {}, location: { origin: "https://zaf-tech.invalid", pathname: "/", search: "", hostname: "zaf-tech.invalid", hash: "", assign: value => navigations.push(value), replace: value => navigations.push(value) }, history: { replaceState: (...args) => navigations.push(args[2]) }, crypto: webcrypto, setTimeout, clearTimeout, setInterval, clearInterval, addEventListener() {}, removeEventListener() {} };
   Object.defineProperty(globalThis, "window", { configurable: true, value: fakeWindow, writable: true });
   Object.defineProperty(globalThis, "navigator", { configurable: true, value: { userAgent }, writable: true });
   globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) };
@@ -540,7 +540,7 @@ test("callback credentials are cleared even if browser storage throws", async ()
   } finally { browser.restore(); }
 });
 
-for (const hostApp of ["pi-browser", "pi-node", "pi-net"]) test(`Pi host ${hostApp} initializes before native auth and trusts server identity`, async () => {
+for (const hostApp of ["pi-browser", "pi-node"]) test(`Pi host ${hostApp} initializes before native auth and trusts server identity`, async () => {
   const browser = mockBrowser("PiBrowser"); const calls = [];
   try {
     browser.fakeWindow.Pi = {

@@ -176,12 +176,15 @@ for (const token of [
   "function safePiErrorDetail",
   "useEffect(() => {",
   "await initializePiSdk();",
-  'userAgent.includes("pibrowser")',
-  'userAgent.includes("pi-browser")',
-  '["pi-browser", "pi-node", "pi-net"].includes(info.hostApp)',
+  '["pi-browser", "pi-node"].includes(info.hostApp)',
+  'if (info?.hostApp === "pi-net") return false;',
   "insidePiBrowser",
 ]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
+}
+const piNativeContext = readText(path.join(root, "lib/zaf/pi/native-context.ts"), "utf8");
+for (const token of ['userAgent.includes("pibrowser")', 'userAgent.includes("pi-browser")', 'window.parent === window', 'https://zaftechpu0455.pinet.com']) {
+  if (!piNativeContext.includes(token)) throw new Error("Pi app entry regression: " + token);
 }
 
 const zafAppSource = readText(path.join(root, "components/zaf-tech-app.tsx"), "utf8");

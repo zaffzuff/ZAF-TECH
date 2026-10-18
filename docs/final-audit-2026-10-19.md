@@ -35,3 +35,7 @@ Scope: core web/mobile flows, supporting pages, public observations, wallet tool
 - Existing packaged/installed Connector binaries must receive a separately built update to include the source security fix. No existing release/tag was deleted and no running local Node setting was changed.
 - App Studio displayed Published after the owner selected Continue and Skip. This does not establish ecosystem directory acceptance. The older Developer Portal record is not assumed to be the same application identity.
 - Formal listing declarations and final submission remain distinct from deploying this tested web maintenance release.
+
+## Physical smoke follow-up
+
+The owner confirmed canonical https://zaftechpu0455.pinet.com native Pi Browser sign-in and direct web QR sign-in succeed. Direct Vercel navigation in mobile Pi Browser stalled. A bounded entry fix now avoids attempting parent-bridge consent from a known top-level Pi Browser page, provides the fixed registered app entry, and routes pi-net web host through web OAuth. This entry handling needs owner confirmation after deployment; the prior mock suites did not establish this real environment boundary. No verifier, consent scope or identity trust was weakened.
