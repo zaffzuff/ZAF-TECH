@@ -33,6 +33,11 @@ const nextConfig = {
         ],
       },
       {
+        // Keep local Next and Vercel responses consistent for native form POSTs.
+        source: "/signin/storage",
+        headers: [{ key: "Referrer-Policy", value: "same-origin" }],
+      },
+      {
         source: "/browser-check.html",
         headers: [
           { key: "Cache-Control", value: "no-store, max-age=0" },

@@ -65,7 +65,7 @@ test('anonymous cookie probe uses real session attributes without identity', asy
   }
 });
 
-test('storage setup requires first-party interaction and rejects injected content', async () => {
+test('storage setup preserves form Origin and permits only its fixed PiNet redirect under CSP', async () => {
   const route = loader()('@/app/signin/storage/route');
   const response = await route.GET(new Request('https://zaf-tech.invalid/signin/storage?lang=%3Cscript%3E&returnTo=https://evil.invalid'));
   const html = await response.text();
@@ -74,11 +74,15 @@ test('storage setup requires first-party interaction and rejects injected conten
   assert.doesNotMatch(html, /<script|evil\.invalid/i);
   assert.equal(response.headers.get('x-frame-options'), 'DENY');
   assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/);
-  assert.match(response.headers.get('content-security-policy'), /form-action 'self'/);
+  // Header contracts catch the browser regression, but synthetic requests do
+  // not replace clicking the real form and observing its navigation chain.
+  assert.equal(response.headers.get('referrer-policy'), 'same-origin');
+  const formAction = response.headers.get('content-security-policy').split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
+  assert.equal(formAction, "form-action 'self' https://zaftechpu0455.pinet.com");
   assert.equal(response.headers.get('set-cookie'), null);
 });
 
-test('storage bootstrap POST has exact origin checking and a fixed return destination', async () => {
+test('storage bootstrap server rejects null and foreign Origins while retaining the fixed return destination', async () => {
   const route = loader()('@/app/signin/storage/route');
   for (const origin of ['', 'https://evil.invalid', 'null']) {
     const response = await route.POST(new Request('https://zaf-tech.invalid/signin/storage', { method: 'POST', headers: { origin } }));
@@ -87,6 +91,9 @@ test('storage bootstrap POST has exact origin checking and a fixed return destin
   const response = await route.POST(new Request('https://zaf-tech.invalid/signin/storage?returnTo=https://evil.invalid', { method: 'POST', headers: { origin: 'https://zaf-tech.invalid' } }));
   assert.equal(response.status, 303);
   assert.equal(response.headers.get('location'), 'https://zaftechpu0455.pinet.com/');
+  assert.equal(response.headers.get('referrer-policy'), 'same-origin');
+  const formAction = response.headers.get('content-security-policy').split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
+  assert.equal(formAction, "form-action 'self' https://zaftechpu0455.pinet.com");
   assert.match(response.headers.get('set-cookie'), /^__Host-zaf-pi-storage-visit=1;/);
   assert.match(response.headers.get('set-cookie'), /HttpOnly/);
   assert.match(response.headers.get('set-cookie'), /Max-Age=1800/);

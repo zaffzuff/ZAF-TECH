@@ -122,13 +122,19 @@ try {
   }
 
   // Next's global headers must not override this first-party-only page policy.
+  // This HTTP smoke validates headers, not actual form navigation. A separate
+  // browser click must verify generated Origin and the cross-origin 303 chain.
   const storageSetup = await request('/signin/storage?lang=tr');
+  const storageCsp = storageSetup.headers['content-security-policy'] ?? '';
+  const storageFormAction = storageCsp.split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
   if (storageSetup.status !== 200 ||
-      !(storageSetup.headers['content-security-policy'] ?? '').includes("frame-ancestors 'none'") ||
-      !(storageSetup.headers['content-security-policy'] ?? '').includes("default-src 'none'") ||
+      !storageCsp.includes("frame-ancestors 'none'") ||
+      !storageCsp.includes("default-src 'none'") ||
+      storageFormAction !== "form-action 'self' https://zaftechpu0455.pinet.com" ||
+      storageSetup.headers['referrer-policy'] !== 'same-origin' ||
       storageSetup.headers['x-frame-options'] !== 'DENY' ||
       !storageSetup.text.includes('method="post"') || /<script/i.test(storageSetup.text)) {
-    throw new Error('Pi storage setup must require a first-party interaction under its strict CSP.');
+    throw new Error('Pi storage setup must preserve same-origin form Origin and permit only the fixed PiNet redirect under its strict CSP.');
   }
 
   // Policy pages must work before hydration, including direct Turkish terms.

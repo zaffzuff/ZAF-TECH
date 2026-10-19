@@ -4,9 +4,12 @@ import { ZAF_PI_APP_URL } from "@/lib/zaf/pi/native-context";
 
 export const dynamic = "force-dynamic";
 const headers = {
-  "Cache-Control": "no-store, max-age=0", "Referrer-Policy": "no-referrer",
+  // no-referrer turns a native form POST's Origin into null. Preserve only
+  // same-origin information; disclose no referrer on the fixed PiNet return.
+  "Cache-Control": "no-store, max-age=0", "Referrer-Policy": "same-origin",
   "X-Frame-Options": "DENY",
-  "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+  // WebKit applies form-action to redirects too: allow only our fixed return.
+  "Content-Security-Policy": `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self' ${ZAF_PI_APP_URL}; frame-ancestors 'none'; base-uri 'none'`,
 };
 
 export async function GET(request: Request) {
