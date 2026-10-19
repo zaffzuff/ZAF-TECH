@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertPiSameOrigin } from "@/lib/zaf/pi/auth-input";
-import { PI_SESSION_COOKIE, readPiSession, piSessionCookieOptions } from "@/lib/zaf/pi/session";
+import { PI_SESSION_COOKIE, PI_LEGACY_SESSION_COOKIE, readPiSession, piSessionCookieOptions, piLegacyCookieClearOptions } from "@/lib/zaf/pi/session";
 
 export const dynamic = "force-dynamic";
 
@@ -17,5 +17,6 @@ export async function DELETE(request: NextRequest) {
   }
   const response = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   response.cookies.set(PI_SESSION_COOKIE, "", { ...piSessionCookieOptions, maxAge: 0 });
+  response.cookies.set(PI_LEGACY_SESSION_COOKIE, "", piLegacyCookieClearOptions);
   return response;
 }

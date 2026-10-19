@@ -4,6 +4,9 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Resume session","Reanudar sesión","恢复会话","Riprendi sessione","Reprendre la session","Sitzung fortsetzen","Retomar sessão"],
+  ["This browser needs permission to keep your ZAF Tech session inside Pi.","Este navegador necesita permiso para mantener tu sesión de ZAF Tech dentro de Pi.","此浏览器需要获得权限，才能在 Pi 内保持你的 ZAF Tech 会话。","Questo browser richiede il permesso di mantenere la tua sessione ZAF Tech all’interno di Pi.","Ce navigateur a besoin d’une autorisation pour conserver votre session ZAF Tech dans Pi.","Dieser Browser benötigt eine Erlaubnis, um deine ZAF Tech Sitzung innerhalb von Pi beizubehalten.","Este navegador precisa de permissão para manter a tua sessão ZAF Tech dentro do Pi."],
+  ["Enable session and return to Pi","Activar sesión y volver a Pi","启用会话并返回 Pi","Attiva la sessione e torna a Pi","Activer la session et revenir à Pi","Sitzung aktivieren und zu Pi zurückkehren","Ativar sessão e voltar ao Pi"],
   ["Open the registered Pi app to sign in.","Abre la app Pi registrada para iniciar sesión.","请打开已注册的 Pi 应用以登录。","Apri l’app Pi registrata per accedere.","Ouvrez l’application Pi enregistrée pour vous connecter.","Öffne die registrierte Pi-App zur Anmeldung.","Abra a aplicação Pi registada para iniciar sessão."],
   ["Open ZAF Tech in Pi","Abrir ZAF Tech en Pi","在 Pi 中打开 ZAF Tech","Apri ZAF Tech in Pi","Ouvrir ZAF Tech dans Pi","ZAF Tech in Pi öffnen","Abrir ZAF Tech no Pi"],
   ["Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.","No se pudieron actualizar algunas fuentes de la cartera. Los datos no disponibles aparecen como desconocidos; vuelve a inspeccionar para reintentar.","部分钱包数据源无法刷新。不可用的观测显示为未知；请再次查询重试。","Alcune fonti del portafoglio non sono state aggiornate. I dati non disponibili sono indicati come sconosciuti; ripeti l’ispezione.","Certaines sources du portefeuille n’ont pas pu être actualisées. Les observations indisponibles sont inconnues ; relancez l’inspection.","Einige Wallet-Quellen konnten nicht aktualisiert werden. Fehlende Beobachtungen werden als unbekannt angezeigt; erneut prüfen.","Algumas fontes da carteira não puderam ser atualizadas. As observações indisponíveis aparecem como desconhecidas; inspecione novamente."],
@@ -583,6 +586,9 @@ export const supplementalUiTranslations: Record<string, Partial<Record<Supplemen
 
 
 export const supplementalRussianUiTranslations: Record<string, string> = {
+  "Resume session": "Возобновить сеанс",
+  "This browser needs permission to keep your ZAF Tech session inside Pi.": "Этому браузеру требуется разрешение, чтобы сохранять ваш сеанс ZAF Tech внутри Pi.",
+  "Enable session and return to Pi": "Включить сеанс и вернуться в Pi",
   "Open the registered Pi app to sign in.": "Для входа откройте зарегистрированное приложение Pi.",
   "Open ZAF Tech in Pi": "Открыть ZAF Tech в Pi",
   "Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.": "Некоторые источники кошелька не обновились. Недоступные данные показаны как неизвестные; повторите проверку.",

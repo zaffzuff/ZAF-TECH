@@ -36,7 +36,7 @@ test("App Studio exchange trusts only server identity and issues a secure sessio
       assert.match(result.headers['Cache-Control'],/no-store/);
       assert.equal(JSON.stringify(result.body).includes('fixture-token'),false);assert.equal(JSON.stringify(result.body).includes('fixture-uid'),false);
       assert.equal(JSON.stringify(result).includes('upstream-session'),false);
-      if(expected===200){assert.equal(result.body.user.username,'pioneer');const cookie=result.cookies.values[0];assert.equal(cookie[0],'__Host-zaf-pi-session');assert.deepEqual(cookie[2],{httpOnly:true,secure:true,sameSite:'none',path:'/',maxAge:1800});const session=loader()('@/lib/zaf/pi/session');assert.deepEqual(session.readPiSession(cookie[1]),{uid:'fixture-uid',username:'pioneer'});}
+      if(expected===200){assert.equal(result.body.user.username,'pioneer');const cookie=result.cookies.values[0];assert.equal(cookie[0],'__Host-zaf-pi-session-v2');assert.deepEqual(cookie[2],{httpOnly:true,secure:true,sameSite:'none',path:'/',maxAge:1800,partitioned:true});const session=loader()('@/lib/zaf/pi/session');assert.deepEqual(session.readPiSession(cookie[1]),{uid:'fixture-uid',username:'pioneer'});assert.equal(result.cookies.values[1][0],session.PI_LEGACY_SESSION_COOKIE);assert.equal(result.cookies.values[1][2].maxAge,0);}
       else assert.equal(result.cookies.values.length,0);
       if(status===429)assert.equal(result.headers['Retry-After'],'300');
     }
@@ -72,7 +72,7 @@ test("OAuth callback sends credentials only to the web verifier and reports safe
     const browser=mockBrowser();
     try {
       const keys=browser.load('@/lib/zaf/pi/oauth');browser.storage.set(keys.PI_SIGNIN_STATE_KEY,'fixture-state');browser.storage.set(keys.PI_SIGNIN_STARTED_KEY,String(Date.now()));browser.fakeWindow.location.hash='#access_token=oauth-fixture&state=fixture-state';
-      globalThis.fetch=async(url,options)=>{assert.equal(url,'/api/zaf/pi/oauth');assert.deepEqual(JSON.parse(options.body),{accessToken:'oauth-fixture'});return new Response(JSON.stringify(status===200?{user:{username:'pioneer'}}:{error:'private provider detail'}),{status});};
+      globalThis.fetch=async(url,options)=>{if(url==='/api/zaf/pi/session'){assert.equal(options.credentials,'same-origin');return new Response(JSON.stringify({user:{username:'pioneer'}}));}assert.equal(url,'/api/zaf/pi/oauth');assert.deepEqual(JSON.parse(options.body),{accessToken:'oauth-fixture'});return new Response(JSON.stringify(status===200?{user:{username:'pioneer'}}:{error:'private provider detail'}),{status});};
       browser.load('@/app/signin/callback/page').default();browser.effects[0]();await new Promise(resolve=>setImmediate(resolve));
       if(status===200)assert.equal(keys.readPiDisplay().username,'pioneer');
       else {assert.equal(keys.readPiDisplay(),null);assert.ok(browser.messages.some(message=>typeof message==='string'&&message.includes(`ZAF-PI-OAUTH-${status}`)));}
@@ -161,7 +161,7 @@ test("OAuth callback rejects expired, future, missing, mismatched and duplicate 
 
 test("fresh OAuth callback verifies once, consumes state and saves display only",async()=>{
   const browser=mockBrowser();let calls=0;
-  try {const keys=browser.load('@/lib/zaf/pi/oauth');browser.storage.set(keys.PI_SIGNIN_STATE_KEY,'fixture-state');browser.storage.set(keys.PI_SIGNIN_STARTED_KEY,String(Date.now()));browser.storage.set(keys.PI_SIGNIN_RETURN_TO_KEY,'/?section=network');browser.fakeWindow.location.hash='#access_token=fixture-token&state=fixture-state';globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({user:{username:'pioneer'}}));};browser.load('@/app/signin/callback/page').default();browser.effects[0]();await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);assert.equal(keys.readPiDisplay().username,'pioneer');assert.equal(browser.storage.has(keys.PI_SIGNIN_STATE_KEY),false);assert.equal(browser.navigations.at(-1),'/?section=network');assert.equal(JSON.stringify([...browser.storage.values()]).includes('fixture-token'),false);}finally{browser.restore();}
+  try {const keys=browser.load('@/lib/zaf/pi/oauth');browser.storage.set(keys.PI_SIGNIN_STATE_KEY,'fixture-state');browser.storage.set(keys.PI_SIGNIN_STARTED_KEY,String(Date.now()));browser.storage.set(keys.PI_SIGNIN_RETURN_TO_KEY,'/?section=network');browser.fakeWindow.location.hash='#access_token=fixture-token&state=fixture-state';globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({user:{username:'pioneer'}}));};browser.load('@/app/signin/callback/page').default();browser.effects[0]();await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,2);assert.equal(keys.readPiDisplay().username,'pioneer');assert.equal(browser.storage.has(keys.PI_SIGNIN_STATE_KEY),false);assert.equal(browser.navigations.at(-1),'/?section=network');assert.equal(JSON.stringify([...browser.storage.values()]).includes('fixture-token'),false);}finally{browser.restore();}
 });
 
 test("unmounted Pi header ignores an eventual authentication result and releases the shared lock",async()=>{
@@ -548,11 +548,11 @@ for (const hostApp of ["pi-browser", "pi-node"]) test(`Pi host ${hostApp} initia
       getPiHostAppInfo: async () => { calls.push("host"); return { hostApp }; },
       authenticate: async scopes => { assert.deepEqual(scopes, ["username"]); calls.push("authenticate"); return { accessToken: "test-fixture-token", user: { username: "untrusted-display" } }; },
     };
-    globalThis.fetch = async (url, options) => { assert.equal(url, "/api/zaf/pi/auth"); assert.equal(JSON.parse(options.body).accessToken, "test-fixture-token"); calls.push("verify"); return new Response(JSON.stringify({ user: { username: "verified-display" } })); };
+    globalThis.fetch = async (url, options) => { if(url==='/api/zaf/pi/session'){assert.equal(options.method,'GET');calls.push('confirm-session');return new Response(JSON.stringify({user:{username:'verified-display'}}));} assert.equal(url, "/api/zaf/pi/auth"); assert.equal(JSON.parse(options.body).accessToken, "test-fixture-token"); calls.push("verify"); return new Response(JSON.stringify({ user: { username: "verified-display" } })); };
     const component = browser.load('@/components/zaf-pi-sign-in').ZafPiSignIn({ locale: "en" });
     component.props.children[0].props.onClick();
     await new Promise(resolve => setImmediate(resolve));
-    assert.deepEqual(calls, ["init", "host", "authenticate", "verify"]);
+    assert.deepEqual(calls, ["init", "host", "authenticate", "verify", "confirm-session"]);
     assert.ok([...browser.storage.values()].some(value => value.includes("verified-display")));
     assert.ok(![...browser.storage.values()].includes("test-fixture-token"));
     assert.ok(![...browser.storage.values()].includes("untrusted-display"));
@@ -587,7 +587,7 @@ test("cancelled native sign-in clears the old display and a retry can verify aga
     component.props.children[0].props.onClick(); await new Promise(resolve=>setImmediate(resolve));
     assert.equal(verifications,0); assert.equal(browser.storage.has(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY),false);
     component.props.children[0].props.onClick(); await new Promise(resolve=>setImmediate(resolve));
-    assert.equal(verifications,1); assert.equal(JSON.parse(browser.storage.get(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY)).username,"retry-account");
+    assert.equal(verifications,2); assert.equal(JSON.parse(browser.storage.get(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY)).username,"retry-account");
     keys.clearPiDisplay(); assert.equal(browser.storage.has(keys.PI_SIGNIN_VERIFIED_USERNAME_KEY),false);
     assert.ok(![...browser.storage.values()].includes("retry-fixture-token"));
   } finally {browser.restore();}

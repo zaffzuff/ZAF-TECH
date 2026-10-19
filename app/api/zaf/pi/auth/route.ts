@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertPiSessionConfigured, sealPiSession, PI_SESSION_COOKIE, piSessionCookieOptions } from "@/lib/zaf/pi/session";
+import { assertPiSessionConfigured, sealPiSession, PI_SESSION_COOKIE, PI_LEGACY_SESSION_COOKIE, piSessionCookieOptions, piLegacyCookieClearOptions } from "@/lib/zaf/pi/session";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 import { readPiAuthInput, PiInputError, validPiProfile, piRetryAfter } from "@/lib/zaf/pi/auth-input";
 
@@ -81,6 +81,7 @@ export async function POST(request: Request) {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });
     response.cookies.set(PI_SESSION_COOKIE, sealPiSession({ uid: user.uid, username: user.username }), piSessionCookieOptions);
+    response.cookies.set(PI_LEGACY_SESSION_COOKIE, "", piLegacyCookieClearOptions);
     return response;
   } catch (error) {
     console.error("[ZAF Tech] Pi identity verification failed", error instanceof Error ? error.name : "unknown");

@@ -5,7 +5,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-function sessionFixture(requestJson) {
+function sessionFixture(requestJson, userAgent = "Chrome") {
   const cache = new Map(), storage = new Map(), effects = [], states = [], events = new Map();
   let timer;
   const browser = {
@@ -17,7 +17,7 @@ function sessionFixture(requestJson) {
   const context = vm.createContext({
     window: browser, Event, console,
     sessionStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
-    navigator: { userAgent: "Chrome" },
+    navigator: { userAgent },
   });
   const mocks = {
     "@/lib/zaf/client-request": { requestJson },
@@ -131,4 +131,38 @@ test("restoration skips an active sign-in and preserves its one-use OAuth state"
   assert.equal(calls, 0);
   assert.equal(fixture.storage.get(display.PI_SIGNIN_STATE_KEY), "pending-state");
   display.releasePiSignIn();
+});
+
+test("iPhone blocked cookies preserve only historical identity on the first periodic check", async () => {
+  let available = true;
+  const fixture = sessionFixture(async url => url === '/api/zaf/pi/storage'
+    ? { response: { ok: true }, body: { available } } : ok({ username: 'server-account' }), 'iPhone OS 16_7 PiBrowser');
+  const display = fixture.load('@/lib/zaf/pi/oauth');
+  fixture.load('@/components/zaf-pi-sign-in').ZafPiSignIn({ locale: 'en' });
+  const cleanup = fixture.effects[0](); await flush();
+  assert.equal(fixture.states[0].current, true);
+  available = false;
+  fixture.timer(); await flush();
+  assert.equal(fixture.states[0].username, 'server-account');
+  assert.equal(fixture.states[0].current, false);
+  assert.equal(fixture.load('@/lib/zaf/pi/storage-access').isPiSessionStorageBlocked(), true);
+  assert.ok(fixture.storage.has(display.PI_SIGNIN_VERIFIED_USERNAME_KEY));
+  cleanup();
+});
+
+test("session readback rejects absent, malformed and different identity after a successful exchange", async () => {
+  for (const user of [null, {}, { username: 'another-account' }, { username: 'x'.repeat(101) }]) {
+    const fixture = sessionFixture(async () => ok(user));
+    assert.equal(await fixture.load('@/lib/zaf/pi/session-state').confirmPiSession('expected-account'), null);
+  }
+});
+
+test("signout confirmation requires an explicit successful null identity", async () => {
+  for (const [body, response, expected] of [
+    [{ user: null }, { ok: true }, true], [{ user: null }, { ok: false }, false],
+    [{}, { ok: true }, false], [{ user: { username: 'pioneer' } }, { ok: true }, false],
+  ]) {
+    const fixture = sessionFixture(async () => ({ body, response }));
+    assert.equal(await fixture.load('@/lib/zaf/pi/session-state').confirmPiSignOut(), expected);
+  }
 });

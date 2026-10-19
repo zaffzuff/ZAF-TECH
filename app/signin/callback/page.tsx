@@ -3,6 +3,7 @@ import { ZafBrand } from "@/components/zaf-brand";
 
 import { useEffect, useRef, useState } from "react";
 import { requestJson } from "@/lib/zaf/client-request";
+import { confirmPiSession } from "@/lib/zaf/pi/session-state";
 import {
   getSafePiSignInReturnPath,
   PI_SIGNIN_RETURN_TO_KEY,
@@ -87,6 +88,11 @@ export default function PiSignInCallbackPage() {
       }
 
       // Persist only the verified display name, never the access token.
+      if (await confirmPiSession(username) !== username) {
+        setFailed(true);
+        setMessage("Your browser could not keep the ZAF Tech session. Allow cookies for ZAF Tech and start again. / Tarayıcı ZAF Tech oturumunu koruyamadı. ZAF Tech için çerezlere izin verip yeniden başlat. (ZAF-PI-SESSION)");
+        return;
+      }
       savePiDisplay(username);
       window.location.replace(getSafePiSignInReturnPath(returnTo));
     }

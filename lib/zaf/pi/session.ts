@@ -1,7 +1,9 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { validPiProfile } from "./auth-input";
 
-export const PI_SESSION_COOKIE = "__Host-zaf-pi-session";
+// A distinct name prevents legacy and partitioned cookies shadowing each other.
+export const PI_SESSION_COOKIE = "__Host-zaf-pi-session-v2";
+export const PI_LEGACY_SESSION_COOKIE = "__Host-zaf-pi-session";
 export const PI_SESSION_SECONDS = 30 * 60;
 type Identity = { uid: string; username: string };
 
@@ -38,4 +40,5 @@ export function readPiSession(value: string | undefined, now = Date.now()): Iden
   } catch { return null; }
 }
 
-export const piSessionCookieOptions = { httpOnly: true, secure: true, sameSite: "none" as const, path: "/", maxAge: PI_SESSION_SECONDS };
+export const piSessionCookieOptions = { httpOnly: true, secure: true, sameSite: "none" as const, path: "/", maxAge: PI_SESSION_SECONDS, partitioned: true };
+export const piLegacyCookieClearOptions = { httpOnly: true, secure: true, sameSite: "none" as const, path: "/", maxAge: 0 };

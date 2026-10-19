@@ -18,7 +18,7 @@ Scope: core web/mobile flows, supporting pages, public observations, wallet tool
 
 ## Verification
 
-- 54 readiness/security tests, 12 official news tests and 40 additional behavioral tests passed (106 total).
+- 53 readiness/security tests, 12 official news tests and 83 final behavioral tests passed (148 total) after the iPhone follow-up. Earlier 106/113 totals describe prior versions.
 - Production build and TypeScript passed. Regression and local HTTP smoke checks passed.
 - Production-only and complete npm audit reported zero known vulnerabilities in the installed locked dependency set at review time.
 - Browser: all 25 main/subtab views inspected at 360 CSS px and 1440 CSS px, with no horizontal overflow, blank view or broken image detected in those states. About, Privacy, Terms and Start Pi also checked at both widths.
@@ -39,3 +39,9 @@ Scope: core web/mobile flows, supporting pages, public observations, wallet tool
 ## Physical smoke follow-up
 
 The owner confirmed canonical https://zaftechpu0455.pinet.com native Pi Browser sign-in and direct web QR sign-in succeed. Direct Vercel navigation in mobile Pi Browser stalled. A bounded entry fix now avoids attempting parent-bridge consent from a known top-level Pi Browser page, provides the fixed registered app entry, and routes pi-net web host through web OAuth. This entry handling needs owner confirmation after deployment; the prior mock suites did not establish this real environment boundary. No verifier, consent scope or identity trust was weakened.
+
+## iPhone persistence follow-up
+
+Owner then confirmed iOS 16.7.16 loses the canonical sign-in display before one minute and on reload. The 30-second cookie poll exposed a blocked embedded session; the device cannot use CHIPS alone. Added versioned partitioned cookies for capable browsers, safe legacy-cookie retirement, actual HttpOnly cookie probes, first-party visit/bootstrap and explicit Storage Access permission for older embedded iOS. Both login paths verify the cookie round-trip before reporting success. A blocked transport is no longer treated as a confirmed logout; only historical identity is shown with Resume session. Logout checks access and confirms user:null before claiming success. Probe/visit markers contain no identity, and all nine Privacy locales disclose them.
+
+WebKit requires a tap to restore storage access after a full reload on this legacy iOS. The server session can persist for its original 30 minutes, but automatic zero-interaction restoration is not promised. Controlled tests cover this behavior, denial, fresh probes, stale-response guards, identity mismatch, migration and logout resurrection. New activation page inspected at 360 and desktop widths without overflow or broken logo. Existing 25-view matrix is retained rather than rerun without cause. Device verification in the owner's same Pi Browser store remains pending; do not mark it passed or advance final listing from unit/browser emulation evidence.

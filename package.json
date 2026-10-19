@@ -10,7 +10,7 @@
     "regression": "node tools/zaf-regression.mjs",
     "test:news": "node --test tools/zaf-news.test.mjs",
     "test:readiness": "node --test tools/zaf-readiness.test.mjs",
-    "test:final": "node --test tools/zaf-history.test.mjs tools/zaf-wallet.test.mjs tools/zaf-ui-flows.test.mjs tools/zaf-connector-security.test.mjs tools/zaf-session-ui.test.mjs tools/zaf-defi.test.mjs tools/zaf-pi-entry.test.mjs",
+    "test:final": "node --test tools/zaf-history.test.mjs tools/zaf-wallet.test.mjs tools/zaf-ui-flows.test.mjs tools/zaf-connector-security.test.mjs tools/zaf-session-ui.test.mjs tools/zaf-defi.test.mjs tools/zaf-pi-entry.test.mjs tools/zaf-storage-access.test.mjs tools/zaf-session-transport.test.mjs",
     "smoke": "node tools/zaf-smoke.mjs"
   },
   "dependencies": {
