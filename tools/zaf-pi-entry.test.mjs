@@ -6,7 +6,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi-browser", authenticate, sessionUsername = "server-verified", storageAvailable = true, requestStorageAccess, deleteSession } = {}) {
+function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi-browser", authenticate, authStatus = 200, sessionUsername = "server-verified", storageAvailable = true, requestStorageAccess, deleteSession } = {}) {
   const cache = new Map(), storage = new Map(), states = [], effects = [], navigations = [], requests = [], calls = [], logs = [];
   let cursor = 0;
   const window = {
@@ -39,7 +39,8 @@ function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi
         }
       } else if (url === "/api/zaf/pi/auth") body = { user: { username: "server-verified" } };
       else throw new Error("Unexpected request " + url);
-      return { response: { ok: true, status: 200 }, body };
+      const status = url === "/api/zaf/pi/auth" ? authStatus : 200;
+      return { response: { ok: status === 200, status }, body };
     } },
     "@/lib/zaf/pi/sdk": {
       loadPiSdk: async () => { calls.push("load"); }, initializePiSdk: async () => { calls.push("init"); return sdk; },
@@ -379,4 +380,30 @@ test("an immediate historical-name sign-out discovers blocked cookies before any
   assert.equal(display.readPiDisplay().current, false);
   assert.match(renderedText(fixture.render()), /Sign-out failed/);
   assert.equal(display.isPiSignInBusy(), false);
+});
+
+test("generic iOS user agent with native SDK host cannot start unbridged consent", async () => {
+  const fixture = entryFixture({ userAgent: "Mozilla/5.0 iPhone", topLevel: true });
+  await clickSignIn(fixture.render());
+  assert.deepEqual(fixture.calls, ["load", "init", "host"]);
+  assert.equal(fixture.requests.length, 0);
+  assert.equal(fixture.navigations.length, 0);
+  const link = descendants(fixture.render()).find(node => node.type === "a");
+  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
+  assert.equal(link.props.target, "_top");
+});
+
+test("native upstream 502 offers registered entry without trusting SDK identity or retrying another verifier", async () => {
+  const fixture = entryFixture({ authStatus: 502 });
+  await clickSignIn(fixture.render());
+  const updated = fixture.render();
+  assert.match(renderedText(updated), /ZAF-PI-502/);
+  const link = descendants(updated).find(node => node.type === "a");
+  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
+  assert.equal(link.props.target, "_top");
+  assert.equal(fixture.requests.length, 1);
+  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
+  assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
+  assert.equal(fixture.navigations.length, 0);
+  assert.equal(JSON.stringify(fixture.logs).includes("private-fixture-token"), false);
 });

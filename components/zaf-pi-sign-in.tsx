@@ -172,6 +172,9 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         return;
       }
 
+      // Some iOS WebViews have a generic user agent. Recheck after SDK host detection.
+      if (window.parent === window) { setEntryRequired(true); return; }
+
       // Inside Pi Browser, use the native Pi Apps SDK flow instead of OAuth.
       phase = "authentication";
       const auth = await authenticatePi(pi);
@@ -195,7 +198,11 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         if (response.status === 401) {
           throw new Error("Pi could not verify this sign-in. Please try again.");
         }
-        if (response.status === 503 || response.status === 502) {
+        if (response.status === 502) {
+          setEntryRequired(true);
+          throw new Error("Pi sign-in could not be verified. Open the registered Pi app to retry.");
+        }
+        if (response.status === 503) {
           throw new Error("Pi verification is temporarily unavailable. Please try again later.");
         }
         throw new Error(serverMessage || "Pi sign-in could not be verified.");
@@ -295,7 +302,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       {entryRequired && !message ? (
         <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] leading-relaxed text-foreground shadow-md" role="status" aria-live="polite">
           {tr("Open the registered Pi app to sign in.", "Giriş yapmak için kayıtlı Pi uygulamasını aç.")}{" "}
-          <a href={ZAF_PI_APP_URL} className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a>
+          <a href={ZAF_PI_APP_URL} target="_top" className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a>
         </span>
       ) : null}
       {user ? (
@@ -305,7 +312,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       ) : message ? (
         <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-red-500/50 bg-red-50 px-2.5 py-1.5 text-[10px] leading-relaxed text-red-700 shadow-md [overflow-wrap:anywhere] dark:border-red-400/50 dark:bg-red-950 dark:text-red-200" role="status" aria-live="polite">
           {message}
-          {entryRequired ? <>{" "}<a href={ZAF_PI_APP_URL} className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a></> : null}
+          {entryRequired ? <>{" "}<a href={ZAF_PI_APP_URL} target="_top" className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a></> : null}
         </span>
       ) : null}
       {user && message ? <span role="status" className="text-[10px] text-red-700 dark:text-red-200">{message}</span> : null}
