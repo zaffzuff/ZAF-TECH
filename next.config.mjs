@@ -23,7 +23,8 @@ const nextConfig = {
       {
         // A standalone, anonymous diagnostic must be visible inside the native
         // browser shell so its actual frame origin can be identified.
-        source: "/((?!browser-check\\.html$).*)",
+        // Storage bootstrap is first-party only and supplies its own stricter CSP.
+        source: "/((?!browser-check\\.html$|signin/storage/?$).*)",
         headers: [
           // Verified on physical iOS Pi Browser: its ancestor is app-cdn.minepi.com.
           // CSP keeps all other external embedders blocked. SAMEORIGIN would

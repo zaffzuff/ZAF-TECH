@@ -121,6 +121,16 @@ try {
     }
   }
 
+  // Next's global headers must not override this first-party-only page policy.
+  const storageSetup = await request('/signin/storage?lang=tr');
+  if (storageSetup.status !== 200 ||
+      !(storageSetup.headers['content-security-policy'] ?? '').includes("frame-ancestors 'none'") ||
+      !(storageSetup.headers['content-security-policy'] ?? '').includes("default-src 'none'") ||
+      storageSetup.headers['x-frame-options'] !== 'DENY' ||
+      !storageSetup.text.includes('method="post"') || /<script/i.test(storageSetup.text)) {
+    throw new Error('Pi storage setup must require a first-party interaction under its strict CSP.');
+  }
+
   // Policy pages must work before hydration, including direct Turkish terms.
   for (const [path, title] of [["/privacy", "Privacy"], ["/terms", "Terms of Service"], ["/terms?lang=tr", "Kullanım Koşulları"]]) {
     const page = await request(path);
