@@ -1,7 +1,7 @@
 "use client";
 import { requestJson } from "@/lib/zaf/client-request";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import { ZafComingSoon } from "@/components/zaf-coming-soon";
@@ -88,47 +88,74 @@ export function ZafAppHealth({locale}:{locale:Locale}){
  const [history,setHistory]=useState<HistoryRecord[]|null>(null);
  const [historyUrl,setHistoryUrl]=useState("");
  const [historyLoading,setHistoryLoading]=useState(false);
+  const [historyError,setHistoryError]=useState(false);
  const [trend,setTrend]=useState<TrendPoint[]|null>(null);
  const [trendSummary,setTrendSummary]=useState<TrendSummary|null>(null);
  const [trendLoading,setTrendLoading]=useState(false);
+  const checkRequest=useRef<AbortController|null>(null);
+  const historyRequest=useRef<AbortController|null>(null);
+  const batchRequest=useRef<AbortController|null>(null);
+
+  useEffect(()=>()=>{
+    checkRequest.current?.abort(); checkRequest.current=null;
+    historyRequest.current?.abort(); historyRequest.current=null;
+    batchRequest.current?.abort(); batchRequest.current=null;
+  },[]);
+
+  function changeUrl(value:string){
+    checkRequest.current?.abort(); checkRequest.current=null;
+    setUrl(value); setResult(null); setCheckError(""); setLoading(false);
+  }
 
  async function check(){
    if(!url.trim()) return;
+    checkRequest.current?.abort();
+    const controller=new AbortController(); checkRequest.current=controller;
    setLoading(true); setResult(null); setCheckError("");
    try{
-     const {response,body}=await requestJson<Result>("/api/apps/check?url="+encodeURIComponent(url.trim()),{cache:"no-store"});
+      const {response,body}=await requestJson<Result>("/api/apps/check?url="+encodeURIComponent(url.trim()),{cache:"no-store",signal:controller.signal});
+      if(checkRequest.current!==controller)return;
      if(!response.ok){setCheckError(response.status===429?tr("Too many requests. Please retry later.","Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin."):tr("The URL check could not be completed. Check the address or try again later.","URL kontrolü tamamlanamadı. Adresi kontrol edin veya biraz sonra tekrar deneyin."));return;}
      setResult(body);
-   }catch{setCheckError(tr("Request failed","İstek başarısız"));}
-   finally{setLoading(false);}
+    }catch{if(checkRequest.current===controller)setCheckError(tr("Request failed","İstek başarısız"));}
+    finally{if(checkRequest.current===controller)setLoading(false);}
  }
 
  async function loadHistory(target:string){
-   setHistoryLoading(true); setHistory(null); setHistoryUrl(target); setTrend(null); setTrendSummary(null); setTrendLoading(true);
+    historyRequest.current?.abort();
+    const controller=new AbortController(); historyRequest.current=controller;
+    setHistoryLoading(true); setHistoryError(false); setHistory(null); setHistoryUrl(target); setTrend(null); setTrendSummary(null); setTrendLoading(true);
    try{
-     const r=await fetch("/api/apps/health/history?url="+encodeURIComponent(target),{cache:"no-store"});
-     if(!r.ok) throw new Error("History request failed");
-     const data=await r.json();
+      const {response,body:data}=await requestJson<{records?:HistoryRecord[]}>("/api/apps/health/history?url="+encodeURIComponent(target),{cache:"no-store",signal:controller.signal});
+      if(historyRequest.current!==controller)return;
+      if(!response.ok) throw new Error("History request failed");
      setHistory(data.records ?? []);
-     const trendResponse=await fetch("/api/apps/health/trend?url="+encodeURIComponent(target),{cache:"no-store"});
-     if(trendResponse.ok){ const trendData=await trendResponse.json(); setTrend(trendData.points ?? []); setTrendSummary(trendData.summary ?? null); }
+      const {response:trendResponse,body:trendData}=await requestJson<{points?:TrendPoint[];summary?:TrendSummary}>("/api/apps/health/trend?url="+encodeURIComponent(target),{cache:"no-store",signal:controller.signal});
+      if(historyRequest.current!==controller)return;
+      if(!trendResponse.ok)throw new Error("Trend request failed");
+      setTrend(trendData.points ?? []); setTrendSummary(trendData.summary ?? null);
    }catch{
-     setHistory([]); setTrend([]); setTrendSummary(null);
+      if(historyRequest.current!==controller)return;
+      setHistoryError(true); setTrend([]); setTrendSummary(null);
    }finally{
-     setHistoryLoading(false); setTrendLoading(false);
+      if(historyRequest.current===controller){setHistoryLoading(false); setTrendLoading(false);}
    }
  }
 
  async function checkEcosystem(){
+    batchRequest.current?.abort();
+    const controller=new AbortController(); batchRequest.current=controller;
    setBatchLoading(true); setBatch(null); setBatchError("");
    try{
-     const {response,body}=await requestJson<BatchResult>("/api/apps/health",{cache:"no-store"},30_000);
+      const {response,body}=await requestJson<BatchResult>("/api/apps/health",{cache:"no-store",signal:controller.signal},30_000);
+      if(batchRequest.current!==controller)return;
      if(!response.ok){setBatchError(response.status===429?tr("Too many requests. Please retry later.","Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin."):tr("Request failed","İstek başarısız"));return;}
      setBatch(body);
    }catch{
+      if(batchRequest.current!==controller)return;
      setBatch(null); setBatchError(tr("Request failed","İstek başarısız"));
    }finally{
-     setBatchLoading(false);
+      if(batchRequest.current===controller)setBatchLoading(false);
    }
  }
 
@@ -139,7 +166,7 @@ export function ZafAppHealth({locale}:{locale:Locale}){
    </div>
    <div className="rounded-xl border border-border bg-card p-4">
     <div className="flex flex-col gap-2 sm:flex-row">
-      <input aria-label={tr("Pi App URL Checker", "Pi Uygulama URL Kontrolü")} value={url} onChange={e=>setUrl(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void check()}} placeholder="https://example.com" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"/>
+       <input aria-label={tr("Pi App URL Checker", "Pi Uygulama URL Kontrolü")} value={url} onChange={e=>changeUrl(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void check()}} placeholder="https://example.com" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"/>
       <button type="button" onClick={()=>void check()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background disabled:opacity-50">{loading?tr("Checking…","Kontrol Ediliyor…"):tr("Check URL","URL'yi Kontrol Et")}</button>
     </div>
     {checkError?<p role="status" className="mt-3 text-xs text-muted-foreground">{checkError}</p>:null}
@@ -244,6 +271,7 @@ export function ZafAppHealth({locale}:{locale:Locale}){
         {historyUrl?<div className="mt-4 border-t border-border pt-4">
           <div className="text-xs font-semibold text-foreground">{tr("Historical Checks","Geçmiş Kontroller")}</div>
           <div className="mt-1 truncate text-[10px] text-muted-foreground">{historyUrl}</div>
+          {historyError?<p role="status" className="mt-3 text-xs text-muted-foreground">{tr("Request failed","İstek başarısız")}</p>:null}
           {historyLoading?<div className="mt-3 text-[10px] text-muted-foreground">{tr("Loading History…","Geçmiş Yükleniyor…")}</div>:history?.length?<div className="mt-3 space-y-1.5">
             {history.slice(0,10).map((item,index)=><div key={item.checkedAt+"-"+index} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-[10px]">
               <span className="min-w-0 break-words text-foreground">{new Date(item.checkedAt).toLocaleString(intlLocale(locale))}</span>
@@ -264,7 +292,7 @@ export function ZafAppHealth({locale}:{locale:Locale}){
               </div>
             </div>
           ) : null}
-          </div>:<div className="mt-3"><ZafComingSoon waitingForData locale={locale} title={tr("Historical Checks","Geçmiş Kontroller")} detail={tr("Historical checks will appear when persistent health-check storage is configured and records have been collected.","Kalıcı sağlık kontrolü depolaması yapılandırılıp kayıtlar biriktirildiğinde geçmiş kontroller burada görünecek.")} /></div>}
+          </div>:!historyError?<div className="mt-3"><ZafComingSoon waitingForData locale={locale} title={tr("Historical Checks","Geçmiş Kontroller")} detail={tr("Historical checks will appear when persistent health-check storage is configured and records have been collected.","Kalıcı sağlık kontrolü depolaması yapılandırılıp kayıtlar biriktirildiğinde geçmiş kontroller burada görünecek.")} /></div>:null}
         </div>:null}
       </div>:null}
     </div>

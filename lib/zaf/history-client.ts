@@ -18,7 +18,7 @@ async function horizon(path: string): Promise<HorizonResponse> {
       signal: controller.signal,
     });
     if (!response.ok) throw new Error(`Pi Horizon request failed: ${response.status}`);
-    return response.json() as Promise<HorizonResponse>;
+    return await response.json() as HorizonResponse;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error("Pi Horizon request timed out after 10 seconds");
@@ -30,6 +30,7 @@ async function horizon(path: string): Promise<HorizonResponse> {
 }
 
 function numberOrNull(value: unknown): number | null {
+  if (value == null || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
@@ -61,22 +62,21 @@ export async function getZafHistoricalActivity(): Promise<ZafHistoricalActivity>
 
     if (ordered.length < 2) throw new Error("Ledger timestamps are unavailable");
 
-    const bucketCount = Math.min(12, ordered.length);
-    const bucketSize = Math.ceil(ordered.length / bucketCount);
+    // The first ledger has no preceding close time in this sample. Only count
+    // ledgers whose full interval is observed, keeping counts and time aligned.
+    const measured = ordered.slice(1);
+    const bucketCount = Math.min(12, measured.length);
+    const bucketSize = Math.ceil(measured.length / bucketCount);
     const points: ZafHistoricalPoint[] = [];
     const fullWindowSeconds = Math.max(
       1,
       (Date.parse(ordered[ordered.length - 1].closedAt) - Date.parse(ordered[0].closedAt)) / 1000
     );
-    const averageIntervalSeconds = fullWindowSeconds / Math.max(1, ordered.length - 1);
-
-    for (let start = 0; start < ordered.length; start += bucketSize) {
-      const bucket = ordered.slice(start, Math.min(start + bucketSize, ordered.length));
-      const first = Date.parse(bucket[0].closedAt);
+    for (let start = 0; start < measured.length; start += bucketSize) {
+      const bucket = measured.slice(start, Math.min(start + bucketSize, measured.length));
+      const first = Date.parse(ordered[start].closedAt);
       const last = Date.parse(bucket[bucket.length - 1].closedAt);
-      const elapsedSeconds = bucket.length > 1
-        ? Math.max(1, (last - first) / 1000)
-        : averageIntervalSeconds;
+      const elapsedSeconds = Math.max(1, (last - first) / 1000);
 
       const transactions = bucket.reduce((sum, ledger) => {
         const successful = ledger.successfulTransactionCount;

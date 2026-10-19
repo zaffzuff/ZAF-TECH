@@ -3,7 +3,6 @@ import { getDefiObservation } from "@/lib/zaf/defi-observation";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 import {
   compareDefiSnapshots,
-  getDefiSnapshotHistory,
   getLatestDefiSnapshot,
   isDefiHistoryConfigured,
   saveDefiSnapshot,
@@ -26,18 +25,37 @@ export async function GET(request: NextRequest) {
   }
 
   const limit = Number(request.nextUrl.searchParams.get("limit") ?? "100");
-  const observation = await getDefiObservation(Number.isFinite(limit) ? limit : 100);
+  const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.floor(limit), 1), 200) : 100;
+  const observation = await getDefiObservation(safeLimit);
   const currentSnapshot = toDefiHistorySnapshot(observation);
-  const previousSnapshot = isDefiHistoryConfigured() ? await getLatestDefiSnapshot() : null;
-  const alerts = compareDefiSnapshots(currentSnapshot, previousSnapshot);
-  if (observation.summary.state !== "unavailable") await saveDefiSnapshot(currentSnapshot);
+  const configured = isDefiHistoryConfigured();
+  // A failed source is unknown, not zero. Compare only complete observations
+  // with the same canonical sample size, and never persist a partial sample.
+  const snapshotEligible = observation.sources.liquidityPools.state !== "unavailable" && observation.sources.trades.state !== "unavailable" && safeLimit === 100;
+  let previousSnapshot: Awaited<ReturnType<typeof getLatestDefiSnapshot>> = null;
+  let historyError: string | null = null;
+  let stored = false;
+  if (configured && snapshotEligible) {
+    try { previousSnapshot = await getLatestDefiSnapshot(); }
+    catch { historyError = "Historical storage could not be refreshed. Live observations remain available."; }
+    if (!historyError) {
+      try { stored = await saveDefiSnapshot(currentSnapshot); }
+      catch { historyError = "The current observation could not be stored. Live observations remain available."; }
+    }
+  }
+  const comparisonAvailable = snapshotEligible && previousSnapshot != null;
+  const alerts = comparisonAvailable ? compareDefiSnapshots(currentSnapshot, previousSnapshot) : [];
 
   return NextResponse.json({
     ...observation,
     history: {
-      configured: isDefiHistoryConfigured(),
+      configured,
       previousObservedAt: previousSnapshot?.generatedAt ?? null,
       alerts,
+      comparisonAvailable,
+      snapshotEligible,
+      stored,
+      error: historyError,
     },
   }, {
     headers: { "Cache-Control": "no-store, max-age=0" },

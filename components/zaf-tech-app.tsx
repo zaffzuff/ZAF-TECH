@@ -6,6 +6,7 @@ import { servicePolicy } from "@/lib/zaf/service-policy";
 import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { ZafObservationStatus } from "@/components/zaf-observation-status";
 import { requestJson } from "@/lib/zaf/client-request";
+import { useObservationFreshness } from "@/lib/zaf/use-observation-freshness";
 import type { UnifiedObservation } from "@/lib/zaf/observation-engine";
 import type React from "react";
 import { useRouter } from "next/navigation";
@@ -201,27 +202,47 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
   const [searchError, setSearchError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
+  const searchRequest = useRef<AbortController | null>(null);
+
+  useEffect(() => () => { searchRequest.current?.abort(); searchRequest.current = null; }, []);
+
+  function changeQuery(value: string) {
+    searchRequest.current?.abort();
+    searchRequest.current = null;
+    setQuery(value);
+    setResults([]);
+    setSearchError("");
+    setSubmittedQuery(null);
+    setLoading(false);
+  }
 
   async function submit() {
     const q = query.trim();
-    if (q.length < 2) { setResults([]); return; }
-    setLoading(true); setSearchError("");
+    if (q.length < 2) { changeQuery(query); return; }
+    searchRequest.current?.abort();
+    const controller = new AbortController();
+    searchRequest.current = controller;
+    setLoading(true); setSearchError(""); setResults([]); setSubmittedQuery(null);
     try {
-      const {response,body}=await requestJson<{results?:SearchResult[]}>("/api/zaf/search?q="+encodeURIComponent(q),{cache:"no-store"});
+      const {response,body}=await requestJson<{results?:SearchResult[]}>("/api/zaf/search?q="+encodeURIComponent(q),{cache:"no-store",signal:controller.signal});
+      if (searchRequest.current !== controller) return;
       if(!response.ok) throw new Error("Search failed");
       setResults(Array.isArray(body?.results) ? body.results : []);
+      setSubmittedQuery(q);
     } catch {
-      setResults([]); setSearchError(tr("Request failed","İstek başarısız"));
+      if (searchRequest.current !== controller) return;
+      setResults([]); setSearchError(tr("Request failed","İstek başarısız")); setSubmittedQuery(q);
     } finally {
-      setLoading(false);
+      if (searchRequest.current === controller) setLoading(false);
     }
   }
 
-  const resultsView = query.trim().length >= 2 && (results.length || (!loading && !results.length)) ? (
+  const resultsView = submittedQuery === query.trim() && !loading ? (
     results.length ? (
       <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
         {results.slice(0, 8).map(result => (
-          <button key={result.type + result.href + result.title} type="button" onClick={() => { setQuery(""); setResults([]); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
+          <button key={result.type + result.href + result.title} type="button" onClick={() => { changeQuery(""); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">{result.title}</span>
               <span className="shrink-0 text-[9px] text-muted-foreground">{searchTypeLabel(result.type, locale)}</span>
@@ -255,7 +276,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
               <input
                 autoFocus
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={e => changeQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") void submit(); if (e.key === "Escape") setMobileOpen(false); }}
                 placeholder={tr("Search ecosystem…", "Ekosistemde ara…")}
                 aria-label={tr("Global Search", "Genel Arama")}
@@ -275,7 +296,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
       <div className="relative">
         <input
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={e => changeQuery(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") void submit(); }}
           placeholder={searchPlaceholder(locale)}
           aria-label={tr("Global Search", "Genel Arama")}
@@ -525,6 +546,7 @@ export function ZafTechApp() {
   const router = useRouter();
   const loadingObservation = useRef(false);
   const ledgerRequest = useRef<AbortController | null>(null);
+  const liveFreshness = useObservationFreshness(snapshot?.latestLedger?.closedAt, Boolean(loadError || snapshot?.error));
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
@@ -578,6 +600,7 @@ export function ZafTechApp() {
     const params = new URLSearchParams(window.location.search);
     params.set("section", section);
     if (subtab) params.set("subtab", subtab);
+    else params.delete("subtab");
     window.history.replaceState(null, "", "/?" + params.toString());
   }, [deepLinkReady, section, subtab]);
 
@@ -708,7 +731,7 @@ export function ZafTechApp() {
           </div>
         </header>
         <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
-        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} failed={Boolean(loadError)} />
+        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} freshness={liveFreshness} />
 
         {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
         {!loading && loadError ? (
@@ -736,7 +759,7 @@ export function ZafTechApp() {
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Card title={tr("Available Sources", "Kullanılabilir Kaynaklar")} value={ecosystem ? `${ecosystem.sources.filter(source => source.status === "online" || source.status === "available").length}/${ecosystem.sources.length}` : "—"} detail={tr("Public Sources", "Herkese Açık Kaynaklar")} />
                 <Card title={tr("Apps", "Uygulamalar")} value={number(ecosystem?.apps.totalCount, 0, locale)} detail={tr("Currently Observed", "Şu Anda Gözlemlenen")} />
-                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
+                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(liveFreshness.state, locale)} detail={liveFreshness.ageSeconds + "s"} />
                 <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Review source status", "Kaynak durumunu inceleyin") : tr("No source errors", "Kaynak hatası yok")} />
               </div>
             </div>
@@ -981,7 +1004,7 @@ export function ZafTechApp() {
             <div className="mt-3 rounded-xl border border-border bg-card p-4">
               <div className="text-xs font-semibold text-foreground">{tr("Observation Status", "Gözlem Durumu")}</div>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(observationMeta.freshness.state, locale)} detail={observationMeta.freshness.ageSeconds + "s"} />
+                <Card title={tr("Freshness", "Tazelik")} value={displayStatus(liveFreshness.state, locale)} detail={liveFreshness.ageSeconds + "s"} />
                 <Card title={tr("Confidence", "Güven")} value={String(observationMeta.confidence.score)} detail={observationMeta.confidence.level} />
                 <Card title={tr("Latest Ledger Hash", "Son Ledger Hash")} value={snapshot?.latestLedger?.hash ? snapshot.latestLedger.hash.slice(0, 10) + "…" : "—"} detail={tr("Observed Mainnet Record", "Gözlemlenen Mainnet Kaydı")} />
                 <Card title={tr("Observation Errors", "Gözlem Hataları")} value={String(observationMeta.errors.length)} detail={observationMeta.errors.length ? tr("Source issues reported", "Kaynak sorunları bildirildi") : tr("No source errors", "Kaynak hatası yok")} />

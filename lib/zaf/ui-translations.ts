@@ -4,6 +4,22 @@ type SupplementalLocale = Exclude<Locale, "en" | "tr">;
 type TranslationRow = [string, string, string, string, string, string, string];
 
 const rows: TranslationRow[] = [
+  ["Resume session","Reanudar sesión","恢复会话","Riprendi sessione","Reprendre la session","Sitzung fortsetzen","Retomar sessão"],
+  ["This browser needs permission to keep your ZAF Tech session inside Pi.","Este navegador necesita permiso para mantener tu sesión de ZAF Tech dentro de Pi.","此浏览器需要获得权限，才能在 Pi 内保持你的 ZAF Tech 会话。","Questo browser richiede il permesso di mantenere la tua sessione ZAF Tech all’interno di Pi.","Ce navigateur a besoin d’une autorisation pour conserver votre session ZAF Tech dans Pi.","Dieser Browser benötigt eine Erlaubnis, um deine ZAF Tech Sitzung innerhalb von Pi beizubehalten.","Este navegador precisa de permissão para manter a tua sessão ZAF Tech dentro do Pi."],
+  ["Enable session and return to Pi","Activar sesión y volver a Pi","启用会话并返回 Pi","Attiva la sessione e torna a Pi","Activer la session et revenir à Pi","Sitzung aktivieren und zu Pi zurückkehren","Ativar sessão e voltar ao Pi"],
+  ["Open the registered Pi app to sign in.","Abre la app Pi registrada para iniciar sesión.","请打开已注册的 Pi 应用以登录。","Apri l’app Pi registrata per accedere.","Ouvrez l’application Pi enregistrée pour vous connecter.","Öffne die registrierte Pi-App zur Anmeldung.","Abra a aplicação Pi registada para iniciar sessão."],
+  ["Open ZAF Tech in Pi","Abrir ZAF Tech en Pi","在 Pi 中打开 ZAF Tech","Apri ZAF Tech in Pi","Ouvrir ZAF Tech dans Pi","ZAF Tech in Pi öffnen","Abrir ZAF Tech no Pi"],
+  ["Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.","No se pudieron actualizar algunas fuentes de la cartera. Los datos no disponibles aparecen como desconocidos; vuelve a inspeccionar para reintentar.","部分钱包数据源无法刷新。不可用的观测显示为未知；请再次查询重试。","Alcune fonti del portafoglio non sono state aggiornate. I dati non disponibili sono indicati come sconosciuti; ripeti l’ispezione.","Certaines sources du portefeuille n’ont pas pu être actualisées. Les observations indisponibles sont inconnues ; relancez l’inspection.","Einige Wallet-Quellen konnten nicht aktualisiert werden. Fehlende Beobachtungen werden als unbekannt angezeigt; erneut prüfen.","Algumas fontes da carteira não puderam ser atualizadas. As observações indisponíveis aparecem como desconhecidas; inspecione novamente."],
+  ["Operation observations are temporarily unavailable.","Las observaciones de operaciones no están disponibles temporalmente.","操作观测暂时不可用。","Le osservazioni delle operazioni sono temporaneamente indisponibili.","Les observations des opérations sont temporairement indisponibles.","Operationsbeobachtungen sind vorübergehend nicht verfügbar.","As observações de operações estão temporariamente indisponíveis."],
+  ["The activity timeline is temporarily unavailable because a source could not be refreshed.","La cronología no está disponible temporalmente porque no se pudo actualizar una fuente.","由于某个数据源无法刷新，活动时间线暂时不可用。","La cronologia è temporaneamente indisponibile perché una fonte non è stata aggiornata.","La chronologie est temporairement indisponible car une source n’a pas pu être actualisée.","Die Aktivitätszeitleiste ist vorübergehend nicht verfügbar, da eine Quelle nicht aktualisiert werden konnte.","A cronologia está temporariamente indisponível porque uma fonte não pôde ser atualizada."],
+  ["Transaction observations are temporarily unavailable.","Las observaciones de transacciones no están disponibles temporalmente.","交易观测暂时不可用。","Le osservazioni delle transazioni sono temporaneamente indisponibili.","Les observations des transactions sont temporairement indisponibles.","Transaktionsbeobachtungen sind vorübergehend nicht verfügbar.","As observações de transações estão temporariamente indisponíveis."],
+  ["Claimable balance observations are temporarily unavailable.","Las observaciones de saldos reclamables no están disponibles temporalmente.","可领取余额观测暂时不可用。","Le osservazioni dei saldi riscattabili sono temporaneamente indisponibili.","Les observations des soldes réclamables sont temporairement indisponibles.","Beobachtungen abrufbarer Guthaben sind vorübergehend nicht verfügbar.","As observações de saldos reclamáveis estão temporariamente indisponíveis."],
+  ["Some Testnet sources are unavailable. Missing observations are unknown, and this partial sample is excluded from change alerts.","Algunas fuentes de Testnet no están disponibles. Los datos faltantes son desconocidos y esta muestra parcial se excluye de las alertas de cambios.","部分 Testnet 数据源不可用。缺失的观测为未知，此不完整样本不参与变化提醒。","Alcune fonti Testnet non sono disponibili. I dati mancanti sono sconosciuti e il campione parziale è escluso dagli avvisi di variazione.","Certaines sources Testnet sont indisponibles. Les observations manquantes sont inconnues et cet échantillon partiel est exclu des alertes de changement.","Einige Testnet-Quellen sind nicht verfügbar. Fehlende Beobachtungen sind unbekannt; diese Teilstichprobe wird von Änderungsmeldungen ausgeschlossen.","Algumas fontes Testnet estão indisponíveis. As observações em falta são desconhecidas e esta amostra parcial é excluída dos alertas de alterações."],
+  ["Historical observations could not be refreshed. Live source observations are shown independently.","No se pudieron actualizar las observaciones históricas. Las observaciones en vivo se muestran por separado.","历史观测无法刷新。实时数据源观测独立显示。","Le osservazioni storiche non sono state aggiornate. I dati in tempo reale sono mostrati indipendentemente.","Les observations historiques n’ont pas pu être actualisées. Les observations en direct sont affichées indépendamment.","Historische Beobachtungen konnten nicht aktualisiert werden. Live-Beobachtungen werden unabhängig angezeigt.","As observações históricas não puderam ser atualizadas. As observações em tempo real são mostradas de forma independente."],
+  ["No comparable complete snapshot is available for this observation.","No hay una instantánea completa comparable para esta observación.","此观测暂无可比较的完整快照。","Non è disponibile un’istantanea completa confrontabile per questa osservazione.","Aucun instantané complet comparable n’est disponible pour cette observation.","Für diese Beobachtung ist kein vergleichbarer vollständiger Snapshot verfügbar.","Não existe uma captura completa comparável para esta observação."],
+  ["Sign out","Cerrar sesión","退出","Esci","Se déconnecter","Abmelden","Terminar sessão"],
+  ["Sign-out failed. Please try again.","No se pudo cerrar sesión. Inténtalo de nuevo.","退出失败，请重试。","Uscita non riuscita. Riprova.","Échec de la déconnexion. Réessayez.","Abmeldung fehlgeschlagen. Bitte erneut versuchen.","Não foi possível sair. Tenta novamente."],
+  ["Ends your ZAF Tech session; your Pi account stays signed in.","Cierra tu sesión ZAF Tech; tu cuenta Pi sigue conectada.","结束 ZAF Tech 会话；Pi 账户仍保持登录。","Termina la sessione ZAF Tech; l’account Pi resta connesso.","Termine votre session ZAF Tech ; le compte Pi reste connecté.","Beendet deine ZAF Tech Sitzung; dein Pi-Konto bleibt angemeldet.","Termina a sessão ZAF Tech; a conta Pi mantém a sessão."],
   ["Previously verified:", "Verificado anteriormente:", "此前已验证：", "Verificato in precedenza:", "Vérifié précédemment :", "Zuvor verifiziert:", "Verificado anteriormente:"],
   ["Reload and retry", "Recargar y reintentar", "重新加载并重试", "Ricarica e riprova", "Recharger et réessayer", "Neu laden und erneut versuchen", "Recarregar e tentar novamente"],
 
@@ -570,6 +586,19 @@ export const supplementalUiTranslations: Record<string, Partial<Record<Supplemen
 
 
 export const supplementalRussianUiTranslations: Record<string, string> = {
+  "Resume session": "Возобновить сеанс",
+  "This browser needs permission to keep your ZAF Tech session inside Pi.": "Этому браузеру требуется разрешение, чтобы сохранять ваш сеанс ZAF Tech внутри Pi.",
+  "Enable session and return to Pi": "Включить сеанс и вернуться в Pi",
+  "Open the registered Pi app to sign in.": "Для входа откройте зарегистрированное приложение Pi.",
+  "Open ZAF Tech in Pi": "Открыть ZAF Tech в Pi",
+  "Some wallet sources could not be refreshed. Unavailable observations are shown as unknown; inspect again to retry.": "Некоторые источники кошелька не обновились. Недоступные данные показаны как неизвестные; повторите проверку.",
+  "Operation observations are temporarily unavailable.": "Наблюдения операций временно недоступны.",
+  "The activity timeline is temporarily unavailable because a source could not be refreshed.": "Хронология временно недоступна: источник не удалось обновить.",
+  "Transaction observations are temporarily unavailable.": "Наблюдения транзакций временно недоступны.",
+  "Claimable balance observations are temporarily unavailable.": "Наблюдения доступных к получению балансов временно недоступны.",
+  "Some Testnet sources are unavailable. Missing observations are unknown, and this partial sample is excluded from change alerts.": "Некоторые источники Testnet недоступны. Отсутствующие данные неизвестны; неполная выборка исключена из уведомлений об изменениях.",
+  "Historical observations could not be refreshed. Live source observations are shown independently.": "Исторические наблюдения не обновились. Текущие данные источников показаны отдельно.",
+  "No comparable complete snapshot is available for this observation.": "Для этого наблюдения нет сопоставимого полного снимка.",
   "Previously verified:": "Ранее подтверждено:",
   "Reload and retry": "Перезагрузить и повторить",
   "Clear username": "Очистить имя пользователя",
@@ -703,4 +732,7 @@ export const supplementalRussianUiTranslations: Record<string, string> = {
   "Registration · Mining · Wallet · KYC · Security": "Регистрация · Майнинг · Кошелёк · KYC · Безопасность",
   "Start Pi": "Начать с Pi",
   "Terms of Service": "Условия использования",
+  "Sign out": "Выйти",
+  "Sign-out failed. Please try again.": "Не удалось выйти. Повторите попытку.",
+  "Ends your ZAF Tech session; your Pi account stays signed in.": "Завершает сеанс ZAF Tech; вход в Pi сохраняется.",
 };

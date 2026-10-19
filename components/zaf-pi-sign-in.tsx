@@ -6,6 +6,9 @@ import type { Locale } from "@/lib/zaf/i18n";
 import { translate } from "@/lib/zaf/i18n";
 import { PI_SIGNIN_RETURN_TO_KEY, PI_SIGNIN_STATE_KEY, PI_SIGNIN_STARTED_KEY, PI_DISPLAY_CHANGE_EVENT, clearPiDisplay, readPiDisplay, savePiDisplay, acquirePiSignIn, releasePiSignIn, isPiSignInBusy, type PiDisplay } from "@/lib/zaf/pi/oauth";
 import { loadPiSdk, initializePiSdk, authenticatePi, piReloadRequired, withPiTimeout as withTimeout, type PiSdk } from "@/lib/zaf/pi/sdk";
+import { confirmPiSession, confirmPiSignOut, refreshPiSession } from "@/lib/zaf/pi/session-state";
+import { isDirectPiBrowserEntry, isPiBrowserUserAgent, ZAF_PI_APP_URL } from "@/lib/zaf/pi/native-context";
+import { checkPiStorageAccess, isPiStorageContext, isPiSessionStorageBlocked, requestPiStorageAccess, PI_STORAGE_SETUP_PATH } from "@/lib/zaf/pi/storage-access";
 
 function beginPiOAuthSignIn(clientId: string) {
   const bytes = new Uint8Array(24);
@@ -48,13 +51,6 @@ function safePiErrorDetail(error: unknown): string {
     .slice(0, 140);
 }
 
-function isPiBrowserUserAgent() {
-  const userAgent = navigator.userAgent.toLowerCase();
-  return userAgent.includes("pibrowser") ||
-    userAgent.includes("pi-browser") ||
-    userAgent.includes("pi browser");
-}
-
 async function detectPiBrowser(pi: PiSdk): Promise<boolean> {
   // Prefer explicit Pi host information when the current SDK exposes it.
   // Some Pi Browser builds use a generic WebView user agent, so retain a
@@ -66,7 +62,9 @@ async function detectPiBrowser(pi: PiSdk): Promise<boolean> {
         1_500,
         "Pi host app detection timed out.",
       );
-      if (info?.hostApp === "pi-browser") return true;
+      // PiNet's web host does not provide native consent; retain web OAuth.
+      if (info?.hostApp === "pi-net") return false;
+      if (info?.hostApp && ["pi-browser", "pi-node"].includes(info.hostApp)) return true;
       if (typeof info?.hostApp === "string" && info.hostApp.length > 0) return false;
     }
   } catch {
@@ -80,22 +78,26 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [reload, setReload] = useState(false);
+  const [entryRequired, setEntryRequired] = useState(false);
+  const [storageBlocked, setStorageBlocked] = useState(false);
+  const [storageSetup, setStorageSetup] = useState(false);
   const mounted = useRef(true);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
 
   useEffect(() => {
     mounted.current = true;
-    const sync = () => { setUser(readPiDisplay()); setBusy(isPiSignInBusy()); setReload(piReloadRequired()); };
-    sync();
-    const timer = window.setInterval(sync, 30_000);
+    const sync = () => { setUser(readPiDisplay()); setBusy(isPiSignInBusy()); setReload(piReloadRequired()); setStorageBlocked(isPiSessionStorageBlocked()); };
+    const restore = () => { sync(); void refreshPiSession(); };
+    restore();
+    const timer = window.setInterval(restore, 30_000);
     window.addEventListener(PI_DISPLAY_CHANGE_EVENT, sync);
-    window.addEventListener("pageshow", sync);
-    return () => { mounted.current = false; window.clearInterval(timer); window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync); window.removeEventListener("pageshow", sync); };
+    window.addEventListener("pageshow", restore);
+    return () => { mounted.current = false; window.clearInterval(timer); window.removeEventListener(PI_DISPLAY_CHANGE_EVENT, sync); window.removeEventListener("pageshow", restore); };
   }, []);
 
   useEffect(() => {
-    if (!isPiBrowserUserAgent()) return;
+    if (!isPiBrowserUserAgent() || isDirectPiBrowserEntry()) return;
 
     let cancelled = false;
     void (async () => {
@@ -120,15 +122,34 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
   async function signIn() {
     if (busy || isPiSignInBusy()) return;
+    // A directly opened page has no native parent to show Pi consent. Let the
+    // user open the registered app explicitly, without an automatic redirect.
+    if (isDirectPiBrowserEntry()) {
+      setMessage(""); setEntryRequired(true); return;
+    }
+    setEntryRequired(false);
     if (piReloadRequired()) { window.location.reload(); return; }
     if (!acquirePiSignIn()) return;
-    clearPiDisplay();
-    setUser(null);
+    // Preserve the click's activation: no awaited SDK/probe before this call.
+    const storagePermission = isPiSessionStorageBlocked() ? requestPiStorageAccess() : null;
     setBusy(true);
     setMessage("");
+    setStorageSetup(false);
 
     let phase: "oauth-start" | "sdk-load" | "browser-detection" | "sdk-init" | "authentication" | "verification" = "sdk-load";
+    let verificationCode = "ZAF-PI-CONNECTION";
     try {
+      if (storagePermission) {
+        const available = await storagePermission;
+        if (!mounted.current) return;
+        if (!available) { setStorageSetup(true); return; }
+        setStorageBlocked(false);
+        const restored = await confirmPiSession();
+        if (!mounted.current) return;
+        if (restored) { savePiDisplay(restored); setUser(readPiDisplay()); return; }
+      }
+      clearPiDisplay();
+      setUser(null);
       await loadPiSdk();
       phase = "sdk-init";
       const pi = await initializePiSdk();
@@ -168,6 +189,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         credentials: "same-origin",
       });
 
+      verificationCode = `ZAF-PI-${response.status}`;
       if (!response.ok) {
         const serverMessage = typeof body?.error === "string" ? body.error : "";
         if (response.status === 401) {
@@ -182,6 +204,12 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       const username = typeof body?.user?.username === "string" ? body.user.username.trim() : "";
       if (!mounted.current) return;
       if (!username) throw new Error("Pi verified the request but returned no username.");
+      verificationCode = "ZAF-PI-SESSION";
+      if (await confirmPiSession(username) !== username) {
+        if (!await checkPiStorageAccess() && isPiSessionStorageBlocked()) { setStorageBlocked(true); setStorageSetup(true); return; }
+        throw new Error("The ZAF Tech session could not be confirmed.");
+      }
+      if (!mounted.current) return;
       savePiDisplay(username);
       setUser(readPiDisplay());
       setMessage("");
@@ -203,6 +231,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       clearPiDisplay();
 
       if (phase === "authentication" && /timed out|did not respond/i.test(errorDetail)) {
+        setEntryRequired(true);
         setMessage(tr(
           "Pi Browser did not respond to the sign-in request. Check for a pending permission prompt and try again.",
           "Pi Browser giriş isteğine yanıt vermedi. Bekleyen bir izin penceresi olup olmadığını kontrol edip tekrar dene.",
@@ -237,7 +266,7 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         ],
       } as const;
       const [enMessage, trMessage] = failureCopy[phase];
-      setMessage(tr(enMessage, trMessage));
+      setMessage(tr(enMessage, trMessage) + (phase === "verification" ? ` (${verificationCode})` : ""));
     } finally {
       releasePiSignIn();
       if (mounted.current) { setReload(piReloadRequired()); setBusy(false); }
@@ -251,12 +280,24 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         onClick={() => void signIn()}
         disabled={busy}
         className="zaf-pi-signin-button inline-flex h-8 w-[min(48vw,168px)] min-w-[132px] shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-lg border border-ty-active/40 bg-card px-2 text-[10px] font-semibold text-foreground transition-colors hover:bg-muted disabled:cursor-wait disabled:opacity-60"
-        aria-label={tr("Sign in with Pi", "Pi ile giriş yap")}
+        aria-label={storageBlocked ? tr("Resume session", "Oturumu sürdür") : tr("Sign in with Pi", "Pi ile giriş yap")}
       >
         <span aria-hidden="true" className="text-sm font-bold">π</span>
-        <span className="hidden truncate lg:inline">{busy ? tr("Connecting to Pi…", "Pi'ye bağlanılıyor…") : reload ? tr("Reload and retry", "Yenile ve tekrar dene") : user?.current ? tr("Pi Account Verified", "Pi Hesabı Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
-        <span className="inline truncate lg:hidden">{busy ? tr("Connecting…", "Bağlanıyor…") : reload ? tr("Reload and retry", "Yenile ve tekrar dene") : user?.current ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="hidden truncate lg:inline">{busy ? tr("Connecting to Pi…", "Pi'ye bağlanılıyor…") : reload ? tr("Reload and retry", "Yenile ve tekrar dene") : storageBlocked ? tr("Resume session", "Oturumu sürdür") : user?.current ? tr("Pi Account Verified", "Pi Hesabı Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
+        <span className="inline truncate lg:hidden">{busy ? tr("Connecting…", "Bağlanıyor…") : reload ? tr("Reload and retry", "Yenile ve tekrar dene") : storageBlocked ? tr("Resume session", "Oturumu sürdür") : user?.current ? tr("Pi Verified", "Pi Doğrulandı") : tr("Sign in with Pi", "Pi ile giriş yap")}</span>
       </button>
+      {storageSetup ? (
+        <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] leading-relaxed text-foreground shadow-md" role="status" aria-live="polite">
+          {tr("This browser needs permission to keep your ZAF Tech session inside Pi.", "Bu tarayıcı, ZAF Tech oturumunu Pi içinde korumak için izin gerektiriyor.")}{" "}
+          <a href={PI_STORAGE_SETUP_PATH + (locale === "tr" ? "?lang=tr" : "")} target="_top" className="font-semibold underline underline-offset-2">{tr("Enable session and return to Pi", "Oturumu etkinleştir ve Pi’ye dön")}</a>
+        </span>
+      ) : null}
+      {entryRequired && !message ? (
+        <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] leading-relaxed text-foreground shadow-md" role="status" aria-live="polite">
+          {tr("Open the registered Pi app to sign in.", "Giriş yapmak için kayıtlı Pi uygulamasını aç.")}{" "}
+          <a href={ZAF_PI_APP_URL} className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a>
+        </span>
+      ) : null}
       {user ? (
         <span className="min-w-0 break-all text-[10px] text-muted-foreground" aria-live="polite">
           {user.current ? tr("Verified username:", "Doğrulanan kullanıcı adı:") : tr("Previously verified:", "Önceden doğrulanan:")} @{user.username}
@@ -264,9 +305,24 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       ) : message ? (
         <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-red-500/50 bg-red-50 px-2.5 py-1.5 text-[10px] leading-relaxed text-red-700 shadow-md [overflow-wrap:anywhere] dark:border-red-400/50 dark:bg-red-950 dark:text-red-200" role="status" aria-live="polite">
           {message}
+          {entryRequired ? <>{" "}<a href={ZAF_PI_APP_URL} className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a></> : null}
         </span>
       ) : null}
-      {user ? <button type="button" disabled={busy} onClick={() => { clearPiDisplay(); setUser(null); setMessage(""); }} className="zaf-pi-clear-button rounded-md border border-border px-2 py-1 text-[10px] text-muted-foreground disabled:opacity-50" title={tr("Clears ZAF Tech's displayed username only; your Pi account stays signed in.", "Yalnızca ZAF Tech'te gösterilen kullanıcı adını temizler; Pi hesabınız açık kalır.")}>{tr("Clear username", "Kullanıcı adını temizle")}</button> : null}
+      {user && message ? <span role="status" className="text-[10px] text-red-700 dark:text-red-200">{message}</span> : null}
+      {user ? <button type="button" disabled={busy} onClick={() => { void (async () => {
+        if (!acquirePiSignIn()) return;
+        const permission = isPiSessionStorageBlocked() ? requestPiStorageAccess() : null;
+        setBusy(true);
+        try {
+          if (permission && !await permission) throw new Error("Session access is required to sign out.");
+          // Cover an immediate click before the page's first probe completed.
+          if (isPiStorageContext() && !await checkPiStorageAccess()) throw new Error("Session access is required to sign out.");
+          const { response } = await requestJson("/api/zaf/pi/session", { method: "DELETE", credentials: "same-origin" });
+          if (!response.ok || !await confirmPiSignOut()) throw new Error("Sign-out failed.");
+          clearPiDisplay(); setUser(null); setMessage(""); setStorageSetup(false); setStorageBlocked(false);
+        } catch { setMessage(tr("Sign-out failed. Please try again.", "Çıkış yapılamadı. Lütfen tekrar dene.")); }
+        finally { releasePiSignIn(); if (mounted.current) setBusy(false); }
+      })(); }} className="zaf-pi-clear-button rounded-md border border-border px-2 py-1 text-[10px] text-muted-foreground disabled:opacity-50" title={tr("Ends your ZAF Tech session; your Pi account stays signed in.", "ZAF Tech oturumunu kapatır; Pi hesabınız açık kalır.")}>{tr("Sign out", "Çıkış yap")}</button> : null}
     </div>
   );
 }

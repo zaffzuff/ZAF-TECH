@@ -141,7 +141,7 @@ export default function AboutPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 text-foreground">
+    <main lang={locale} className="min-h-screen bg-background px-4 py-8 text-foreground">
       <article className="mx-auto max-w-2xl">
         <ZafBrand className="mb-6" />
         <div className="flex items-center justify-between gap-4">

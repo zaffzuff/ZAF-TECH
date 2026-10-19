@@ -6,6 +6,12 @@
 
 No listing application has been submitted. Prepared images have not been uploaded. Do not confuse configuration Submit/Save with the final application.
 
+## October 19 status update
+
+Real Pi Desktop/App Studio sign-in succeeded and App Studio registered ZAF Tech. After the owner selected Continue and Skip for optional payments, App Studio displayed Published and provided https://zaftechpu0455.pinet.com. This does not prove ecosystem directory acceptance. The owner also confirmed the separate web QR sign-in fix succeeded. SDK tokens are verified through App Studio; web OAuth tokens through the official Pi Platform API, with app-specific identities kept separate.
+
+The owner requested the comprehensive final web/mobile audit and authorized fixes on October 19. Evidence and remaining release checks are in final-audit-2026-10-19.md. No new Developer Portal listing submission or payment setup was performed. Earlier October 16 findings below are historical where superseded. Current authentication boundaries are in pi-auth-security.md. Keep the final application gate above; portal declarations must match actual behavior.
+
 ## Product and technical preparation
 
 1. Data: ledger closure determines freshness, not successful request time. Status ages on screen; stale samples are never saved as a new measurement. Source/sample/time and daily-rate limitations are visible. Decorative invented sparklines have been removed.

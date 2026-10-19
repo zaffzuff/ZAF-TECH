@@ -57,14 +57,14 @@ type EndpointResult<T> = {
 
 function recordsFromPage(body: Record<string, unknown>) {
   const embedded = body._embedded;
-  if (!embedded || typeof embedded !== "object") return [];
+  if (!embedded || typeof embedded !== "object") throw new Error("Pi Testnet returned an invalid records response");
   const records = (embedded as Record<string, unknown>).records;
-  return Array.isArray(records)
-    ? records.filter((record): record is Record<string, unknown> => Boolean(record) && typeof record === "object")
-    : [];
+  if (!Array.isArray(records)) throw new Error("Pi Testnet returned an invalid records response");
+  return records.filter((record): record is Record<string, unknown> => Boolean(record) && typeof record === "object");
 }
 
 function numberOrNull(value: unknown) {
+  if ((typeof value !== "number" && typeof value !== "string") || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }

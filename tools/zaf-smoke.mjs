@@ -7,6 +7,8 @@ const baseUrl = process.env.SMOKE_BASE_URL ?? `http://127.0.0.1:${port}`;
 const external = Boolean(process.env.SMOKE_LIVE);
 
 const checks = [
+  { path: "/pi-app-validation.txt", status: 200 },
+  { path: "/api/zaf/pi/session", status: 200 },
   { path: "/", status: 200 },
   { path: "/about", status: 200 },
   { path: "/privacy", status: 200 },
@@ -26,7 +28,7 @@ const checks = [
 const requiredHeaders = [
   ["x-content-type-options", "nosniff"],
   ["referrer-policy", "strict-origin-when-cross-origin"],
-  ["content-security-policy", "frame-ancestors 'self' https://app-cdn.minepi.com;"],
+  ["content-security-policy", "connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com;"],
   ["permissions-policy", "camera=(), microphone=(), geolocation=()"],
   ["strict-transport-security", "max-age=31536000; includeSubDomains; preload"],
 ];
@@ -117,6 +119,22 @@ try {
     if (response.status !== check.status) {
       throw new Error(`${check.path} expected ${check.status}, received ${response.status}: ${response.text.slice(0, 220)}`);
     }
+  }
+
+  // Next's global headers must not override this first-party-only page policy.
+  // This HTTP smoke validates headers, not actual form navigation. A separate
+  // browser click must verify generated Origin and the cross-origin 303 chain.
+  const storageSetup = await request('/signin/storage?lang=tr');
+  const storageCsp = storageSetup.headers['content-security-policy'] ?? '';
+  const storageFormAction = storageCsp.split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
+  if (storageSetup.status !== 200 ||
+      !storageCsp.includes("frame-ancestors 'none'") ||
+      !storageCsp.includes("default-src 'none'") ||
+      storageFormAction !== "form-action 'self' https://zaftechpu0455.pinet.com" ||
+      storageSetup.headers['referrer-policy'] !== 'same-origin' ||
+      storageSetup.headers['x-frame-options'] !== 'DENY' ||
+      !storageSetup.text.includes('method="post"') || /<script/i.test(storageSetup.text)) {
+    throw new Error('Pi storage setup must preserve same-origin form Origin and permit only the fixed PiNet redirect under its strict CSP.');
   }
 
   // Policy pages must work before hydration, including direct Turkish terms.
