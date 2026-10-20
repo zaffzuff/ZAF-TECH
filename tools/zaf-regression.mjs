@@ -250,6 +250,16 @@ const app = readText(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 const i18n = readText(path.join(root, "lib/zaf/i18n.ts"), "utf8");
 if (i18n.includes("spanishCopy")) throw new Error("Pseudo-localization fallback must not return");
 const supplementalTranslations = readText(path.join(root, "lib/zaf/ui-translations.ts"), "utf8");
+// The current translator checks this nine-language catalog before legacy dictionaries.
+// Validate every cell so a key's presence cannot conceal an empty translation.
+const updatedTranslations = readText(path.join(root, "lib/zaf/ui-update-copy.ts"), "utf8");
+const updatedRows = JSON.parse((updatedTranslations.match(/const rows = (\[[\s\S]*?\]) as const;/)?.[1] ?? "null").replace(/,\s*\]$/, "]"));
+const updatedOrder = JSON.parse(updatedTranslations.match(/const order: Locale\[\] = (\[[^\n]+\]);/)?.[1] ?? "null");
+if (!Array.isArray(updatedOrder) || updatedOrder.join(",") !== "en,tr,es,zh,it,fr,de,pt,ru" ||
+    !Array.isArray(updatedRows) || updatedRows.some(row => !Array.isArray(row) || row.length !== updatedOrder.length || row.some(value => typeof value !== "string" || !value.trim()))) {
+  throw new Error("Updated UI translation catalog must contain a nonempty translation for every supported language");
+}
+const updatedCatalog = new Map(updatedRows.map(row => [row[0], row]));
 if (!supplementalTranslations.includes('const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"]')) {
   throw new Error("Supplemental translation catalog is missing supported locales");
 }
@@ -287,7 +297,8 @@ for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
   for (const key of pairedUiKeys) {
     const inPrimaryDictionary = localeBlock.includes(JSON.stringify(key) + ":");
     const inSupplementalCatalog = locale === "ru" ? russianSupplementalTranslations.includes(JSON.stringify(key) + ":") : supplementalTranslations.includes("  [" + JSON.stringify(key) + ",");
-    if (!inPrimaryDictionary && !inSupplementalCatalog) missing.push(key);
+    const inUpdatedCatalog = Boolean(updatedCatalog.get(key)?.[updatedOrder.indexOf(locale)]);
+    if (!inPrimaryDictionary && !inSupplementalCatalog && !inUpdatedCatalog) missing.push(key);
   }
   if (missing.length) {
     throw new Error(`UI localization regression (${locale}): missing ${missing.length} keys: ${missing.slice(0, 40).join(" | ")}`);
