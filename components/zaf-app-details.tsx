@@ -23,7 +23,7 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
     stable: { en: "Stable", es: "Estable", tr: "Sabit", zh: "稳定", it: "Stabile", fr: "Stable", de: "Stabil", pt: "Estável", ru: "Стабильно" },
     insufficient: { en: "Insufficient Data", es: "Datos Insuficientes", tr: "Yetersiz Veri", zh: "数据不足", it: "Dati Insufficienti", fr: "Données Insuffisantes", de: "Daten Unzureichend", pt: "Dados Insuficientes", ru: "Недостаточно Данных" },
     fresh: { en: "Fresh", es: "Reciente", tr: "Taze", zh: "新鲜", it: "Recente", fr: "Récent", de: "Frisch", pt: "Recente", ru: "Свежие" },
-    aging: { en: "Aging", es: "Envejeciendo", tr: "Yaşlanıyor", zh: "正在变旧", it: "Invecchiando", fr: "Alterando", de: "Alternd", pt: "Envelhecendo", ru: "Устаревает" },
+    aging: { en: "Awaiting update", es: "Pendiente de actualización", tr: "Güncelleme bekleniyor", zh: "正在变旧", it: "In attesa di aggiornamento", fr: "En attente de mise à jour", de: "Aktualisierung ausstehend", pt: "A aguardar atualização", ru: "Устаревает" },
     stale: { en: "Stale", es: "Desactualizado", tr: "Bayat", zh: "陈旧", it: "Obsoleto", fr: "Périmé", de: "Veraltet", pt: "Desatualizado", ru: "Устаревшие" },
     old: { en: "Old", es: "Antiguo", tr: "Eski", zh: "很旧", it: "Vecchio", fr: "Ancien", de: "Alt", pt: "Antigo", ru: "Старые" },
     mainnet: { en: "Mainnet", es: "Mainnet", tr: "Mainnet", zh: "主网", it: "Mainnet", fr: "Mainnet", de: "Mainnet", pt: "Mainnet", ru: "Mainnet" },

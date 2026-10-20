@@ -11,11 +11,11 @@ function fixture({mobile=true,scroll=0,dialog=false}={}){
  vm.runInNewContext('(function(require,exports){'+source+'})',{window:{matchMedia:()=>({matches:mobile}),scrollY:scroll},document:{querySelector:()=>dialog?{}:null}})(()=>react,exports);
  exports.useMobilePullRefresh(async()=>{refreshes++});
  const evt=(x,y,interactive=false)=>({touches:[{clientX:x,clientY:y}],target:{closest:()=>interactive?{}:null},cancelable:true,preventDefault(){}});
- return{pull(dy=100,interactive=false,dx=0){handlers.touchstart(evt(20,20,interactive));handlers.touchmove(evt(20+dx,20+dy));handlers.touchend()},get count(){return refreshes},cleanup,handlers};
+ return{pull(dy=160,interactive=false,dx=0){handlers.touchstart(evt(20,20,interactive));handlers.touchmove(evt(20+dx,20+dy));handlers.touchend()},get count(){return refreshes},cleanup,handlers};
 }
 test('a full mobile pull refreshes once while request is pending',async()=>{const f=fixture();f.pull();f.pull();assert.equal(f.count,1);await new Promise(r=>setImmediate(r));f.pull();assert.equal(f.count,2);f.cleanup();assert.equal(Object.keys(f.handlers).length,0)});
-test('short and horizontal gestures do not refresh',()=>{const f=fixture();f.pull(47);f.pull(90,false,150);assert.equal(f.count,0)});
+test('short and horizontal gestures do not refresh',()=>{const f=fixture();f.pull(47);f.pull(100);f.pull(146);f.pull(90,false,150);assert.equal(f.count,0)});
 for(const [name,options]of [['desktop',{mobile:false}],['scrolled page',{scroll:20}],['open dialog',{dialog:true}]])test(name+' does not refresh',()=>{const f=fixture(options);f.pull();assert.equal(f.count,0)});
 test('touching a control does not start a pull refresh',()=>{const f=fixture();f.pull(100,true);assert.equal(f.count,0)});
 
-test('the shorter 48px pull starts refresh on release',()=>{const f=fixture();f.pull(48);assert.equal(f.count,1)});
+test('an intentional 148px pull starts refresh on release',()=>{const f=fixture();f.pull(148);assert.equal(f.count,1)});

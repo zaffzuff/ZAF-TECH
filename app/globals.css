@@ -1918,3 +1918,36 @@ button,a,input,select,textarea{font-family:inherit;}
 html{scrollbar-gutter:stable;}
 
 .zaf-guide-page :is(button,a.border,section.border,article.border,div.border){border-radius:14px;}
+
+/* Header navigation: fixed columns, complete labels and touch-sized controls. */
+.zaf-header-navigation { margin-top: .65rem; width: 100%; min-width: 0; }
+.zaf-header-primary { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: .25rem; }
+.zaf-header-primary-item { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; min-height: 58px; padding: .4rem .2rem; border-radius: .75rem; font-size: 11px; line-height: 1.25; color: var(--muted-foreground); }
+.zaf-header-primary-item span { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+.zaf-header-primary-item.is-active { background: color-mix(in srgb,var(--primary) 16%,transparent); color: var(--foreground); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--primary) 32%,transparent); }
+.zaf-header-primary-item:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.zaf-header-subnavigation { padding-top: .5rem; }
+.zaf-header-subnavigation select { width: 100%; min-width: 0; min-height: 44px; padding: .6rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--card); color: var(--foreground); font-size: 14px; }
+.zaf-relationship-map { display: grid; gap: .75rem; grid-template-columns: repeat(3,minmax(0,1fr)); padding: .5rem; align-items: start; }
+.zaf-relationship-lane { min-width: 0; border: 1px solid var(--border); border-radius: .8rem; overflow: hidden; }
+.zaf-relationship-lane h3 { display: flex; justify-content: space-between; gap: .5rem; padding: .8rem; font-size: 12px; font-weight: 600; background: linear-gradient(120deg,color-mix(in srgb,var(--primary) 20%,transparent),transparent); }
+.zaf-relationship-lane ol { display: grid; gap: .4rem; padding: .5rem; }
+.zaf-relationship-lane button { display: flex; align-items: center; gap: .55rem; width: 100%; min-height: 56px; padding: .6rem; border-radius: .5rem; text-align: left; border: 1px solid var(--border); }
+.zaf-relationship-lane button[aria-pressed=true] { border-color: var(--primary); background: color-mix(in srgb,var(--primary) 12%,transparent); }
+.zaf-relationship-lane strong { display: block; font-size: 11px; font-weight: 600; overflow-wrap: anywhere; }
+.zaf-relationship-lane small { display: block; margin-top: .2rem; font-size: 10px; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.zaf-relationship-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+@media(max-width: 639px) { .zaf-header-primary-item { font-size: 10px; min-height: 64px; } .zaf-relationship-map { grid-template-columns: minmax(0,1fr); } }
+
+.zaf-header-navigation { position: relative; padding: 0 .4rem .4rem; }
+.zaf-header-subnavigation { position: absolute; top: 100%; left: 0; right: 0; z-index: 45; padding: .35rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--card); box-shadow: 0 12px 24px #0002; }
+.zaf-header-subnavigation ul { max-height: min(50vh, 320px); overflow-y: auto; overscroll-behavior: contain; }
+.zaf-header-subnavigation button { width: 100%; min-height: 44px; text-align: left; padding: .65rem .8rem; font-size: 13px; border-radius: .5rem; overflow-wrap: anywhere; }
+.zaf-header-subnavigation button:hover,.zaf-header-subnavigation button:focus-visible,.zaf-header-subnavigation button[aria-current=page] { background: var(--muted); color: var(--foreground); }
+.zaf-relationship-lane ol { position: relative; }
+.zaf-relationship-lane li { position: relative; }
+.zaf-relationship-lane li + li::before { content: ""; position: absolute; left: 15px; top: -.4rem; height: .4rem; width: 1px; background: var(--primary); }
+
+.zaf-relationship-map { grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr)); }
+.zaf-relationship-lane ol { max-height: min(55vh,480px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+@media(max-width: 639px) { .zaf-relationship-map { grid-template-columns: minmax(0,1fr); } }

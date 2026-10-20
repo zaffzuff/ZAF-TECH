@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/lib/zaf/i18n";
-import { intlLocale } from "@/lib/zaf/i18n";
+import { translate } from "@/lib/zaf/i18n";
 
 type NodeType = "network" | "app" | "asset" | "pool" | "launch" | "evidence";
 type Scope = "mainnet" | "testnet" | "unknown";
@@ -33,19 +33,15 @@ type Payload = {
   notes: string[];
 };
 
-function short(value:string, max=18){
-  const clean=value.trim();
-  return clean.length>max ? clean.slice(0,max-1)+"…" : clean;
-}
 function typeLabel(type:NodeType, locale:Locale){
   const map:Record<NodeType,[string,string]> = {
     network:["Network","Ağ"], app:["App","Uygulama"], asset:["Asset","Varlık"], pool:["Pool","Havuz"], launch:["Launch","Launch"], evidence:["Evidence","Kanıt"]
   };
-  return map[type][locale==="tr"?1:0];
+  return translate(locale, map[type][0], map[type][1]);
 }
 function scopeLabel(scope:Scope, locale:Locale){
   if(locale==="tr") return scope==="mainnet"?"Mainnet":scope==="testnet"?"Testnet":"Bilinmiyor";
-  return scope==="mainnet"?"Mainnet":scope==="testnet"?"Testnet":"Unknown";
+  return scope==="mainnet"?"Mainnet":scope==="testnet"?"Testnet":translate(locale,"Unknown","Bilinmiyor");
 }
 function relationshipLabel(value:string, locale:Locale){
   const map:Record<string,[string,string]> = {
@@ -59,7 +55,7 @@ function relationshipLabel(value:string, locale:Locale){
     "published-mainnet-evidence":["Published Mainnet Evidence","Yayınlanmış Mainnet Kanıtı"],
     "published-staking-evidence":["Published Staking Evidence","Yayınlanmış Staking Kanıtı"],
   };
-  return map[value]?.[locale==="tr"?1:0] ?? value;
+  return map[value] ? translate(locale, map[value][0], map[value][1]) : value;
 }
 
 export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trText:string)=>string}){
@@ -102,31 +98,9 @@ export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trTex
     if(selectedNode && !filtered.some(node=>node.id===selectedNode.id)) setSelectedNode(null);
   },[filtered,selectedNode]);
 
-  const visible=useMemo(()=>filtered.slice(0,54),[filtered]);
-  const positionMap=useMemo(()=>{
-    const hubs:Record<Scope,{x:number;y:number}>={
-      mainnet:{x:170,y:270},testnet:{x:450,y:270},unknown:{x:730,y:270}
-    };
-    const positions=new Map<string,{x:number;y:number}>();
-    (data?.nodes??[]).filter(node=>node.type==="network").forEach(node=>positions.set(node.id,hubs[node.networkScope]));
-    const grouped:Record<Scope,GraphNode[]>={mainnet:[],testnet:[],unknown:[]};
-    visible.filter(node=>node.type!=="network").forEach(node=>grouped[node.networkScope].push(node));
-    (Object.keys(grouped) as Scope[]).forEach(scopeKey=>{
-      const group=grouped[scopeKey];
-      const hub=hubs[scopeKey];
-      group.forEach((node,index)=>{
-        const angle=(index/group.length)*Math.PI*2 - Math.PI/2;
-        const radius=group.length<=5?92:118;
-        positions.set(node.id,{x:hub.x+Math.cos(angle)*radius,y:hub.y+Math.sin(angle)*radius});
-      });
-    });
-    return positions;
-  },[data,visible]);
-
+  const visible=useMemo(()=>filtered.slice(0,120),[filtered]);
   const visibleIds=new Set(visible.map(node=>node.id));
   const graphEdges=(data?.edges??[]).filter(edge=>visibleIds.has(edge.from)&&visibleIds.has(edge.to));
-  const displayNodes=visible.filter(node=>node.type!=="network");
-  const networkNodes=(data?.nodes??[]).filter(node=>node.type==="network");
   const selectedEdges=selectedNode?graphEdges.filter(edge=>edge.from===selectedNode.id||edge.to===selectedNode.id):[];
 
   return <section className="mt-5 sm:mt-7">
@@ -160,33 +134,24 @@ export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trTex
 
     <div className="mt-3 grid gap-3 zaf-graph-layout lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-2">
-        <svg viewBox="0 0 900 540" className="zaf-graph-canvas h-auto w-full" role="img" aria-label={tr("Ecosystem relationship graph","Ekosistem ilişki grafiği")}>
-          <rect x="0" y="0" width="900" height="540" fill="transparent" />
-          {graphEdges.map(edge=>{
-            const from=positionMap.get(edge.from); const to=positionMap.get(edge.to);
-            if(!from||!to) return null;
-            const focused=selectedNode && (edge.from===selectedNode.id||edge.to===selectedNode.id);
-            return <line key={edge.id} x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="currentColor" strokeOpacity={focused?0.75:0.22} strokeWidth={focused?2.2:1.1} vectorEffect="non-scaling-stroke" />;
+        <div className="zaf-relationship-map" aria-label={tr("Ecosystem relationship graph","Ekosistem ilişki grafiği")}>
+          {(["mainnet", "testnet", "unknown"] as Scope[]).map(network => {
+            const nodes = visible.filter(node => node.networkScope === network);
+            if (!nodes.length) return null;
+            return <section key={network} className="zaf-relationship-lane">
+              <h3>{scopeLabel(network,locale)} <span className="ty-nums">{nodes.length}</span></h3>
+              <ol>
+                {nodes.map(node => <li key={node.id}>
+                  <button type="button" aria-pressed={selectedNode?.id === node.id} onClick={()=>setSelectedNode(node)}>
+                    <span className="zaf-relationship-dot" aria-hidden="true" />
+                    <span className="min-w-0"><strong>{node.label}</strong><small>{typeLabel(node.type,locale)} · {graphEdges.filter(edge=>edge.from===node.id||edge.to===node.id).length} {tr("Visible relationships","Görünür ilişkiler")}</small></span>
+                  </button>
+                </li>)}
+              </ol>
+            </section>;
           })}
-          {networkNodes.map(node=>{
-            const p=positionMap.get(node.id); if(!p) return null;
-            return <g key={node.id}>
-              <circle cx={p.x} cy={p.y} r="34" fill="currentColor" opacity="0.08" />
-              <circle cx={p.x} cy={p.y} r="26" fill="currentColor" opacity="0.16" stroke="currentColor" strokeWidth="1.5" />
-              <text x={p.x} y={p.y+4} textAnchor="middle" fontSize="11" fontWeight="600" fill="currentColor">{node.label}</text>
-            </g>;
-          })}
-          {displayNodes.map(node=>{
-            const p=positionMap.get(node.id); if(!p) return null;
-            const selected=selectedNode?.id===node.id;
-            const radius=node.type==="pool"?13:node.type==="launch"?16:node.type==="evidence"?14:11;
-            return <g key={node.id} onClick={()=>setSelectedNode(node)} className="cursor-pointer">
-              <title>{node.label} — {node.detail}</title>
-              <circle cx={p.x} cy={p.y} r={selected?radius+4:radius} fill="currentColor" opacity={selected?0.24:0.12} stroke="currentColor" strokeWidth={selected?2:1} />
-              <text x={p.x} y={p.y+28} textAnchor="middle" fontSize="9" fill="currentColor">{short(node.label)}</text>
-            </g>;
-          })}
-        </svg>
+        </div>
+        <p className="p-2 text-[10px] text-muted-foreground">{tr("Displayed nodes","Gösterilen düğümler")}: {visible.length} / {filtered.length}</p>
       </div>
 
       <aside className="rounded-xl border border-border bg-card p-4">
@@ -196,7 +161,7 @@ export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trTex
           <p className="mt-3 break-words text-[10px] leading-relaxed text-muted-foreground">{selectedNode.detail}</p>
           {Object.entries(selectedNode.metadata).length ? <div className="mt-3 space-y-1.5">{Object.entries(selectedNode.metadata).map(([key,value])=><div key={key} className="flex items-start justify-between gap-2 text-[9px]"><span className="min-w-0 break-words text-muted-foreground">{key}</span><span className="max-w-[180px] break-words text-right text-foreground">{value==null?"—":String(value)}</span></div>)}</div>:null}
           {selectedNode.href ? <a href={selectedNode.href} target="_blank" rel="noreferrer" className="mt-3 inline-block max-w-full break-all text-[9px] text-foreground underline underline-offset-2">{tr("Open source","Kaynağı aç")}</a>:null}
-          <div className="mt-3"><div className="text-[9px] font-medium text-foreground">{tr("Connected relationships","Bağlı ilişkiler")}</div><div className="mt-1 space-y-1.5">{selectedEdges.slice(0,10).map(edge=><div key={edge.id} className="rounded-md border border-border p-2 text-[9px] leading-relaxed text-muted-foreground">{relationshipLabel(edge.relation,locale)}</div>)}{!selectedEdges.length?<div className="text-[9px] text-muted-foreground">{tr("No visible relationships under the current filters.","Mevcut filtrelerde görünür ilişki yok.")}</div>:null}</div></div>
+          <div className="mt-3"><div className="text-[9px] font-medium text-foreground">{tr("Connected relationships","Bağlı ilişkiler")}</div><div className="mt-1 space-y-1.5">{selectedEdges.slice(0,10).map(edge=><div key={edge.id} className="rounded-md border border-border p-2 text-[9px] leading-relaxed text-muted-foreground">{data?.nodes.find(node=>node.id===edge.from)?.label} → {data?.nodes.find(node=>node.id===edge.to)?.label}<br />{relationshipLabel(edge.relation,locale)}</div>)}{!selectedEdges.length?<div className="text-[9px] text-muted-foreground">{tr("No visible relationships under the current filters.","Mevcut filtrelerde görünür ilişki yok.")}</div>:null}</div></div>
         </div>}
       </aside>
     </div>
@@ -204,7 +169,7 @@ export function ZafEcosystemGraph({locale,tr}:{locale:Locale;tr:(en:string,trTex
     <div className="mt-3 rounded-xl border border-border bg-card p-4">
       <div className="text-xs font-semibold text-foreground">{tr("Graph Scope","Graf Kapsamı")}</div>
       <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tr("This graph joins only observable or explicitly published relationships. It does not infer ownership, legitimacy, security, hidden wallets, or private application connections. Network scope follows source metadata; where scope is unknown, the node stays unknown.", "Bu grafik yalnızca gözlemlenebilir veya açıkça yayınlanmış ilişkileri birleştirir. Sahiplik, meşruiyet, güvenlik, gizli cüzdanlar veya özel uygulama bağlantıları çıkarılmaz. Ağ kapsamı kaynak metadatasını izler; kapsam bilinmiyorsa düğüm bilinmeyen olarak kalır.")}</p>
-      <div className="mt-2 flex flex-wrap gap-3 text-[9px] text-muted-foreground"><span>read-only</span><span>•</span><span>{tr("Published evidence ≠ live observation","Yayınlanmış kanıt ≠ canlı gözlem")}</span><span>•</span><span>{tr("No inferred relationships","Çıkarımsal ilişki yok")}</span></div>
+      <div className="mt-2 flex flex-wrap gap-3 text-[9px] text-muted-foreground"><span>{tr("Read-only","Salt-okunur")}</span><span>•</span><span>{tr("Published evidence ≠ live observation","Yayınlanmış kanıt ≠ canlı gözlem")}</span><span>•</span><span>{tr("No inferred relationships","Çıkarımsal ilişki yok")}</span></div>
     </div>
   </section>;
 }

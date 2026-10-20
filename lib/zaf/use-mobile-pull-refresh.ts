@@ -24,14 +24,14 @@ export function useMobilePullRefresh(refresh: () => Promise<void>) {
       const dx = event.touches[0].clientX - start.x, dy = event.touches[0].clientY - start.y;
       if (Math.abs(dx) > Math.max(16, dy) || dy < 0) { reset(); return; }
       if (dy > 10 && event.cancelable) event.preventDefault();
-      pull = Math.min(120, dy);
+      pull = Math.min(120, Math.max(0, dy - 24) * 0.65);
       setDistance(pull);
     };
     const touchend = () => {
-      const trigger = start && pull >= 48 && !pending;
+      const trigger = start && pull >= 80 && !pending;
       start = null;
       if (!trigger) { reset(); return; }
-      pending = true; setRefreshing(true); setDistance(48);
+      pending = true; setRefreshing(true); setDistance(80);
       void refresh().catch(() => undefined).finally(() => { pending = false; setRefreshing(false); reset(); });
     };
     element.addEventListener("touchstart", touchstart, { passive: true });
