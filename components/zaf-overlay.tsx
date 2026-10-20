@@ -18,7 +18,8 @@ export function ZafOverlay({ title, closeLabel, onClose, children }: {
     const previousPadding = document.body.style.paddingRight;
     const scrollbar = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
-    if (scrollbar > 0) document.body.style.paddingRight = `${parseFloat(getComputedStyle(document.body).paddingRight) + scrollbar}px`;
+    // Stable root gutters already retain the scrollbar space while locked.
+    if (scrollbar > 0 && getComputedStyle(document.documentElement).scrollbarGutter !== "stable") document.body.style.paddingRight = `${parseFloat(getComputedStyle(document.body).paddingRight) + scrollbar}px`;
     const focusable = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') ?? []).filter(node => node.getClientRects().length > 0);
     (panel.current?.querySelector<HTMLElement>("[data-overlay-autofocus]") ?? panel.current)?.focus();
     const keydown = (event: KeyboardEvent) => {

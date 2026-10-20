@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ZafNetworkSelect } from "@/components/zaf-network-select";
 import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
@@ -110,13 +111,10 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <p className="text-[11px] text-muted-foreground">{tr("Public, read-only wallet observations from Pi Horizon. No wallet connection or signing is required.", "Pi Horizon üzerinden herkese açık, salt-okunur cüzdan gözlemleri. Cüzdan bağlantısı veya imzalama gerekmez.")}</p>
     </div>
 
-    <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+    <div className="zaf-wallet-lookup rounded-xl border border-border bg-card p-3 sm:p-4">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
         <input aria-label={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} value={address} onChange={e => { clearLookup(); setAddress(e.target.value); }} onKeyDown={e => { if (e.key === "Enter") void lookup(); }} placeholder={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
-        <select aria-label={tr("Network", "Ağ")} value={network} onChange={e => { clearLookup(); setNetwork(e.target.value as "mainnet" | "testnet"); }} className="rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground">
-          <option value="mainnet">{tr("Pi Mainnet", "Pi Mainnet")}</option>
-          <option value="testnet">{tr("Pi Testnet", "Pi Testnet")}</option>
-        </select>
+        <ZafNetworkSelect label={tr("Network", "Ağ")} value={network} onChange={value => { clearLookup(); setNetwork(value); }} />
         <button type="button" onClick={() => void lookup()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2.5 text-xs font-medium text-background disabled:opacity-50">{loading ? tr("Checking…", "Kontrol Ediliyor…") : tr("Inspect", "İncele")}</button>
       </div>
       {error ? <p className="mt-2 text-[11px] text-muted-foreground">{error}</p> : null}

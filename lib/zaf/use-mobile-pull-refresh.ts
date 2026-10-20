@@ -14,7 +14,7 @@ export function useMobilePullRefresh(refresh: () => Promise<void>) {
     const reset = () => { start = null; pull = 0; if (!pending) setDistance(0); };
     const touchstart = (event: TouchEvent) => {
       reset();
-      if (pending || event.touches.length !== 1 || !window.matchMedia("(max-width: 1023px)").matches || window.scrollY > 0 || document.querySelector('[role="dialog"]')) return;
+      if (pending || event.touches.length !== 1 || !window.matchMedia("(max-width: 1023px)").matches || window.scrollY > 1 || document.querySelector('[role="dialog"]')) return;
       if ((event.target as Element | null)?.closest('button,a,input,textarea,select,[role="dialog"],[data-no-pull-refresh]')) return;
       start = { x: event.touches[0].clientX, y: event.touches[0].clientY };
     };
@@ -28,10 +28,10 @@ export function useMobilePullRefresh(refresh: () => Promise<void>) {
       setDistance(pull);
     };
     const touchend = () => {
-      const trigger = start && pull >= 72 && !pending;
+      const trigger = start && pull >= 48 && !pending;
       start = null;
       if (!trigger) { reset(); return; }
-      pending = true; setRefreshing(true); setDistance(72);
+      pending = true; setRefreshing(true); setDistance(48);
       void refresh().catch(() => undefined).finally(() => { pending = false; setRefreshing(false); reset(); });
     };
     element.addEventListener("touchstart", touchstart, { passive: true });

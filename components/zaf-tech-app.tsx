@@ -624,6 +624,7 @@ export function ZafTechApp() {
     if (!themeReady) return;
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.classList.toggle("light", theme === "light");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#1a1b22" : "#f7f8fa");
   }, [theme, themeReady]);
 
   const toggleTheme = useCallback(() => {
@@ -687,7 +688,7 @@ export function ZafTechApp() {
   return (
     <div className="min-h-screen bg-background">
       <main ref={pullRefresh.target} className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
-        {pullRefresh.distance > 10 ? <div className="zaf-pull-indicator" role="status" aria-live="polite">{pullRefresh.refreshing ? tr("Refreshing…", "Yenileniyor…") : pullRefresh.distance >= 72 ? tr("Release to refresh", "Yenilemek için bırak") : tr("Pull down to refresh", "Yenilemek için aşağı çek")}</div> : null}
+        {pullRefresh.distance > 10 ? <div className="zaf-pull-indicator" role="status" aria-live="polite">{pullRefresh.refreshing ? tr("Refreshing…", "Yenileniyor…") : pullRefresh.distance >= 48 ? tr("Release to refresh", "Yenilemek için bırak") : tr("Pull down to refresh", "Yenilemek için aşağı çek")}</div> : null}
         <header className="zaf-sticky-header">
           <div className="zaf-desktop-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
@@ -700,11 +701,14 @@ export function ZafTechApp() {
             <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} compact />
               <LanguageSelector locale={locale} onChange={setLocale} />
-              <button type="button" onClick={toggleTheme} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
-              <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
-              <a href="/start-with-pi" className="zaf-start-pi-link rounded-lg border border-violet-300/50 bg-card px-3 py-2 text-xs font-semibold shadow-sm transition hover:-translate-y-px hover:border-amber-300/70" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
-              <ZafPiSignIn locale={locale} />
+              <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
+              <button type="button" onClick={() => void load(true)} aria-label={tr("Refresh", "Yenile")} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
+
             </div>
+          </div>
+          <div className="zaf-desktop-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
+            <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
+            <ZafPiSignIn locale={locale} />
           </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
