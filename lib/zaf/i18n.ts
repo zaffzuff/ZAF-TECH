@@ -1,17 +1,18 @@
+import { updatedCopy } from "./ui-update-copy";
 import { supplementalRussianUiTranslations, supplementalUiTranslations } from "./ui-translations";
 
 export type Locale = "en" | "es" | "tr" | "zh" | "it" | "fr" | "de" | "pt" | "ru";
 
 export const localeLabels: Record<Locale, string> = {
   en: "English",
-  es: "Spanish",
-  tr: "Turkish",
-  zh: "Chinese",
-  it: "Italian",
-  fr: "French",
-  de: "German",
-  pt: "Portuguese",
-  ru: "Russian",
+  es: "Español",
+  tr: "Türkçe",
+  zh: "中文",
+  it: "Italiano",
+  fr: "Français",
+  de: "Deutsch",
+  pt: "Português",
+  ru: "Русский",
 };
 
 const translations: Record<Locale, Record<string, string>> = {
@@ -3659,4 +3660,7 @@ export function t(locale: Locale, key: string, trText?: string): string {
   return translations[locale][key] ?? supplementalUiTranslations[key]?.[locale as Exclude<Locale, "en" | "tr">] ?? (locale === "ru" ? supplementalRussianUiTranslations[key] : undefined) ?? key;
 }
 
-export const translate = t;
+export function translate(locale: Locale, key: string, trText?: string): string {
+  const value = updatedCopy(locale, key) ?? t(locale, key, trText);
+  return key.startsWith("Boundary:") ? value.replace(/([:：]\s*)(\p{L})/u, (_, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase(intlLocale(locale))) : value;
+}

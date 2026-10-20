@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState, useRef, useEffect } from "react";
 import { translate } from "@/lib/zaf/i18n";
 import type { Locale } from "@/lib/zaf/i18n";
 
@@ -245,130 +245,33 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   onSubtabChange: (subtab: string) => void;
 }) {
   const sections: Array<[ZafSection, string]> = [["overview", "Overview"], ["discover", "Discover"], ["network", "Network"], ["intelligence", "Intelligence"], ["wallet", "Wallet"]];
-  const subtabs = ZAF_SECTION_TABS[section];
-  const networkGroups = [
-    { label: "Network Core", items: ["Network"] },
-    { label: "Testnet", items: ["Testnet Assets"] },
-    { label: "DeFi", items: ["DeFi", "DEX", "AMM & Pools", "Tokens", "Launchpad"] },
-    { label: "Node & Compute", items: ["Node", "Node History", "SoloHost", "Compute", "Infrastructure"] },
-  ];
-
-  const selectSection = (next: ZafSection) => {
-    onSectionChange(next);
-    onSubtabChange(ZAF_SECTION_TABS[next][0] ?? "");
-  };
-
-  const primaryNav = (
-    <div className="zaf-mobile-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
-      {sections.map(([id, title]) => {
-        const meta = sectionMeta[id];
-        const active = section === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => selectSection(id)}
-            aria-pressed={active}
-            className={"zaf-mobile-primary-item group min-w-0 rounded-xl px-1.5 py-2 text-[9px] font-medium leading-tight transition-colors " + (active ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
-          >
-            <span className="flex min-h-10 flex-col items-center justify-center gap-1">
-              <Icon name={meta.icon} size={16} />
-              <span className="max-w-full truncate">{label(title, locale)}</span>
-            </span>
-          </button>
-        );
-      })}
+  const container = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const close = (event: PointerEvent) => { if (!container.current?.contains(event.target as Node)) setExpanded(null); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
+  const triggers = useRef<Partial<Record<ZafSection, HTMLButtonElement | null>>>({});
+  const [expanded, setExpanded] = useState<ZafSection | null>(null);
+  return <nav ref={container} onKeyDown={event => { if (event.key === "Escape" && expanded) { triggers.current[expanded]?.focus(); setExpanded(null); } }} className="zaf-header-navigation" aria-label={translate(locale, "Ecosystem Sections", "Ekosistem Bölümleri")}>
+    <div className="zaf-header-primary">
+      {sections.map(([id, title]) => <div key={id} className="zaf-header-primary-cell">
+        <button ref={element => { triggers.current[id] = element; }} type="button"
+          aria-pressed={section === id} aria-expanded={ZAF_SECTION_TABS[id].length ? expanded === id : undefined}
+          aria-controls={ZAF_SECTION_TABS[id].length ? "zaf-subnavigation" : undefined}
+          onClick={() => {
+            if (section !== id) { onSectionChange(id); onSubtabChange(ZAF_SECTION_TABS[id][0] ?? ""); }
+            setExpanded(expanded === id ? null : id);
+          }} className={"zaf-header-primary-item " + (section === id ? "is-active" : "")}>
+          <Icon name={sectionMeta[id].icon} size={17} />
+          <span>{label(title, locale)}</span>
+        </button>
+        {expanded === id && ZAF_SECTION_TABS[id].length ? <div id="zaf-subnavigation" className="zaf-header-subnavigation">
+          <ul aria-label={label(sectionMeta[id].title, locale)}>
+            {ZAF_SECTION_TABS[id].map(item => <li key={item}><button type="button" aria-current={subtab === item ? "page" : undefined} onClick={() => { onSubtabChange(item); setExpanded(null); triggers.current[id]?.focus(); }}>{label(item, locale)}</button></li>)}
+          </ul>
+        </div> : null}
+      </div>)}
     </div>
-  );
-
-  return (
-    <nav className="zaf-navigation mt-4 border-t border-border pt-3" aria-label={translate(locale, "Ecosystem Sections", "Ekosistem Bölümleri")}>
-      <div className="hidden lg:block">
-        <div className="zaf-desktop-primary-nav grid grid-cols-5 gap-1 rounded-2xl border border-border bg-card/90 p-1.5">
-          {sections.map(([id, title]) => {
-            const meta = sectionMeta[id];
-            const active = section === id;
-            return (
-              <button key={id} type="button" onClick={() => selectSection(id)} aria-pressed={active}
-              className={"zaf-desktop-primary-item group rounded-xl px-2 py-2.5 text-[11px] font-medium transition-colors " + (active ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-                <span className="flex flex-col items-center gap-1.5">
-                  <Icon name={meta.icon} size={17} />
-                  <span className="truncate max-w-full">{label(title, locale)}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        {subtabs.length ? (
-          section === "network" ? (
-            <div className="zaf-network-secondary mt-2 grid grid-cols-4 gap-2 border-b border-border pb-2">
-              {networkGroups.map(group => (
-                <div key={group.label} className="min-w-0 rounded-xl border border-border/70 bg-card/50 px-2.5 py-2">
-                  <div className="mb-1.5 px-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label(group.label, locale)}</div>
-                  <div className="flex flex-wrap gap-1">
-                    {group.items.map(item => {
-                      const active = subtab === item;
-                      return (
-                        <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"rounded-lg px-2 py-1 text-[10px] font-medium transition-colors " + (active ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-                          {label(item, locale)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="zaf-desktop-secondary-nav mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-1 pb-1.5">
-              {subtabs.map(item => {
-                const active = subtab === item;
-                return (
-                  <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-desktop-secondary-item relative px-1 py-1 text-[10px] font-medium transition-colors " + (active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
-                    {label(item, locale)}
-                    <span className={"absolute inset-x-1 -bottom-1 h-0.5 rounded-full transition-opacity " + (active ? "bg-primary opacity-100" : "opacity-0")} />
-                  </button>
-                );
-              })}
-            </div>
-          )
-        ) : null}
-      </div>
-
-      <div className="lg:hidden">
-        {primaryNav}
-        {subtabs.length ? (
-          section === "network" ? (
-            <div className="zaf-network-secondary mt-2 grid grid-cols-2 gap-1.5">
-              {networkGroups.map(group => (
-                <div key={group.label} className="min-w-0 rounded-xl border border-border/70 bg-card/60 p-2">
-                  <div className="mb-1.5 px-0.5 text-[8px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label(group.label, locale)}</div>
-                  <div className="grid grid-cols-1 gap-1">
-                    {group.items.map(item => {
-                      const active = subtab === item;
-                      return (
-                        <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"min-w-0 rounded-lg border px-2 py-1.5 text-[9px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
-                          <span className="block truncate">{label(item, locale)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="zaf-mobile-subtabs mt-2 grid grid-cols-2 gap-1">
-              {subtabs.map(item => {
-                const active = subtab === item;
-                return (
-                  <button key={item} type="button" onClick={() => onSubtabChange(item)} className={"zaf-mobile-subtab min-w-0 rounded-lg border px-2 py-1.5 text-[9px] font-medium leading-tight transition-colors " + (active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>
-                    <span className="block truncate">{label(item, locale)}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )
-        ) : null}
-      </div>
-    </nav>
-  );
+  </nav>;
 }

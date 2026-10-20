@@ -50,6 +50,12 @@ test("successful empty sources are reported as observed zero values", async () =
   assert.equal(value.error, null);
 });
 
+test("a malformed claim amount remains unknown rather than becoming zero Pi", async () => {
+  const value = await walletFixture({ claimables: page([{ id: "invalid", asset: "native", amount: "invalid", claimants: [{ destination: ADDRESS, predicate: { unconditional: true } }] }]) })(ADDRESS);
+  assert.equal(value.observableClaimablePi, null);
+  assert.equal(value.lockup.items[0].amountPi, null);
+});
+
 test("a failed claimable source stays unknown while the account remains usable", async () => {
   const value = await walletFixture({ claimables: { status: 503, body: { title: "Service Unavailable" } } })(ADDRESS);
   assert.equal(value.exists, true);

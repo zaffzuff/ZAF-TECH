@@ -6,6 +6,7 @@ import { intlLocale, translate } from "@/lib/zaf/i18n";
 import type { ZafSnapshot } from "@/lib/zaf/types";
 import { requestJson } from "@/lib/zaf/client-request";
 import { isMobileConnectorUnavailable, mobileConnectorMessage } from "@/lib/zaf/local-connector-client";
+import { nodeHealthReason } from "@/lib/zaf/node-health-copy";
 import { calculateNodeHealth } from "@/lib/zaf/node-health";
 
 const NODE_KEY_STORAGE = "zaf-tech-node-public-key-v1";
@@ -278,7 +279,7 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
           <NodeMetric label={tr("Last Connector Read", "Son Connector Okuması")} value={localNode?.observedAt ? new Date(localNode.observedAt).toLocaleTimeString(intlLocale(locale)) : "—"} detail={tr("Local observation timestamp", "Yerel gözlem zamanı")} />
         </div>
         <div className="mt-3 space-y-1.5">
-          {nodeHealth.reasons.slice(0, 4).map(reason => <div key={reason} className="rounded-lg border border-border px-3 py-2 text-[10px] text-muted-foreground">{reason}</div>)}
+          {nodeHealth.reasons.slice(0, 4).map(reason => <div key={reason} className="rounded-lg border border-border px-3 py-2 text-[10px] text-muted-foreground">{nodeHealthReason(locale, reason)}</div>)}
         </div>
       </div>
 
@@ -430,9 +431,6 @@ export function ZafNodeIntelligence({ locale, data }: { locale: Locale; data: Za
             <div className="mt-1">{tr("Never asks for a wallet passphrase, seed phrase, or private key.", "Cüzdan parolası, seed phrase veya private key istemez.")}</div>
           </div>
         </div>
-        <p className="mt-3 text-[10px] text-muted-foreground">
-          {tr("The download opens the official ZAF Tech GitHub Releases page.", "İndirme bağlantısı resmi ZAF Tech GitHub Releases sayfasını açar.")}
-        </p>
       </div>
 
       <div className="mt-4 rounded-xl border border-border bg-card p-3 sm:p-4">
