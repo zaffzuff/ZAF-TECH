@@ -2011,3 +2011,18 @@ html{scrollbar-gutter:stable;}
 @media(min-width:1024px) {
  .zaf-header-primary-cell > .zaf-header-primary-item { height: 49px; min-height: 49px; padding: 2px .2rem; gap: 2px; }
 }
+
+/* Sharp local vector flags; compact mobile menus without letter-by-letter wrapping. */
+.zaf-language-flag { display: block; width: 24px; height: 16px; object-fit: contain; border-radius: 1px; }
+@media(max-width:1023px) {
+ .zaf-sticky-header .zaf-mobile-language img.zaf-language-flag { width: 18px; height: 12px; }
+ .zaf-mobile-language [role=listbox] img.zaf-language-flag { width: 24px; height: 16px; }
+ .zaf-header-primary-cell .zaf-header-subnavigation { width: clamp(140px,30vw,180px); left: 50%; transform: translateX(-50%); }
+ .zaf-header-primary-cell:first-child .zaf-header-subnavigation { left: 0; transform: none; }
+ .zaf-header-primary-cell .zaf-header-subnavigation button { font-size: 11px; padding: 8px; overflow-wrap: normal; word-break: normal; hyphens: none; }
+ .zaf-header-primary-cell .zaf-header-subnavigation button[aria-current=page] { padding-right: 20px; }
+ .zaf-header-primary-cell .zaf-header-subnavigation button[aria-current=page]::after { right: 6px; font-size: 10px; }
+}
+@media(min-width:1024px) {
+ .zaf-desktop-pi-actions .zaf-desktop-search { width: 105px; max-width: 105px; flex: 0 0 105px; }
+}
