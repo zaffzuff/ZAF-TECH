@@ -188,7 +188,9 @@ test("successful native verification with an absent blocked cookie never display
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
   assert.doesNotMatch(renderedText(tree), /Pi Verified|Pi Account Verified|Verified username:/);
   assert.match(renderedText(tree), /needs permission/);
-  const link = descendants(tree).find(node => node.type === "a");
+  const recovery = descendants(tree).find(node => node.type === "a" && node.props.href === "https://zaftechpu0455.pinet.com");
+  assert.equal(recovery.props.target, "_top");
+  const link = descendants(tree).find(node => node.type === "a" && node.props.href === "/signin/storage");
   assert.equal(link.props.href, "/signin/storage");
   assert.equal(link.props.target, "_top");
   assert.equal(fixture.navigations.length, 0);
@@ -235,7 +237,7 @@ test("a permission gesture restores the existing server identity without Pi auth
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
 });
 
-test("denied storage permission starts no native authentication and offers only the fixed setup path", async () => {
+test("denied storage permission offers only fixed Pi entry and session help without authenticating", async () => {
   let permissionCalls = 0;
   const fixture = entryFixture({
     userAgent: "iPhone PiBrowser", storageAvailable: false,
@@ -248,9 +250,9 @@ test("denied storage permission starts no native authentication and offers only 
   assert.equal(permissionCalls, 1);
   assert.deepEqual(fixture.calls, []);
   assert.equal(fixture.requests.some(request => request.url === "/api/zaf/pi/auth" || request.url === "/api/zaf/pi/session"), false);
-  assert.equal(links.length, 1);
-  assert.equal(links[0].props.href, "/signin/storage?lang=tr");
-  assert.equal(links[0].props.target, "_top");
+  assert.equal(links.length, 2);
+  assert.deepEqual(links.map(link => link.props.href), ["https://zaftechpu0455.pinet.com", "/signin/storage?lang=tr"]);
+  assert.ok(links.every(link => link.props.target === "_top"));
   assert.deepEqual(fixture.navigations, []);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);

@@ -296,7 +296,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
       {storageSetup ? (
         <span className="zaf-pi-status-bubble absolute left-0 top-full z-50 mt-1 block w-[min(86vw,340px)] max-w-[calc(100vw-32px)] break-words whitespace-normal rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] leading-relaxed text-foreground shadow-md" role="status" aria-live="polite">
           {tr("This browser needs permission to keep your ZAF Tech session inside Pi.", "Bu tarayıcı, ZAF Tech oturumunu Pi içinde korumak için izin gerektiriyor.")}{" "}
-          <a href={PI_STORAGE_SETUP_PATH + (locale === "tr" ? "?lang=tr" : "")} target="_top" className="font-semibold underline underline-offset-2">{tr("Enable session and return to Pi", "Oturumu etkinleştir ve Pi’ye dön")}</a>
+          <a href={ZAF_PI_APP_URL} target="_top" className="font-semibold underline underline-offset-2">{tr("Open ZAF Tech in Pi", "ZAF Tech'i Pi'de aç")}</a>{" · "}
+          <a href={PI_STORAGE_SETUP_PATH + (locale === "tr" ? "?lang=tr" : "")} target="_top" className="font-semibold underline underline-offset-2">{tr("Session help", "Oturum yardımı")}</a>
         </span>
       ) : null}
       {entryRequired && !message ? (

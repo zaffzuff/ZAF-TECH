@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 import ts from 'typescript';
@@ -65,15 +66,31 @@ test('anonymous cookie probe uses real session attributes without identity', asy
   }
 });
 
-test('storage setup preserves form Origin and permits only its fixed PiNet redirect under CSP', async () => {
+test('anonymous storage recovery renders in fixed Pi shells while bootstrap POST remains unframeable', async () => {
   const route = loader()('@/app/signin/storage/route');
   const response = await route.GET(new Request('https://zaf-tech.invalid/signin/storage?lang=%3Cscript%3E&returnTo=https://evil.invalid'));
   const html = await response.text();
   assert.match(html, /<html lang="en">/);
   assert.match(html, /<form method="post" action="\/signin\/storage">/);
-  assert.doesNotMatch(html, /<script|evil\.invalid/i);
-  assert.equal(response.headers.get('x-frame-options'), 'DENY');
-  assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/);
+  assert.doesNotMatch(html, /evil\.invalid/i);
+  assert.equal(response.headers.get('x-frame-options'), null);
+  const csp = response.headers.get('content-security-policy');
+  const ancestors = csp.split(';').map(part => part.trim()).find(part => part.startsWith('frame-ancestors '));
+  assert.equal(ancestors, "frame-ancestors 'self' https://app-cdn.minepi.com https://zaftechpu0455.pinet.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com");
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  assert.ok(csp.includes("script-src 'sha256-" + createHash('sha256').update(script).digest('base64') + "'"));
+  assert.doesNotMatch(csp, /script-src 'unsafe-inline'|frame-ancestors[^;]*\*/);
+  assert.match(html, /<section id="first-party" hidden>/);
+  assert.match(html, /href="https:\/\/zaftechpu0455.pinet.com" target="_top"/);
+  for (const topLevel of [true, false]) {
+    const elements = { 'first-party': { hidden: true }, embedded: { hidden: false } };
+    const window = { parent: {} };
+    if (topLevel) window.parent = window;
+    // No cookie, storage, SDK or navigation API is exposed to this script.
+    vm.runInNewContext(script, { window, document: { getElementById: id => elements[id] } });
+    assert.equal(elements['first-party'].hidden, !topLevel);
+    assert.equal(elements.embedded.hidden, topLevel);
+  }
   // Header contracts catch the browser regression, but synthetic requests do
   // not replace clicking the real form and observing its navigation chain.
   assert.equal(response.headers.get('referrer-policy'), 'same-origin');
@@ -87,6 +104,8 @@ test('storage bootstrap server rejects null and foreign Origins while retaining 
   for (const origin of ['', 'https://evil.invalid', 'null']) {
     const response = await route.POST(new Request('https://zaf-tech.invalid/signin/storage', { method: 'POST', headers: { origin } }));
     assert.equal(response.status, 403); assert.equal(response.headers.get('set-cookie'), null);
+    assert.equal(response.headers.get('x-frame-options'), 'DENY');
+    assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   }
   const response = await route.POST(new Request('https://zaf-tech.invalid/signin/storage?returnTo=https://evil.invalid', { method: 'POST', headers: { origin: 'https://zaf-tech.invalid' } }));
   assert.equal(response.status, 303);
