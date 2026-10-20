@@ -37,7 +37,7 @@ function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi
           const username = options.headers?.["X-ZAF-Pi-Session-Transport"] === "memory" && !options.headers.Authorization ? null : typeof sessionUsername === "function" ? sessionUsername() : sessionUsername;
           body = { user: username === null ? null : { username } };
         }
-      } else if (url === "/api/zaf/pi/auth") body = { user: { username: "server-verified" }, ...(options.headers?.["X-ZAF-Pi-Session-Transport"] === "memory" ? { session: pageSession === "valid" ? { token: "page-session-fixture-".repeat(6), expiresAt: Date.now() + 30 * 60_000 } : pageSession } : {}) };
+      } else if (url === "/api/zaf/pi/auth") body = { user: { username: "server-verified" }, ...(options.headers?.["X-ZAF-Pi-Session-Transport"] === "memory" ? { session: pageSession === "valid" ? { token: "page-session-fixture-".repeat(6), expiresIn: 1800 } : pageSession } : {}) };
       else throw new Error("Unexpected request " + url);
       const status = url === "/api/zaf/pi/auth" ? authStatus : 200;
       return { response: { ok: status === 200, status }, body };

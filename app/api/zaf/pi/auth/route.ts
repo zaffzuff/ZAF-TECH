@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     const pageSession = request.headers.get("x-zaf-pi-session-transport") === "memory";
     const now = Date.now();
     const response = NextResponse.json({ ok: true, user: { username: user.username },
-      ...(pageSession ? { session: { token: sealPiPageSession(user, now), expiresAt: now + PI_SESSION_SECONDS * 1000 } } : {}),
+      ...(pageSession ? { session: { token: sealPiPageSession(user, now), expiresIn: PI_SESSION_SECONDS, expiresAt: now + PI_SESSION_SECONDS * 1000 } } : {}),
     }, {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });

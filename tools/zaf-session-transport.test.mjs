@@ -87,15 +87,15 @@ test('page transport forgets its credential on logout, expiry and a fresh docume
   const load = loader(), page = load('@/lib/zaf/pi/page-session'), token = 'page-session-fixture-'.repeat(6), now=Date.now();
   assert.equal(page.piSessionRequestOptions('GET').credentials,'same-origin');
   page.enablePiPageSession();
-  for (const value of [null,{}, {token,expiresAt:now-1},{token,expiresAt:now+1800_001},{token:'bad',expiresAt:now+1000}]) assert.equal(page.rememberPiPageSession(value,now),false);
-  assert.equal(page.rememberPiPageSession({token,expiresAt:now+60_000},now),true);
+  for (const value of [null,{}, {token,expiresIn:0},{token,expiresIn:1801},{token:'bad',expiresIn:60}]) assert.equal(page.rememberPiPageSession(value,now),false);
+  assert.equal(page.rememberPiPageSession({token,expiresIn:60},now),true);
   assert.equal(page.piSessionRequestOptions('GET').headers.Authorization,'Bearer '+token);
   assert.equal(page.piSessionRequestOptions('GET').credentials,'omit');
   assert.equal(loader()('@/lib/zaf/pi/page-session').piSessionRequestOptions('GET').headers,undefined);
   page.forgetPiPageSession();
   assert.equal(page.piSessionRequestOptions('GET').headers.Authorization,undefined);
   assert.equal(page.piSessionRequestOptions('GET').headers['X-ZAF-Pi-Session-Transport'],'memory');
-  assert.equal(page.rememberPiPageSession({token,expiresAt:now-1},now-2),true);
+  assert.equal(page.rememberPiPageSession({token,expiresIn:1},now-2000),true);
   assert.equal(page.piSessionRequestOptions('GET').headers.Authorization,undefined);
 });
 
