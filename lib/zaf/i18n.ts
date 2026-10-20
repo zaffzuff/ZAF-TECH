@@ -17,6 +17,8 @@ export const localeLabels: Record<Locale, string> = {
 const translations: Record<Locale, Record<string, string>> = {
   en: {},
   tr: {
+    "Session help": "Oturum yardımı",
+    "This session ends when you refresh or close this page.": "Bu oturum sayfayı yenileyince veya kapatınca sona erer.",
     "A compact daily view of observed Mainnet activity and meaningful ecosystem changes.": "Gözlemlenen Mainnet aktivitesi ve anlamlı ekosistem değişikliklerinin kısa günlük görünümü.",
     "Daily Changes": "Günlük Değişiklikler",
     "Changes are compared with the latest stored ecosystem snapshot. They describe observed differences only.": "Değişiklikler son kayıtlı ekosistem snapshot'ı ile karşılaştırılır. Yalnızca gözlemlenen farklılıkları açıklar.",
@@ -215,6 +217,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Filters and search apply to the latest transaction sample returned by Pi Mainnet Horizon.": "Filtreler ve arama, Pi Mainnet Horizon tarafından döndürülen son işlem örneklemine uygulanır.",
   },
   es: {
+    "Session help": "Ayuda de sesión",
+    "This session ends when you refresh or close this page.": "Esta sesión termina al recargar o cerrar esta página.",
     "Current Day": "Día Actual",
     "Previous Day": "Día Anterior",
     "App Change": "Cambio De Aplicaciones",
@@ -594,6 +598,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "La Solicitud Falló",
   },
   zh: {
+    "Session help": "会话帮助",
+    "This session ends when you refresh or close this page.": "刷新或关闭此页面后，会话将结束。",
     "Current Day": "当前日期",
     "Previous Day": "前一天",
     "App Change": "应用变化",
@@ -1076,6 +1082,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "请求失败",
   },
   it: {
+    "Session help": "Aiuto per la sessione",
+    "This session ends when you refresh or close this page.": "Questa sessione termina quando aggiorni o chiudi questa pagina.",
     "Current Day": "Giorno Corrente",
     "Previous Day": "Giorno Precedente",
     "App Change": "Variazione App",
@@ -1614,6 +1622,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "Richiesta Non Riuscita",
   },
   de: {
+    "Session help": "Sitzungshilfe",
+    "This session ends when you refresh or close this page.": "Diese Sitzung endet, wenn du diese Seite neu lädst oder schließt.",
     "Current Day": "Aktueller Tag",
     "Previous Day": "Vortag",
     "App Change": "App-Änderung",
@@ -1994,6 +2004,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Independent Community-Developed Technology Project": "Unabhängiges, Von Der Community Entwickeltes Technologieprojekt",
   },
   pt: {
+    "Session help": "Ajuda da sessão",
+    "This session ends when you refresh or close this page.": "Esta sessão termina quando atualizar ou fechar esta página.",
     "Current Day": "Dia Atual",
     "Previous Day": "Dia Anterior",
     "App Change": "Variação De Apps",
@@ -2374,6 +2386,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Independent Community-Developed Technology Project": "Projeto Tecnológico Independente Desenvolvido Pela Comunidade",
   },
   ru: {
+    "Session help": "Помощь с сеансом",
+    "This session ends when you refresh or close this page.": "Сеанс завершится при обновлении или закрытии этой страницы.",
     "ZAF Tech does not claim Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet status or application health until the relevant property has been independently verified by an observable check. Category is a ZAF Tech classification based on the public name/URL signal and is not an official Pi category.": "ZAF Tech не заявляет о наличии Pi Authentication, Pi Payments, PiNet, статусе Mainnet/Testnet или состоянии приложения, пока соответствующее свойство не подтверждено независимой наблюдаемой проверкой. Категория ZAF Tech основана на публичном имени/URL и не является официальной категорией Pi.",
     "Historical storage is optional. Set DATABASE_URL to enable persistent DeFi history and change alerts.": "Историческое хранилище необязательно. Настройте DATABASE_URL, чтобы включить сохранение истории DeFi и уведомления об изменениях.",
     "Boundary: alerts are generated from observable sample changes only. They do not prove network-wide activity, intent, ownership, or economic significance.": "Граница: уведомления формируются только по изменениям наблюдаемой выборки. Они не доказывают активность всей сети, намерения, владение или экономическую значимость.",
@@ -3183,6 +3197,8 @@ const translations: Record<Locale, Record<string, string>> = {
     "Coming soon target": "Ближайшая цель",
   },
   fr: {
+    "Session help": "Aide de session",
+    "This session ends when you refresh or close this page.": "Cette session prend fin lorsque vous actualisez ou fermez cette page.",
     "Current Day": "Jour Actuel",
     "Previous Day": "Jour Précédent",
     "App Change": "Variation Des Apps",

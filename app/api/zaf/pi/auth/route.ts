@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertPiSessionConfigured, sealPiSession, PI_SESSION_COOKIE, PI_LEGACY_SESSION_COOKIE, piSessionCookieOptions, piLegacyCookieClearOptions } from "@/lib/zaf/pi/session";
+import { assertPiSessionConfigured, sealPiSession, sealPiPageSession, PI_SESSION_SECONDS, PI_SESSION_COOKIE, PI_LEGACY_SESSION_COOKIE, piSessionCookieOptions, piLegacyCookieClearOptions } from "@/lib/zaf/pi/session";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
 import { readPiAuthInput, PiInputError, validPiProfile, piRetryAfter } from "@/lib/zaf/pi/auth-input";
 
@@ -77,11 +77,19 @@ export async function POST(request: Request) {
       });
     }
 
-    const response = NextResponse.json({ ok: true, user: { username: user.username } }, {
+    // An explicitly requested page session is issued only after the same native
+    // App Studio verification. It is our credential, never either upstream token.
+    const pageSession = request.headers.get("x-zaf-pi-session-transport") === "memory";
+    const now = Date.now();
+    const response = NextResponse.json({ ok: true, user: { username: user.username },
+      ...(pageSession ? { session: { token: sealPiPageSession(user, now), expiresAt: now + PI_SESSION_SECONDS * 1000 } } : {}),
+    }, {
       headers: { "Cache-Control": "no-store, max-age=0" },
     });
-    response.cookies.set(PI_SESSION_COOKIE, sealPiSession({ uid: user.uid, username: user.username }), piSessionCookieOptions);
-    response.cookies.set(PI_LEGACY_SESSION_COOKIE, "", piLegacyCookieClearOptions);
+    if (!pageSession) {
+      response.cookies.set(PI_SESSION_COOKIE, sealPiSession({ uid: user.uid, username: user.username }), piSessionCookieOptions);
+      response.cookies.set(PI_LEGACY_SESSION_COOKIE, "", piLegacyCookieClearOptions);
+    }
     return response;
   } catch (error) {
     console.error("[ZAF Tech] Pi identity verification failed", error instanceof Error ? error.name : "unknown");
