@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { ZafWordmark } from "@/components/zaf-brand";
+import { ZafWordmark, ZafFooterName } from "@/components/zaf-brand";
+import { ZafOverlay } from "@/components/zaf-overlay";
+import { useMobilePullRefresh } from "@/lib/zaf/use-mobile-pull-refresh";
 import { servicePolicy } from "@/lib/zaf/service-policy";
 import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { ZafObservationStatus } from "@/components/zaf-observation-status";
@@ -220,6 +222,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
   async function submit() {
     const q = query.trim();
     if (q.length < 2) { changeQuery(query); return; }
+    setMobileOpen(true);
     searchRequest.current?.abort();
     const controller = new AbortController();
     searchRequest.current = controller;
@@ -240,7 +243,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
 
   const resultsView = submittedQuery === query.trim() && !loading ? (
     results.length ? (
-      <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
+      <div className="zaf-search-results">
         {results.slice(0, 8).map(result => (
           <button key={result.type + result.href + result.title} type="button" onClick={() => { changeQuery(""); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
@@ -252,11 +255,21 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         ))}
       </div>
     ) : (
-      <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">
+      <div className="zaf-search-empty" role="status">
         {searchError || tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
       </div>
     )
   ) : null;
+
+  const overlay = mobileOpen ? <ZafOverlay title={tr("Search", "Ara")} closeLabel={tr("Close search", "Aramayı kapat")} onClose={() => {
+    searchRequest.current?.abort(); searchRequest.current = null; setLoading(false); setMobileOpen(false);
+  }}>
+    <form className="zaf-overlay-search" onSubmit={event => { event.preventDefault(); void submit(); }}>
+      <input data-overlay-autofocus value={query} onChange={event => changeQuery(event.target.value)} placeholder={searchPlaceholder(locale)} aria-label={tr("Global Search", "Genel Arama")} />
+      <button type="submit" className="zaf-action-button" disabled={loading}>{tr("Search", "Ara")}</button>
+    </form>
+    {loading ? <p role="status">{tr("Loading…", "Yükleniyor…")}</p> : resultsView}
+  </ZafOverlay> : null;
 
   if (mobile) {
     return (
@@ -270,23 +283,8 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         >
           <SearchIcon size={16} />
         </button>
-        {mobileOpen ? (
-          <div className="zaf-mobile-search-panel absolute right-0 top-full z-50 mt-2 w-[min(86vw,360px)] rounded-xl border border-border bg-card p-2 shadow-xl">
-            <div className="flex items-center gap-1.5">
-              <input
-                autoFocus
-                value={query}
-                onChange={e => changeQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") void submit(); if (e.key === "Escape") setMobileOpen(false); }}
-                placeholder={tr("Search ecosystem…", "Ekosistemde ara…")}
-                aria-label={tr("Global Search", "Genel Arama")}
-                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
-              />
-              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-lg border border-border px-2.5 py-2 text-xs text-muted-foreground" aria-label={tr("Close search", "Aramayı kapat")}>×</button>
-            </div>
-            {resultsView}
-          </div>
-        ) : null}
+
+        {overlay}
       </div>
     );
   }
@@ -313,7 +311,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
           <SearchIcon size={15} />
         </button>
       </div>
-      {resultsView}
+      {overlay}
     </div>
   );
 }
@@ -666,6 +664,9 @@ export function ZafTechApp() {
     }
   }, []);
 
+  const refreshFromPull = useCallback(() => load(true), [load]);
+  const pullRefresh = useMobilePullRefresh(refreshFromPull);
+
   useEffect(() => {
     void load();
     const id = window.setInterval(() => void load(), 60000);
@@ -685,7 +686,8 @@ export function ZafTechApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
+      <main ref={pullRefresh.target} className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
+        {pullRefresh.distance > 10 ? <div className="zaf-pull-indicator" role="status" aria-live="polite">{pullRefresh.refreshing ? tr("Refreshing…", "Yenileniyor…") : pullRefresh.distance >= 72 ? tr("Release to refresh", "Yenilemek için bırak") : tr("Pull down to refresh", "Yenilemek için aşağı çek")}</div> : null}
         <header className="zaf-sticky-header">
           <div className="zaf-desktop-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3">
@@ -716,7 +718,6 @@ export function ZafTechApp() {
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
               <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
-              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
             </div>
           </div>
           <div className="zaf-mobile-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
@@ -1026,7 +1027,7 @@ export function ZafTechApp() {
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span>ZAF Tech · Pi Ecosystem Observatory</span>
+            <span><ZafFooterName /> · Pi Ecosystem Observatory</span>
             <span>{servicePolicy[locale].label}</span>
             <span>{tr("Independent community-developed technology project", "Bağımsız topluluk geliştirimi teknoloji projesi")}</span>
           </div>

@@ -1,5 +1,5 @@
 "use client";
-import { ZafBrand } from "@/components/zaf-brand";
+import { ZafBrand, ZafFooterName } from "@/components/zaf-brand";
 
 import { useState } from "react";
 
@@ -174,7 +174,7 @@ export default function StartWithPiPage() {
 
         <footer className="mt-10 border-t border-border py-5">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <a href="/" className="text-xs font-semibold tracking-[0.1em]">ZAF <span className="text-[#b98745]">Tech</span></a>
+            <a href="/" className="text-xs font-semibold tracking-[0.1em]"><ZafFooterName /></a>
             <p className="text-[10px] text-muted-foreground">{t.footer}</p>
           </div>
         </footer>

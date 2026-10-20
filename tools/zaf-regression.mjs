@@ -211,36 +211,10 @@ if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileS
 }
 const piSignInStyles = readText(path.join(root, "app/globals.css"), "utf8");
 
-for (const token of [
-  ".zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link",
-  ".zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button",
-  "height: 32px;",
-  "min-height: 32px;",
-  "background-color: #f5e8c7;",
-  "color: #6f3f8f;",
-  "-webkit-text-fill-color: #6f3f8f;",
-  "border-color: #cbb270;",
-]) {
-  if (!piSignInStyles.includes(token)) throw new Error("Desktop Pi action champagne styling regression: " + token);
+for(const token of ['.zaf-pi-control','.zaf-overlay-backdrop','.zaf-overlay-panel','flex-wrap:nowrap','overflow-wrap:anywhere']) {
+ if(!piSignInStyles.includes(token)) throw new Error('Stable header/dialog styling missing: '+token);
 }
-
-for (const token of [
-  ".zaf-mobile-pi-actions .zaf-start-pi-link",
-  ".zaf-mobile-pi-actions .zaf-pi-signin-button",
-  "height: 34px;",
-  "background: #f5e8c7 !important;",
-  "background-image: none !important;",
-  "-webkit-text-fill-color: #6f3f8f !important;",
-  "max-width: min(100%, 240px);",
-  "overflow-wrap: anywhere;",
-]) {
-  if (!piSignInStyles.includes(token)) throw new Error("Mobile Pi Sign-In champagne styling/layout regression: " + token);
-}
-if (!piSignIn.includes("zaf-pi-status-bubble") ||
-    !piSignIn.includes("safePiErrorDetail") ||
-    !piSignIn.includes("Pi Browser did not respond to the sign-in request")) {
-  throw new Error("Pi sign-in must show a compact status bubble and useful timeout diagnosis");
-}
+if(!piSignIn.includes('ZafOverlay') || !piSignIn.includes('safePiErrorDetail') || !piSignIn.includes('Pi Browser did not respond to the sign-in request')) throw new Error('Pi dialog and timeout diagnosis required');
 
 const piOAuthHelpers = readText(path.join(root, "lib/zaf/pi/oauth.ts"), "utf8");
 for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "getSafePiSignInReturnPath", 'startsWith("//")']) {

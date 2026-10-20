@@ -20,6 +20,7 @@ function sessionFixture(requestJson, userAgent = "Chrome") {
     navigator: { userAgent },
   });
   const mocks = {
+    "@/components/zaf-overlay": { ZafOverlay: "dialog" },
     "@/lib/zaf/client-request": { requestJson },
     "@/lib/zaf/i18n": { translate: (_locale, en) => en },
     react: { useEffect: callback => effects.push(callback), useRef: value => ({ current: value }), useState: value => {

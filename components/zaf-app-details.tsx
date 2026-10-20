@@ -1,6 +1,6 @@
 "use client";
 
-import { ZafBrand } from "@/components/zaf-brand";
+import { ZafBrand, ZafFooterName } from "@/components/zaf-brand";
 import Link from "next/link";
 import type { DirectoryApp } from "@/lib/zaf/app-directory";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -348,7 +348,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
         </section>
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] text-muted-foreground">
-          ZAF Tech · {tr("Independent Community-Developed Technology Project", "Bağımsız Topluluk Geliştirmeli Teknoloji Projesi")}
+          <ZafFooterName /> · {tr("Independent Community-Developed Technology Project", "Bağımsız Topluluk Geliştirmeli Teknoloji Projesi")}
         </footer>
       </div>
     </main>

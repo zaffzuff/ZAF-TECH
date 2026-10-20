@@ -27,6 +27,7 @@ function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi
     sessionStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
   });
   const mocks = {
+    "@/components/zaf-overlay": { ZafOverlay: "dialog" },
     "@/lib/zaf/client-request": { requestJson: async (url, options) => {
       requests.push({ url, options });
       let body;
@@ -169,7 +170,7 @@ test("framed native consent timeout offers one explicit canonical recovery link"
   const fixture = entryFixture({ authenticate: () => { throw new Error("Pi Browser did not respond to the sign-in request within 45 seconds."); } });
   await clickSignIn(fixture.render());
   const rendered = descendants(fixture.render());
-  assert.equal(rendered.filter(node => node.props?.className?.includes("zaf-pi-status-bubble")).length, 1);
+  assert.equal(rendered.filter(node => node.type === "dialog").length, 1);
   const links = rendered.filter(node => node.type === "a");
   assert.equal(links.length, 1);
   assert.equal(links[0].props.href, "https://zaftechpu0455.pinet.com");
@@ -269,6 +270,7 @@ test("blocked cookies do not prevent page signout and a new native login", async
   const display = fixture.load("@/lib/zaf/pi/oauth");
   assert.equal(display.readPiDisplay().current, true);
   const before = fixture.requests.length;
+  await clickSignIn(fixture.render());
   const signOut = descendants(fixture.render()).find(node => node.type === "button" && renderedText(node) === "Sign out");
   signOut.props.onClick();
   await new Promise(resolve => setImmediate(resolve));
@@ -383,6 +385,7 @@ test("an immediate historical-name sign-out discovers blocked cookies before any
   fixture.states[0] = display.readPiDisplay();
   assert.equal(fixture.states[0].current, false);
   assert.equal(fixture.load("@/lib/zaf/pi/storage-access").isPiSessionStorageBlocked(), false);
+  await clickSignIn(fixture.render());
   const signOut = descendants(fixture.render()).find(node => node.type === "button" && renderedText(node) === "Sign out");
   signOut.props.onClick();
   await new Promise(resolve => setImmediate(resolve));

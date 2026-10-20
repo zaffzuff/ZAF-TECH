@@ -1718,461 +1718,48 @@
 }
 
 
-/* Keep the purple → warm yellow → purple accent exclusive to the Start Pi entry point. */
-.zaf-pi-gradient-text {
-  color: inherit;
-  background-image: none;
-  -webkit-background-clip: border-box;
-  background-clip: border-box;
+
+ .zaf-mobile-pi-actions{display:none;}
+/* Stable header actions share the main navigation palette. */
+.zaf-start-pi-link,.zaf-pi-signin-button,.zaf-action-button {
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ color:var(--foreground);-webkit-text-fill-color:currentColor;
+ background:var(--card);background-image:radial-gradient(ellipse at top left,rgba(218,184,90,.16),transparent 75%);
+ border:1px solid var(--border);border-radius:14px;font-weight:600;text-decoration:none;
+ padding:8px 12px;min-height:44px;white-space:nowrap;cursor:pointer;
 }
-.zaf-start-pi-link {
-  background-image: linear-gradient(100deg, #8b5cf6 0%, #facc15 51%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  border-color: color-mix(in srgb, #8b5cf6 35%, var(--border));
+.zaf-start-pi-link:hover,.zaf-pi-signin-button:hover,.zaf-action-button:hover{border-color:#b9a16a;box-shadow:0 2px 10px #b9a16a22;}
+.zaf-pi-control{display:inline-flex!important;flex:0 0 148px;width:148px;min-width:148px;max-width:148px;margin:0!important;}
+.zaf-pi-signin-button{width:100%;height:44px;overflow:hidden;font-size:11px;}
+.zaf-pi-signin-button span{overflow:hidden;text-overflow:ellipsis;}
+.zaf-pi-gradient-text{color:inherit;background:none;}
+.zaf-sticky-header{position:sticky;}
+.zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link,.zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button{height:32px;min-height:32px;}
+.zaf-overlay-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,18,25,.48);}
+.zaf-overlay-panel{position:relative;width:100%;max-width:440px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain;border:1px solid #b9a16a;border-radius:22px;background:var(--card);color:var(--foreground);box-shadow:0 18px 60px #0004;}
+.zaf-overlay-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px 8px 20px;border-bottom:1px solid var(--border);}
+.zaf-overlay-heading h2{font-size:17px;font-weight:600;}
+.zaf-overlay-close{flex:0 0 44px;width:44px;height:44px;border-radius:12px;border:1px solid var(--border);font-size:24px;cursor:pointer;}
+.zaf-overlay-body{padding:20px;display:flex;flex-direction:column;gap:14px;font-size:14px;line-height:1.6;overflow-wrap:anywhere;}
+.zaf-overlay-note{color:var(--muted-foreground);font-size:12px;}
+.zaf-overlay-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.zaf-overlay-search{display:flex;gap:8px;}
+.zaf-overlay-search input{min-width:0;width:100%;flex:1;border:1px solid var(--border);border-radius:12px;padding:8px;font-size:16px;background:var(--background);}
+.zaf-search-results{max-height:340px;overflow:auto;}
+.zaf-search-empty{padding:12px;color:var(--muted-foreground);}
+.zaf-overlay-panel :focus-visible{outline:2px solid #b9a16a;outline-offset:2px;}
+.zaf-pull-indicator{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:90;padding:8px 16px;border-radius:20px;border:1px solid #b9a16a;background:var(--card);color:var(--foreground);box-shadow:0 4px 20px #0002;pointer-events:none;font-size:12px;}
+@media(max-width:1023px){
+ .zaf-mobile-pi-actions{display:flex!important;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:8px;padding:8px 0 0;}
+ .zaf-mobile-pi-actions .zaf-start-pi-link{width:88px;flex:0 0 88px;height:44px;font-size:11px;}
+ .zaf-mobile-pi-actions .zaf-pi-signin-button{height:44px;}
+ .zaf-mobile-header>div:last-child{max-width:none;flex-wrap:nowrap;gap:4px;flex-shrink:0;}
+ .zaf-mobile-header-icon{width:36px;min-width:36px;height:44px;min-height:44px;}
+ .zaf-mobile-header .zaf-wordmark{font-size:clamp(14px,4.6vw,22px);}
+ .zaf-mobile-header>div:first-child{flex:1;min-width:0;}
+ .zaf-mobile-brand-logo{width:38px;height:38px;}
 }
-.zaf-start-pi-link:hover {
-  border-color: color-mix(in srgb, #facc15 55%, var(--border));
-}
-
-
-/* Mobile Pi actions: use a dedicated row in the marked area, with Start Pi on the left. */
-.zaf-mobile-pi-actions { display: none; }
-
-@media (max-width: 1023px) {
-  .zaf-mobile-header > div:last-child {
-    max-width: none;
-    flex-wrap: nowrap;
-    justify-content: flex-end;
-    gap: 0.25rem;
-  }
-
-  .zaf-mobile-pi-actions {
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 0.45rem;
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    padding: 2px 8px 8px;
-  }
-
-  .zaf-mobile-pi-actions .zaf-start-pi-link,
-  .zaf-mobile-pi-actions .zaf-pi-signin-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    height: 34px;
-    min-height: 34px;
-    min-width: 0;
-    padding: 0 10px;
-    gap: 6px;
-    border: 1px solid #d8c58f !important;
-    border-radius: 9px;
-    background: #f5e8c7 !important;
-    background-color: #f5e8c7 !important;
-    background-image: none !important;
-    background-clip: padding-box !important;
-    -webkit-background-clip: border-box !important;
-    color: #6f3f8f !important;
-    -webkit-text-fill-color: #6f3f8f !important;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-    box-shadow: 0 1px 2px rgb(65 44 18 / 8%);
-    transform: none;
-    transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
-  }
-
-  .zaf-mobile-pi-actions .zaf-start-pi-link:hover,
-  .zaf-mobile-pi-actions .zaf-pi-signin-button:hover:not(:disabled) {
-    background: #efe0b3 !important;
-    background-color: #efe0b3 !important;
-    background-image: none !important;
-    color: #6f3f8f !important;
-    -webkit-text-fill-color: #6f3f8f !important;
-    border-color: #cbb270 !important;
-  }
-
-  .zaf-mobile-pi-actions .zaf-start-pi-link:focus-visible,
-  .zaf-mobile-pi-actions .zaf-pi-signin-button:focus-visible {
-    outline: 2px solid #8b5cf6;
-    outline-offset: 2px;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] {
-    display: flex;
-    flex: 0 1 auto;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.4rem;
-    min-width: 0;
-    max-width: min(100%, 240px);
-    margin: 0 !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > [role="status"] {
-    width: fit-content;
-    max-width: min(100%, 240px);
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"] {
-    max-width: min(100%, 240px);
-    overflow-wrap: anywhere;
-  }
-}
-
-/* Desktop Pi actions: match the mobile champagne palette while retaining a neat, shared baseline. */
-@media (min-width: 1024px) {
-  .zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link,
-  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    height: 32px;
-    min-height: 32px;
-    padding: 0 10px;
-    gap: 6px;
-    border: 1px solid #d8c58f;
-    border-radius: 9px;
-    background-color: #f5e8c7;
-    background-image: none;
-    background-clip: padding-box;
-    color: #6f3f8f;
-    -webkit-text-fill-color: #6f3f8f;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: 0;
-    white-space: nowrap;
-    box-shadow: 0 1px 2px rgb(65 44 18 / 8%);
-    transform: none;
-    transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
-  }
-
-  .zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link:hover,
-  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button:hover:not(:disabled) {
-    background-color: #efe0b3;
-    background-image: none;
-    color: #6f3f8f;
-    -webkit-text-fill-color: #6f3f8f;
-    border-color: #cbb270;
-    transform: none;
-    box-shadow: 0 2px 5px rgb(65 44 18 / 10%);
-  }
-
-  .zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link:focus-visible,
-  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button:focus-visible {
-    outline: 2px solid #8b5cf6;
-    outline-offset: 2px;
-  }
-
-  .zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button:disabled {
-    cursor: wait;
-    opacity: .65;
-  }
-}
-
-
-
-/* Keep the original desktop header intact; these adjustments are mobile-only. */
-@media (min-width: 1024px) {
-  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] {
-    width: auto;
-    min-width: 0;
-    max-width: none;
-  }
-  .zaf-desktop-header .zaf-pi-signin-button {
-    width: auto;
-    min-width: 0;
-    height: 32px;
-    padding: 6px 9px;
-    font-size: 11px;
-  }
-  .zaf-desktop-header .zaf-pi-status-bubble {
-    position: static;
-    width: auto;
-    max-width: 320px;
-    margin-top: 0;
-    border-color: var(--border);
-    background: var(--card);
-    color: var(--muted-foreground);
-  }
-}
-@media (max-width: 1023px) {
-  .zaf-desktop-status-row { display: none !important; }
-  .zaf-mobile-pi-actions {
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
-    padding-left: 10px;
-    padding-right: 8px;
-  }
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] {
-    flex-direction: column;
-    align-items: flex-start !important;
-    width: auto;
-    max-width: min(100%, 240px);
-    gap: 4px;
-  }
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"] {
-    display: block;
-    width: max-content;
-    max-width: min(86vw, 340px);
-    text-align: left;
-    font-size: 10px;
-    line-height: 1.35;
-  }
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
-    left: 0;
-    top: 100%;
-    width: min(86vw, 340px);
-    max-width: calc(100vw - 32px);
-    margin-top: 4px;
-    text-align: left;
-  }
-}
-
-
-/* Final Pi action sizing and status placement: keep the brand header visually dominant. */
-@media (min-width: 1024px) {
-  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] {
-    position: relative;
-  }
-
-  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
-  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: auto;
-    width: max-content;
-    max-width: min(320px, 36vw);
-    margin-top: 0;
-    text-align: left;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    z-index: 60;
-  }
-}
-
-@media (max-width: 1023px) {
-  .zaf-mobile-pi-actions {
-    position: relative;
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
-    gap: 6px;
-    padding: 0 8px 5px;
-  }
-
-  .zaf-mobile-pi-actions .zaf-start-pi-link,
-  .zaf-mobile-pi-actions .zaf-pi-signin-button {
-    height: 44px !important;
-    min-height: 44px !important;
-    padding: 0 7px !important;
-    gap: 4px !important;
-    font-size: 12px !important;
-    line-height: 1 !important;
-    border-radius: 7px;
-  }
-
-  .zaf-mobile-pi-actions .zaf-pi-signin-button > span[aria-hidden="true"] {
-    font-size: 12px !important;
-    line-height: 1 !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] {
-    position: static !important;
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 0 !important;
-    max-width: 100%;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
-    position: absolute;
-    top: calc(100% - 3px);
-    left: 0;
-    right: auto;
-    width: max-content;
-    max-width: calc(100vw - 32px);
-    margin-top: 0;
-    text-align: left;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    font-size: 10px;
-    line-height: 1.35;
-  }
-}
-
-
-/* Containment correction: auth feedback stays inside the sticky header at every breakpoint. */
-@media (min-width: 1024px) {
-  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
-  .zaf-desktop-header > div:last-child > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
-    left: auto !important;
-    right: 0 !important;
-    width: max-content;
-    max-width: min(300px, calc(100vw - 48px));
-    box-sizing: border-box;
-    overflow-wrap: anywhere;
-  }
-}
-
-@media (max-width: 1023px) {
-  .zaf-sticky-header {
-    overflow: visible;
-  }
-
-  .zaf-mobile-pi-actions {
-    align-items: flex-start !important;
-    padding-bottom: 8px !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] {
-    position: static !important;
-    flex: 1 1 auto;
-    width: auto;
-    min-width: 0;
-    max-width: calc(100% - 68px);
-    align-items: flex-start !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
-    position: static !important;
-    display: block;
-    width: fit-content;
-    max-width: 100%;
-    box-sizing: border-box;
-    margin: 3px 0 0;
-    text-align: left;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-}
-
-
-/* Mobile-only final alignment: auth feedback begins at the row's left edge and wraps inside the header. */
-@media (max-width: 1023px) {
-  .zaf-mobile-pi-actions {
-    display: grid !important;
-    grid-template-columns: max-content minmax(0, max-content);
-    grid-auto-rows: auto;
-    align-content: start;
-    justify-content: start !important;
-    align-items: start !important;
-    column-gap: 6px;
-    row-gap: 3px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0 8px 8px !important;
-  }
-
-  .zaf-mobile-pi-actions > .zaf-start-pi-link {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    align-self: start;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] {
-    display: contents !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-signin-button {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: start;
-    align-self: start;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"],
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-status-bubble {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
-    align-self: start;
-    position: static !important;
-    inset: auto !important;
-    display: block;
-    width: fit-content !important;
-    max-width: 100% !important;
-    min-width: 0;
-    box-sizing: border-box;
-    margin: 0 !important;
-    text-align: left !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-    word-break: normal;
-    line-height: 1.35;
-  }
-}
-
-
-/* Preserve the compact two-button row; status text spans the full row below it. */
-@media (max-width: 1023px) {
-  .zaf-mobile-pi-actions {
-    grid-template-columns: max-content minmax(0, 1fr) !important;
-    column-gap: 6px !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > .zaf-pi-signin-button {
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: 168px;
-    justify-self: start !important;
-  }
-}
-
-/* Compact Pi cards keep the mobile brand dominant. Feedback occupies the row below. */
-@media (max-width: 1023px) {
-  .zaf-mobile-pi-actions .zaf-start-pi-link,
-  .zaf-mobile-pi-actions .zaf-pi-signin-button {
-    height: 28px !important;
-    min-height: 28px !important;
-    padding: 0 8px !important;
-    border-radius: 7px;
-    border-color: #e1bc69 !important;
-    background: linear-gradient(180deg, #fff3c4, #f3d782) !important;
-    background-clip: padding-box !important;
-    -webkit-background-clip: border-box !important;
-    color: #7928ca !important;
-    -webkit-text-fill-color: #7928ca !important;
-    font-size: 10px !important;
-    line-height: 1.2;
-    gap: 4px;
-    box-shadow: inset 0 1px 0 #fff8df, 0 1px 2px rgb(65 44 18 / 8%);
-  }
-
-  .zaf-mobile-pi-actions .zaf-start-pi-link:hover,
-  .zaf-mobile-pi-actions .zaf-pi-signin-button:hover:not(:disabled) {
-    background: linear-gradient(180deg, #fff7d7, #f8df94) !important;
-    color: #7928ca !important;
-    -webkit-text-fill-color: #7928ca !important;
-  }
-
-  .zaf-mobile-pi-actions .zaf-pi-signin-button > span[aria-hidden="true"] {
-    font-size: 12px !important;
-  }
-
-  .zaf-mobile-pi-actions > [data-testid="zaf-pi-sign-in"] > span[aria-live="polite"] {
-    font-size: 10px;
-    padding-top: 3px;
-  }
-}
+@media(max-width:380px){.zaf-mobile-header-icon{width:30px;min-width:30px;}.zaf-mobile-brand-logo{width:30px;height:30px;}.zaf-mobile-header .zaf-wordmark{font-size:14px;}}
 
 /* Keep mobile form text readable and controls comfortably tappable. */
 @media (max-width: 639px) {
@@ -2288,3 +1875,11 @@
   .ty-brand-text.zaf-wordmark { background-image: linear-gradient(90deg, #966414 0%, #d3a83d 22%, #bba469 40%, #a9a8a3 62%, #68737f 82%, #b5bec8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 1px 1px #d1ad4c33); }
   .dark .ty-brand-text.zaf-wordmark { background-image: linear-gradient(90deg, #dbad42 0%, #ffe7a0 22%, #dfd3a6 40%, #d0d2d3 62%, #abb7c5 82%, #f0f4fa 100%); color: transparent; filter: drop-shadow(0 0 5px #e0c77c26); }
 }
+
+.zaf-footer-wordmark{color:#a37b2f;display:inline-block;}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+ .zaf-footer-wordmark{background-image:linear-gradient(90deg,#966414 0%,#d3a83d 22%,#bba469 40%,#a9a8a3 62%,#68737f 82%,#b5bec8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+ .dark .zaf-footer-wordmark{background-image:linear-gradient(90deg,#dbad42 0%,#ffe7a0 22%,#dfd3a6 40%,#d0d2d3 62%,#abb7c5 82%,#f0f4fa 100%);}
+}
+
+@media(max-width:1023px){.zaf-desktop-status-row{display:none!important;}}
