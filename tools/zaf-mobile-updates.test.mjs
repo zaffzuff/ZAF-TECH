@@ -66,3 +66,13 @@ test("boundary sentences start with an uppercase letter in all alphabetic locale
     assert.equal(letter, letter.toLocaleUpperCase(locale), locale);
   }
 });
+
+test("local Node diagnostic explanations are translated in all nine locales", () => {
+  const { calculateNodeHealth } = load("node-health");
+  const { nodeHealthReason } = load("node-health-copy");
+  const base = { available: true, synced: true, ledgerAgeSeconds: 2, authenticatedPeers: 8, listeningPorts: 5, quorumPhase: "EXTERNALIZE", intersection: true, restarts: 1 };
+  const samples = [base, { ...base, available: false }, { ...base, synced: false, ledgerAgeSeconds: 20, authenticatedPeers: 5 }, { ...base, ledgerAgeSeconds: 60, authenticatedPeers: 1 }];
+  for (const input of samples) for (const reason of calculateNodeHealth(input).reasons) {
+    for (const locale of locales.filter(value => value !== "en")) assert.notEqual(nodeHealthReason(locale, reason), reason, locale + ": " + reason);
+  }
+});
