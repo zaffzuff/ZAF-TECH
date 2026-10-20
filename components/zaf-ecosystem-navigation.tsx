@@ -11,7 +11,7 @@ export const ZAF_SECTION_TABS: Record<ZafSection, readonly string[]> = {
   discover: ["App Directory", "App Health", "App Activity", "Staking", "Tools"],
   network: ["Network", "Testnet Assets", "DeFi", "DEX", "AMM & Pools", "Tokens", "Launchpad", "Node", "Node History", "SoloHost", "Compute", "Infrastructure"],
   intelligence: ["Radar", "Trust", "Activity Signals", "Graph", "Explorer"],
-  wallet: [],
+  wallet: ["Wallet"],
 };
 
 const labels: Record<string, [string, string, string, string, string, string, string, string, string]> = {
@@ -260,7 +260,6 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
           aria-pressed={section === id} aria-expanded={ZAF_SECTION_TABS[id].length ? expanded === id : undefined}
           aria-controls={ZAF_SECTION_TABS[id].length ? "zaf-subnavigation" : undefined}
           onClick={() => {
-            if (section !== id) { onSectionChange(id); onSubtabChange(ZAF_SECTION_TABS[id][0] ?? ""); }
             setExpanded(expanded === id ? null : id);
           }} className={"zaf-header-primary-item " + (section === id ? "is-active" : "")}>
           <Icon name={sectionMeta[id].icon} size={17} />
@@ -268,7 +267,7 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
         </button>
         {expanded === id && ZAF_SECTION_TABS[id].length ? <div id="zaf-subnavigation" className="zaf-header-subnavigation">
           <ul aria-label={label(sectionMeta[id].title, locale)}>
-            {ZAF_SECTION_TABS[id].map(item => <li key={item}><button type="button" aria-current={subtab === item ? "page" : undefined} onClick={() => { onSubtabChange(item); setExpanded(null); triggers.current[id]?.focus(); }}>{label(item, locale)}</button></li>)}
+            {ZAF_SECTION_TABS[id].map(item => <li key={item}><button type="button" aria-current={section === id && subtab === item ? "page" : undefined} onClick={() => { onSectionChange(id); onSubtabChange(item); setExpanded(null); triggers.current[id]?.focus(); }}>{label(item, locale)}</button></li>)}
           </ul>
         </div> : null}
       </div>)}
