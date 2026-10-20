@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { ZafWordmark } from "@/components/zaf-brand";
+import { radarDetail } from "@/lib/zaf/radar-copy";
+import { translateObservationReason } from "@/lib/zaf/observation-copy";
+import { ZafComingSoon } from "@/components/zaf-coming-soon";
+import { ZafProtocolHistory } from "@/components/zaf-protocol-history";
+import { ZafWordmark, ZafFooterName } from "@/components/zaf-brand";
+import { ZafOverlay } from "@/components/zaf-overlay";
+import { useMobilePullRefresh } from "@/lib/zaf/use-mobile-pull-refresh";
 import { servicePolicy } from "@/lib/zaf/service-policy";
 import { ZafProtocolObservation } from "@/components/zaf-protocol-observation";
 import { ZafObservationStatus } from "@/components/zaf-observation-status";
@@ -82,6 +88,8 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
     medium: ["Medium", "Orta", "Media", "中", "Media", "Moyenne", "Mittel", "Média", "Средняя"],
     low: ["Low", "Düşük", "Baja", "低", "Bassa", "Faible", "Niedrig", "Baixa", "Низкая"],
   };
+  const updated = translate(locale, normalized);
+  if (updated !== normalized) return updated;
   const pair = known[normalized];
   if (pair) return pair[locale === "tr" ? 1 : locale === "es" ? 2 : locale === "zh" ? 3 : locale === "it" ? 4 : locale === "fr" ? 5 : locale === "de" ? 6 : locale === "pt" ? 7 : locale === "ru" ? 8 : 0];
   const label = normalized.charAt(0).toUpperCase() + normalized.slice(1);
@@ -220,6 +228,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
   async function submit() {
     const q = query.trim();
     if (q.length < 2) { changeQuery(query); return; }
+    setMobileOpen(true);
     searchRequest.current?.abort();
     const controller = new AbortController();
     searchRequest.current = controller;
@@ -240,7 +249,7 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
 
   const resultsView = submittedQuery === query.trim() && !loading ? (
     results.length ? (
-      <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
+      <div className="zaf-search-results">
         {results.slice(0, 8).map(result => (
           <button key={result.type + result.href + result.title} type="button" onClick={() => { changeQuery(""); setMobileOpen(false); onNavigate(result.href); }} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-muted">
             <div className="flex items-center justify-between gap-2">
@@ -252,11 +261,21 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         ))}
       </div>
     ) : (
-      <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-card p-3 text-[10px] text-muted-foreground">
+      <div className="zaf-search-empty" role="status">
         {searchError || tr("No matching observable results.", "Eşleşen gözlemlenebilir sonuç bulunamadı.")}
       </div>
     )
   ) : null;
+
+  const overlay = mobileOpen ? <ZafOverlay title={tr("Search", "Ara")} closeLabel={tr("Close search", "Aramayı kapat")} onClose={() => {
+    searchRequest.current?.abort(); searchRequest.current = null; setLoading(false); setMobileOpen(false);
+  }}>
+    <form className="zaf-overlay-search" onSubmit={event => { event.preventDefault(); void submit(); }}>
+      <input data-overlay-autofocus value={query} onChange={event => changeQuery(event.target.value)} placeholder={searchPlaceholder(locale)} aria-label={tr("Global Search", "Genel Arama")} />
+      <button type="submit" className="zaf-action-button" disabled={loading}>{tr("Search", "Ara")}</button>
+    </form>
+    {loading ? <p role="status">{tr("Loading…", "Yükleniyor…")}</p> : resultsView}
+  </ZafOverlay> : null;
 
   if (mobile) {
     return (
@@ -270,23 +289,8 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
         >
           <SearchIcon size={16} />
         </button>
-        {mobileOpen ? (
-          <div className="zaf-mobile-search-panel absolute right-0 top-full z-50 mt-2 w-[min(86vw,360px)] rounded-xl border border-border bg-card p-2 shadow-xl">
-            <div className="flex items-center gap-1.5">
-              <input
-                autoFocus
-                value={query}
-                onChange={e => changeQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") void submit(); if (e.key === "Escape") setMobileOpen(false); }}
-                placeholder={tr("Search ecosystem…", "Ekosistemde ara…")}
-                aria-label={tr("Global Search", "Genel Arama")}
-                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring"
-              />
-              <button type="button" onClick={() => setMobileOpen(false)} className="rounded-lg border border-border px-2.5 py-2 text-xs text-muted-foreground" aria-label={tr("Close search", "Aramayı kapat")}>×</button>
-            </div>
-            {resultsView}
-          </div>
-        ) : null}
+
+        {overlay}
       </div>
     );
   }
@@ -313,13 +317,13 @@ function SearchPanel({ locale, tr, onNavigate, mobile = false, compact = false }
           <SearchIcon size={15} />
         </button>
       </div>
-      {resultsView}
+      {overlay}
     </div>
   );
 }
 
 
-function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }: { apps: AppItem[]; sourceOnline: boolean; generatedAt?: string; note?: string; locale: Locale; tr: (en: string, trText: string) => string }) {
+function AppDirectoryView({ apps, sourceOnline, generatedAt, locale, tr }: { apps: AppItem[]; sourceOnline: boolean; generatedAt?: string; locale: Locale; tr: (en: string, trText: string) => string }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"All" | AppCategory>("All");
   const [sort, setSort] = useState<"name" | "category">("name");
@@ -423,7 +427,7 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
           </article>
         ))}
       </div>
-      {!filtered.length ? <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[11px] text-muted-foreground">{apps.length ? tr("No applications match the current filters.", "Mevcut filtrelerle eşleşen uygulama yok.") : note}</div> : null}
+      {!filtered.length ? <div className="mt-3 rounded-xl border border-border bg-card p-4 text-[11px] text-muted-foreground">{apps.length ? tr("No applications match the current filters.", "Mevcut filtrelerle eşleşen uygulama yok.") : tr(sourceOnline ? "The source is reachable, but app records are rendered dynamically and are not exposed in the initial HTML response." : "Ecosystem source unavailable", sourceOnline ? "Kaynağa erişiliyor ancak uygulama kayıtları dinamik oluşturulduğu için ilk HTML yanıtında yer almıyor." : "Ekosistem kaynağına erişilemiyor")}</div> : null}
       {!apps.length ? <div className="mt-3"><External href="https://ecosystem.pinet.com/">{tr("Pi Ecosystem", "Pi Ekosistemi")} ↗</External></div> : null}
       <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[10px] leading-relaxed text-muted-foreground">
         {tr("Category is a ZAF Tech classification based on the public app name/URL signal, not an official Pi category. Activity labels use persisted public ecosystem observations when available. Pi Authentication, Pi Payments, PiNet, network and health fields remain unverified until a dedicated observable check confirms them.", "Kategori, herkese açık uygulama adı/URL sinyaline dayalı ZAF Tech sınıflandırmasıdır; resmi Pi kategorisi değildir. Aktivite etiketleri, mevcut olduğunda kayıtlı herkese açık ekosistem gözlemlerini kullanır. Pi Authentication, Pi Payments, PiNet, ağ ve sağlık alanları özel bir gözlemlenebilir kontrol doğrulanana kadar doğrulanmamış olarak kalır.")}
@@ -434,96 +438,6 @@ function AppDirectoryView({ apps, sourceOnline, generatedAt, note, locale, tr }:
 
 
 
-function ObservatoryExplorerView({ apps, sources, snapshot, locale, tr }: {
-  apps: AppItem[];
-  sources: EcosystemPayload["sources"];
-  snapshot: ZafSnapshot | null;
-  locale: Locale;
-  tr: (en: string, trText: string) => string;
-}) {
-  const availableSources = sources.filter(source => source.status === "available").length;
-
-  return (
-    <section className="mt-5 sm:mt-7">
-      <div className="mb-3">
-        <h2 className="text-sm font-semibold text-foreground">{tr("Ecosystem Explorer", "Ekosistem Explorer")}</h2>
-        <p className="text-[11px] text-muted-foreground">{tr("Explore the public ecosystem sources, current network observations, and applications currently observable by ZAF Tech.", "ZAF Tech tarafından şu anda gözlemlenebilen herkese açık ekosistem kaynaklarını, güncel ağ gözlemlerini ve uygulamaları keşfedin.")}</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title={tr("Observed Apps", "Gözlemlenen Uygulamalar")} value={number(apps.length, 0, locale)} />
-        <Card title={tr("Public Sources", "Herkese Açık Kaynaklar")} value={sources.length.toString()} detail={tr("Available Sources", "Kullanılabilir Kaynaklar") + ": " + availableSources} />
-        <Card title={tr("Latest Ledger", "Son Ledger")} value={snapshot?.latestLedger?.sequence?.toString() ?? "—"} />
-        <Card title={tr("Protocol", "Protokol")} value={snapshot?.metrics.latestProtocolVersion != null ? `v${snapshot.metrics.latestProtocolVersion}` : "—"} />
-      </div>
-
-      <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Network", "Ağ")}</div>
-        <p className="mt-1 text-[10px] text-muted-foreground">{tr("A compact, descriptive pulse built only from the current observable sample. It is not a network-wide health score.", "Yalnızca mevcut gözlemlenebilir örnekten oluşturulan kısa ve açıklayıcı ağ görünümüdür. Ağ geneli sağlık puanı değildir.")}</p>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Card title={tr("Transactions", "İşlemler")} value={number(snapshot?.metrics.recentTransactions, 0, locale)} detail={tr("Current Sample", "Mevcut Örnek")} />
-          <Card title={tr("Operations", "Operasyonlar")} value={number(snapshot?.metrics.recentOperations, 0, locale)} detail={tr("Current Sample", "Mevcut Örnek")} />
-          <Card title={tr("Daily Transactions", "Günlük İşlemler")} value={number(snapshot?.metrics.observedTransactionsPerDay, 0, locale)} detail={tr("Observed Daily Pace", "Gözlemlenen Günlük Tempo")} />
-          <Card title={tr("Daily Operations", "Günlük Operasyonlar")} value={number(snapshot?.metrics.observedOperationsPerDay, 0, locale)} detail={tr("Observed Daily Pace", "Gözlemlenen Günlük Tempo")} />
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-          <span>{tr("Activity State", "Aktivite Durumu")}: {displayStatus(snapshot?.intelligence.activityState, locale)}</span>
-          <span>•</span>
-          <span>{tr("Updated", "Güncellendi")} {age(snapshot?.generatedAt, locale)}</span>
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Public Ecosystem Sources", "Herkese Açık Ekosistem Kaynakları")}</div>
-        <p className="mt-1 text-[10px] text-muted-foreground">{tr("Each source is listed with its observable status and last collection time. Source availability does not mean the underlying content is verified by ZAF Tech.", "Her kaynak gözlemlenebilir durumu ve son toplama zamanı ile listelenir. Kaynağın kullanılabilir olması, içeriğinin ZAF Tech tarafından doğrulandığı anlamına gelmez.")}</p>
-        <div className="mt-3 space-y-2">
-          {sources.length ? sources.map(source => (
-            <div key={source.url} className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
-              <div className="min-w-0">                <div className="text-[11px] font-semibold text-foreground">{source.label}</div>
-                <div className="mt-1 break-all text-[10px] text-muted-foreground">{source.detail}</div>
-                <div className="mt-1 text-[10px] text-muted-foreground">{displayStatus(source.status, locale)}</div>
-              </div>
-              <a href={source.url} target="_blank" rel="noreferrer" className="shrink-0 rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground hover:bg-muted">{tr("Open Source", "Kaynağı Aç")}</a>
-            </div>
-          )) : (
-            <div className="text-[10px] text-muted-foreground">{tr("No public sources are currently available.", "Şu anda kullanılabilir herkese açık kaynak yok.")}</div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Observed Applications", "Gözlemlenen Uygulamalar")}</div>
-        <div className="mt-3 space-y-2">
-          {apps.slice(0, 10).map(app => (
-            <div key={app.url} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-              <div className="min-w-0">
-                <div className="text-[11px] font-semibold text-foreground">{app.name}</div>
-                <div className="mt-1 truncate text-[10px] text-muted-foreground">{app.url}</div>
-              </div>
-              <a href={app.url} target="_blank" rel="noreferrer" className="shrink-0 rounded-md border border-border px-2.5 py-1.5 text-[10px] font-medium text-foreground hover:bg-muted">{tr("Open", "Aç")}</a>
-            </div>
-          ))}
-          {!apps.length ? <div className="text-[10px] text-muted-foreground">{tr("No observed applications are currently available.", "Şu anda gözlemlenen uygulama yok.")}</div> : null}
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-xl border border-border bg-card p-4">
-        <div className="text-xs font-semibold text-foreground">{tr("Verification Boundary", "Doğrulama Sınırı")}</div>
-        <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{tr("ZAF Tech separates observation from verification. A reachable URL, public source response, blockchain record, or local node signal is evidence that the signal was observed; it is not proof of ownership, safety, legitimacy, future behavior, or undisclosed backend activity.", "ZAF Tech gözlem ile doğrulamayı birbirinden ayırır. Erişilebilir URL, herkese açık kaynak yanıtı, blockchain kaydı veya yerel node sinyali sinyalin gözlemlendiğine kanıttır; sahiplik, güvenlik, meşruiyet, gelecekteki davranış veya açıklanmamış backend faaliyetlerinin kanıtı değildir.")}</p>
-        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <div className="rounded-lg border border-border p-3">
-            <div className="text-[10px] font-semibold text-foreground">{tr("Observable", "Gözlemlenebilir")}</div>
-            <div className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Public URLs, HTTP responses, public Mainnet records, ecosystem metadata, source availability, and local Node Connector diagnostics.", "Herkese açık URL'ler, HTTP yanıtları, public Mainnet kayıtları, ekosistem metaverileri, kaynak erişilebilirliği ve yerel Node Connector tanılamaları.")}</div>
-          </div>
-          <div className="rounded-lg border border-border p-3">
-            <div className="text-[10px] font-semibold text-foreground">{tr("Not Verified", "Doğrulanmadı")}</div>
-            <div className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("Private user activity, ownership claims, undisclosed operations, application security, financial legitimacy, and future plans.", "Özel kullanıcı etkinliği, sahiplik iddiaları, açıklanmamış işlemler, uygulama güvenliği, finansal meşruiyet ve gelecekteki planlar.")}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export function ZafTechApp() {
   // Language is intentionally session-only: every fresh app visit starts in English.
@@ -626,6 +540,7 @@ export function ZafTechApp() {
     if (!themeReady) return;
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.classList.toggle("light", theme === "light");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#1a1b22" : "#f7f8fa");
   }, [theme, themeReady]);
 
   const toggleTheme = useCallback(() => {
@@ -666,6 +581,9 @@ export function ZafTechApp() {
     }
   }, []);
 
+  const refreshFromPull = useCallback(() => load(true), [load]);
+  const pullRefresh = useMobilePullRefresh(refreshFromPull);
+
   useEffect(() => {
     void load();
     const id = window.setInterval(() => void load(), 60000);
@@ -685,53 +603,54 @@ export function ZafTechApp() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
+      <main ref={pullRefresh.target} className="zaf-main-shell mx-auto w-full max-w-3xl px-4 pb-10">
+        {pullRefresh.distance > 10 ? <div className="zaf-pull-indicator" role="status" aria-live="polite">{pullRefresh.refreshing ? tr("Refreshing…", "Yenileniyor…") : pullRefresh.distance >= 80 ? tr("Release to refresh", "Yenilemek için bırak") : tr("Pull down to refresh", "Yenilemek için aşağı çek")}</div> : null}
         <header className="zaf-sticky-header">
           <div className="zaf-desktop-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
-              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={96} height={96} className="h-11 w-11 shrink-0 object-contain" priority />
+            <div className="zaf-header-brand flex min-w-0 items-center gap-3">
+              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={144} height={144} className="h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
                 <ZafWordmark className="text-[1.45rem]" />
                 <p className="text-[11px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          </div>
+          <div className="zaf-desktop-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
+            <div className="zaf-pi-action-group">
+              <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
+              <ZafPiSignIn locale={locale} />
+            </div>
+            <div className="zaf-header-tools flex items-center gap-2">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} compact />
               <LanguageSelector locale={locale} onChange={setLocale} />
-              <button type="button" onClick={toggleTheme} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
-              <button type="button" onClick={() => void load(true)} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
-              <a href="/start-with-pi" className="zaf-start-pi-link rounded-lg border border-violet-300/50 bg-card px-3 py-2 text-xs font-semibold shadow-sm transition hover:-translate-y-px hover:border-amber-300/70" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
-              <ZafPiSignIn locale={locale} />
+              <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
+              <button type="button" onClick={() => void load(true)} aria-label={tr("Refresh", "Yenile")} disabled={refreshing} className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">{refreshing ? tr("Refreshing…", "Yenileniyor…") : tr("Refresh", "Yenile")}</button>
+
             </div>
           </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={48} height={48} className="zaf-mobile-brand-logo h-11 w-11 shrink-0 object-contain" priority />
+            <div className="zaf-header-brand flex min-w-0 items-center gap-2">
+              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={80} height={80} className="zaf-mobile-brand-logo h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
                 <ZafWordmark className="text-[clamp(1.12rem,5vw,1.4rem)]" />
                 <p className="truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-1">
+          </div>
+          <div className="zaf-mobile-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
+            <div className="zaf-pi-action-group">
+              <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
+              <ZafPiSignIn locale={locale} />
+            </div>
+            <div className="zaf-header-tools flex shrink-0 items-center gap-1">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
               <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
-              <button type="button" onClick={() => void load(true)} disabled={refreshing} aria-label={tr("Refresh", "Yenile")} title={tr("Refresh", "Yenile")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground disabled:opacity-50"><span aria-hidden="true">{refreshing ? "…" : "↻"}</span></button>
             </div>
           </div>
-          <div className="zaf-mobile-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
-            <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
-            <ZafPiSignIn locale={locale} />
-          </div>
-          <div className="zaf-desktop-status-row flex flex-wrap items-center gap-2 py-2 text-[11px]">
-            <span className="rounded-full border border-violet-300/35 px-2.5 py-1 font-semibold"><span className="zaf-pi-gradient-text">{tr("Pi Network", "Pi Network")}</span></span>
-            <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Mainnet", "Mainnet")}</span>
-            <span className="rounded-full border border-border px-2.5 py-1 text-muted-foreground">{tr("Read-only", "Salt-okunur")}</span>
-            <span className={`rounded-full border px-2.5 py-1 ${loading ? "border-border text-muted-foreground" : sourceOnline ? "border-ty-active/40 text-foreground" : "border-border text-muted-foreground"}`}>{loading ? tr("Checking Source…", "Kaynak Kontrol Ediliyor…") : sourceOnline ? tr("Ecosystem Source Online", "Ekosistem Kaynağı Çevrimiçi") : tr("Source Unavailable", "Kaynak Kullanılamıyor")}</span>
-          </div>
+          <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
         </header>
-        <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
-        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} freshness={liveFreshness} />
+        <ZafObservationStatus snapshot={snapshot} locale={locale} loading={loading} freshness={liveFreshness} showDetails={section === "overview" && subtab === "Pulse"} />
 
         {loading ? <div className="py-12 text-center text-sm text-muted-foreground">{tr("Loading Ecosystem Observatory…", "Ekosistem Gözlemleri Yükleniyor…")}</div> : null}
         {!loading && loadError ? (
@@ -780,7 +699,7 @@ export function ZafTechApp() {
         {!loading && section === "network" && subtab === "Launchpad" ? <ZafLaunchpadObservatory locale={locale} tr={tr} /> : null}
         {!loading && section === "network" && ["DeFi", "DEX", "AMM & Pools", "Tokens"].includes(subtab) ? <ZafDefiObservatory locale={locale} tr={tr} view={subtab === "DeFi" ? "Overview" : subtab as "DEX" | "AMM & Pools" | "Tokens"} /> : null}
 
-        {!loading && section === "discover" && subtab === "App Directory" ? <AppDirectoryView apps={apps} sourceOnline={sourceOnline} generatedAt={ecosystem?.generatedAt} note={ecosystem?.apps.note} locale={locale} tr={tr} /> : null}
+        {!loading && section === "discover" && subtab === "App Directory" ? <AppDirectoryView apps={apps} sourceOnline={sourceOnline} generatedAt={ecosystem?.generatedAt} locale={locale} tr={tr} /> : null}
 
         {!loading && section === "intelligence" && subtab === "Trust" ? (
           <ZafTrust locale={locale} snapshot={snapshot} radar={radarData} />
@@ -855,7 +774,7 @@ export function ZafTechApp() {
                       <div className="text-[10px] text-muted-foreground">{tr("Confidence", "Güven")}: {displayStatus(signal.confidence.level, locale)} · {signal.confidence.score}/100</div>
                     </div>
                     {signal.changePercent != null ? <div className="mt-1 text-[10px] text-muted-foreground">{signal.changePercent >= 0 ? "+" : ""}{signal.changePercent.toFixed(1)}% {tr("vs 30-minute rolling median", "30 dakikalık hareketli medyana göre")}</div> : null}
-                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{locale === "tr" ? signal.detailTr : translate(locale, signal.detail, signal.detailTr)}</p>
+                    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{radarDetail(signal, locale)}</p>
                   </div>
                 ))}
                 {!radarData?.signals?.length ? <div className="rounded-lg border border-border p-3 text-[10px] text-muted-foreground">{tr("Radar signals are currently unavailable.", "Radar sinyalleri şu anda kullanılamıyor.")}</div> : null}
@@ -875,7 +794,7 @@ export function ZafTechApp() {
                 <div className="mt-3 rounded-lg border border-border p-3">
                   <div className="text-[10px] font-medium text-foreground">{tr("Why The Confidence Is At This Level", "Bu Güven Seviyesinin Nedeni")}</div>
                   <div className="mt-2 space-y-1">
-                    {radarData.confidence.reasons.slice(0, 5).map(reason => <div key={reason} className="text-[10px] leading-relaxed text-muted-foreground">• {reason}</div>)}
+                    {radarData.confidence.reasons.slice(0, 5).map(reason => <div key={reason} className="text-[10px] leading-relaxed text-muted-foreground">• {translateObservationReason(locale, reason)}</div>)}
                   </div>
                 </div>
               ) : null}
@@ -912,7 +831,8 @@ export function ZafTechApp() {
         {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ObservatoryStatisticsView locale={locale} tr={tr} refreshNonce={refreshNonce} currentProtocol={snapshot?.metrics.latestProtocolVersion ?? null} currentObservedAt={snapshot?.generatedAt ?? null} /> : null}
         {!loading && section === "intelligence" && subtab === "Graph" ? <ZafEcosystemGraph locale={locale} tr={tr} /> : null}
 
-        {!loading && section === "intelligence" && subtab === "Explorer" ? <ObservatoryExplorerView apps={apps} sources={ecosystem?.sources ?? []} snapshot={snapshot} locale={locale} tr={tr} /> : null}
+        {!loading && section === "intelligence" && subtab === "Activity Signals" ? <ZafProtocolHistory locale={locale} /> : null}
+        {!loading && section === "intelligence" && subtab === "Explorer" ? <ZafComingSoon locale={locale} title={tr("Ecosystem Explorer", "Ekosistem Explorer")} detail={tr("Application observations are coming soon.", "Uygulama gözlemleri yakında kullanıma sunulacak.")} /> : null}
 
         {!loading && section === "network" && subtab === "Network" ? (
           <section className="mt-5 sm:mt-7">
@@ -1026,7 +946,7 @@ export function ZafTechApp() {
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] leading-relaxed text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span>ZAF Tech · Pi Ecosystem Observatory</span>
+            <span><ZafFooterName /> · Pi Ecosystem Observatory</span>
             <span>{servicePolicy[locale].label}</span>
             <span>{tr("Independent community-developed technology project", "Bağımsız topluluk geliştirimi teknoloji projesi")}</span>
           </div>

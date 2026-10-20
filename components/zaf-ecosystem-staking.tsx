@@ -74,7 +74,7 @@ export function ZafEcosystemStaking({ locale, tr }: { locale: Locale; tr: (en: s
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="break-words text-[11px] font-semibold text-foreground">{item.app}</div>
-                  <div className="mt-1 text-xs font-bold ty-nums text-foreground">{item.amountPi.toLocaleString(intlLocale(locale))} Pi</div>
+                  <div className="mt-1 text-xs font-bold ty-nums text-foreground">{item.amountPi.toLocaleString("tr-TR", { maximumFractionDigits: 7 })} π</div>
                 </div>
                 <span className="text-[9px] text-muted-foreground">{new Date(item.observedAt).toLocaleDateString(intlLocale(locale))}</span>
               </div>

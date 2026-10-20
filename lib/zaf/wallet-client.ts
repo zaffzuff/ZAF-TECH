@@ -262,7 +262,7 @@ export async function getZafWallet(
         const unlockAtValue = unlockAt(predicate, createdAt);
         return {
           id: String(record.id ?? record.balance_id ?? ""),
-          amountPi: decimalPi(record.amount) ?? 0,
+          amountPi: decimalPi(record.amount),
           claimants: claimants.map(candidate => String(candidate.destination ?? "")),
           canClaimNow: claimPredicate(predicate, createdAt, Date.now()),
           createdAt,
@@ -273,7 +273,7 @@ export async function getZafWallet(
 
     const assets = mapAssets(account, networkScope);
     const totalBalancePi = nativeBalance(account);
-    const observableClaimablePi = claimablePage ? lockups.reduce((sum, item) => sum + item.amountPi, 0) : null;
+    const observableClaimablePi = claimablePage && lockups.every(item => item.amountPi != null) ? lockups.reduce((sum, item) => sum + (item.amountPi ?? 0), 0) : null;
     const timestamps = [
       ...transactions.map((item) => item.createdAt),
       ...operations.map((item) => item.createdAt),

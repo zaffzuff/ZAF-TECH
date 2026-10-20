@@ -1,16 +1,19 @@
 "use client";
+import { formatAmount } from "@/lib/zaf/amount-format";
+import { summarizeClaimConditions } from "@/lib/zaf/wallet-claim-summary";
 
 import { useEffect, useRef, useState } from "react";
+import { ZafNetworkSelect } from "@/components/zaf-network-select";
 import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import type { ZafWalletSnapshot } from "@/lib/zaf/types";
 import { isValidPublicAddress } from "@/lib/zaf/public-address";
 
-function fmt(value: number | null, locale: Locale) {
+function fmt(value: number | null, _locale: Locale) {
   return value == null || !Number.isFinite(value)
     ? "—"
-    : value.toLocaleString(intlLocale(locale), { maximumFractionDigits: 7 });
+    : value.toLocaleString("tr-TR", { maximumFractionDigits: 7 });
 }
 
 function age(value: string | null, locale: Locale) {
@@ -74,6 +77,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
   const transactionsAvailable = data?.sources?.transactions !== "unavailable";
   const operationsAvailable = data?.sources?.operations !== "unavailable";
   const claimablesAvailable = data?.sources?.claimableBalances !== "unavailable";
+  const claimSummary = claimablesAvailable ? summarizeClaimConditions(data?.lockup?.items, data?.generatedAt) : null;
   const activityAvailable = transactionsAvailable && operationsAvailable;
   const partialObservation = !transactionsAvailable || !operationsAvailable || !claimablesAvailable;
 
@@ -110,13 +114,10 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <p className="text-[11px] text-muted-foreground">{tr("Public, read-only wallet observations from Pi Horizon. No wallet connection or signing is required.", "Pi Horizon üzerinden herkese açık, salt-okunur cüzdan gözlemleri. Cüzdan bağlantısı veya imzalama gerekmez.")}</p>
     </div>
 
-    <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+    <div className="zaf-wallet-lookup rounded-xl border border-border bg-card p-3 sm:p-4">
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
         <input aria-label={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} value={address} onChange={e => { clearLookup(); setAddress(e.target.value); }} onKeyDown={e => { if (e.key === "Enter") void lookup(); }} placeholder={tr("Public Pi Wallet Address (G...)", "Herkese Açık Pi Cüzdan Adresi (G...)")} className="min-w-0 rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring" />
-        <select aria-label={tr("Network", "Ağ")} value={network} onChange={e => { clearLookup(); setNetwork(e.target.value as "mainnet" | "testnet"); }} className="rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-foreground">
-          <option value="mainnet">{tr("Pi Mainnet", "Pi Mainnet")}</option>
-          <option value="testnet">{tr("Pi Testnet", "Pi Testnet")}</option>
-        </select>
+        <ZafNetworkSelect label={tr("Network", "Ağ")} value={network} onChange={value => { clearLookup(); setNetwork(value); }} />
         <button type="button" onClick={() => void lookup()} disabled={loading} className="rounded-lg bg-foreground px-4 py-2.5 text-xs font-medium text-background disabled:opacity-50">{loading ? tr("Checking…", "Kontrol Ediliyor…") : tr("Inspect", "İncele")}</button>
       </div>
       {error ? <p className="mt-2 text-[11px] text-muted-foreground">{error}</p> : null}
@@ -136,7 +137,11 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title={tr("Account Balance", "Hesap Bakiyesi")} value={fmt(data.accountBalancePi, locale)} detail="Pi" />
+        <Card title={tr("Account Balance", "Hesap Bakiyesi")} value={formatAmount(data.accountBalancePi, "π")} />
+        {claimSummary ? <>
+          <Card title={tr("Observed time-locked", "Gözlemlenen süre kilitli")} value={formatAmount(claimSummary.lockedPi, "π")} detail={tr("Returned claim conditions only", "Yalnızca dönen talep koşulları")} />
+          <Card title={tr("Claimable now", "Şimdi talep edilebilir")} value={formatAmount(claimSummary.claimableNowPi, "π")} detail={tr("At observation time", "Gözlem anında")} />
+        </> : null}
         <Card title={tr("Transactions", "İşlemler")} value={fmt(transactionsAvailable ? data.analytics?.transactionCount ?? null : null, locale)} detail={tr("Observed Transactions", "Gözlemlenen İşlemler")} />
         <Card title={tr("Operations", "Operasyonlar")} value={fmt(operationsAvailable ? data.analytics?.operationCount ?? null : null, locale)} detail={tr("Observed Operations", "Gözlemlenen Operasyonlar")} />
         <Card title={tr("Success Rate", "Başarı Oranı")} value={!transactionsAvailable || data.analytics?.successRate == null ? "—" : data.analytics.successRate.toFixed(1) + "%"} detail={tr("Observed Transaction Results", "Gözlemlenen İşlem Sonuçları")} />
@@ -158,7 +163,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
                   <div className="text-[11px] font-semibold text-foreground">{asset.isNative ? "Pi" : (asset.assetCode ?? "—")}</div>
                   <div className="mt-1 break-all text-[9px] text-muted-foreground">{asset.isNative ? tr("Native asset", "Native varlık") : (asset.assetIssuer ?? tr("Issuer unavailable", "Issuer bilgisi yok"))}</div>
                 </div>
-                <span className="shrink-0 text-[10px] font-medium text-foreground">{fmt(asset.balance, locale)}</span>
+                <span className="shrink-0 text-[10px] font-medium text-foreground">{fmt(asset.balance, locale)} {asset.assetType === "native" ? "π" : asset.assetCode}</span>
               </div>
             </div>
           ))}
@@ -168,7 +173,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={fmt(transactionsAvailable ? data.analytics?.totalObservedFeesPi ?? null : null, locale)} detail="Pi" />
+        <Card title={tr("Observed Fees", "Gözlemlenen Ücretler")} value={formatAmount(transactionsAvailable ? data.analytics?.totalObservedFeesPi ?? null : null, "π")} />
         <Card title={tr("Active Ledgers", "Aktif Ledger'lar")} value={fmt(activityAvailable ? data.analytics?.activeLedgerCount ?? null : null, locale)} />
         <Card title={tr("Successful", "Başarılı")} value={fmt(transactionsAvailable ? data.analytics?.successfulTransactions ?? null : null, locale)} />
         <Card title={tr("Failed", "Başarısız")} value={fmt(transactionsAvailable ? data.analytics?.failedTransactions ?? null : null, locale)} />
@@ -183,7 +188,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Card title={tr("Observable Claimable", "Gözlemlenebilir Talep Edilebilir")} value={fmt(data.observableClaimablePi, locale)} detail={tr("Native Claimable Balances", "Native Claimable Bakiyeler")} />
+        <Card title={tr("Observable Claimable", "Gözlemlenebilir Talep Edilebilir")} value={formatAmount(data.observableClaimablePi, "π")} detail={tr("Native Claimable Balances", "Native Claimable Bakiyeler")} />
         <Card title={tr("Last Activity", "Son Aktivite")} value={age(activityAvailable ? data.lastActivity : null, locale)} detail={tr("Transactions + Operations", "İşlemler + Operasyonlar")} />
         <Card title={tr("Active Days", "Aktif Günler")} value={fmt(activityAvailable ? data.analytics?.activeDayCount ?? null : null, locale)} detail={tr("Within Observed Window", "Gözlemlenen Pencere İçinde")} />
       </div>
@@ -205,7 +210,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
           <Card title={tr("Observed Days", "Gözlemlenen Günler")} value={fmt(activityAvailable ? data.analytics?.activeDayCount ?? null : null, locale)} />
           <Card title={tr("Successful", "Başarılı")} value={fmt(transactionsAvailable ? data.analytics?.successfulTransactions ?? null : null, locale)} />
           <Card title={tr("Failed", "Başarısız")} value={fmt(transactionsAvailable ? data.analytics?.failedTransactions ?? null : null, locale)} />
-          <Card title={tr("Fees", "Ücretler")} value={fmt(transactionsAvailable ? data.analytics?.totalObservedFeesPi ?? null : null, locale)} detail="Pi" />
+          <Card title={tr("Fees", "Ücretler")} value={formatAmount(transactionsAvailable ? data.analytics?.totalObservedFeesPi ?? null : null, "π")} />
         </div>
       </div>
 
@@ -221,7 +226,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-2"><div className="text-xs font-semibold text-foreground">{tr("Recent Transactions", "Son İşlemler")}</div><span className="text-[10px] text-muted-foreground">{transactionsAvailable ? data.transactions.length : "—"}</span></div>
         <div className="mt-2 grid gap-2 zaf-desktop-two-up">
-          {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? tr("Success", "Başarılı") : tx.successful === false ? tr("Failed", "Başarısız") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} Pi</div></div>)}
+          {data.transactions.slice(0, 8).map(tx => <div key={tx.hash} className="rounded-lg border border-border p-2.5"><div className="flex items-start justify-between gap-2"><a href={`${explorerBase}/transactions/${tx.hash}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate font-mono text-[10px] text-foreground underline underline-offset-2">{tx.hash}</a><span className="shrink-0 text-[9px] text-muted-foreground">{tx.successful === true ? tr("Success", "Başarılı") : tx.successful === false ? tr("Failed", "Başarısız") : "—"}</span></div><div className="mt-1 text-[9px] text-muted-foreground">{tx.createdAt ? new Date(tx.createdAt).toLocaleString(intlLocale(locale)) : "—"} · {tx.operationCount ?? "—"} ops · {fmt(tx.feePi, locale)} π</div></div>)}
           {!data.transactions.length ? <div className="text-[11px] text-muted-foreground">{transactionsAvailable ? tr("No Recent Transactions Returned.", "Son İşlemler Döndürülmedi.") : tr("Transaction observations are temporarily unavailable.", "İşlem gözlemlerine geçici olarak erişilemiyor.")}</div> : null}
         </div>
       </div>
@@ -230,7 +235,7 @@ export function ZafWalletIntelligence({ locale }: { locale: Locale }) {
         <div className="text-xs font-semibold text-foreground">{tr("Observable Claimable Balances", "Gözlemlenebilir Claimable Bakiyeler")}</div>
         <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{tr("This section reports public native claimable balances returned by Horizon. It does not infer private Pi lockup commitments.", "Bu bölüm Horizon'un döndürdüğü herkese açık native claimable bakiyeleri raporlar. Özel Pi lockup taahhütlerini çıkarımsamaz.")}</p>
         <div className="mt-2 space-y-2">
-          {Array.isArray(data.lockup?.items) && data.lockup.items.length ? data.lockup.items.map((item: any) => <div key={String(item.id)} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="flex justify-between gap-2"><span className="min-w-0 break-all font-mono text-foreground">{String(item.id)}</span><span className="shrink-0 text-foreground">{fmt(Number(item.amountPi), locale)} Pi</span></div><div className="mt-1 text-muted-foreground">{item.unlockAt ? `${tr("Unlock", "Açılma")}: ${new Date(String(item.unlockAt)).toLocaleString(intlLocale(locale))}` : tr("Unlock Time Not Observable", "Açılma Zamanı Gözlemlenemiyor")}</div></div>) : <div className="text-[11px] text-muted-foreground">{claimablesAvailable ? tr("No publicly observable native claimable balances were returned.", "Herkese açık gözlemlenebilir native claimable bakiye döndürülmedi.") : tr("Claimable balance observations are temporarily unavailable.", "Claimable bakiye gözlemlerine geçici olarak erişilemiyor.")}</div>}
+          {Array.isArray(data.lockup?.items) && data.lockup.items.length ? data.lockup.items.map((item: any) => <div key={String(item.id)} className="rounded-lg border border-border p-2.5 text-[10px]"><div className="flex justify-between gap-2"><span className="min-w-0 break-all font-mono text-foreground">{String(item.id)}</span><span className="shrink-0 text-foreground">{fmt(Number(item.amountPi), locale)} π</span></div><div className="mt-1 text-muted-foreground">{item.unlockAt ? `${tr("Unlock", "Açılma")}: ${new Date(String(item.unlockAt)).toLocaleString(intlLocale(locale))}` : tr("Unlock Time Not Observable", "Açılma Zamanı Gözlemlenemiyor")}</div></div>) : <div className="text-[11px] text-muted-foreground">{claimablesAvailable ? tr("No publicly observable native claimable balances were returned.", "Herkese açık gözlemlenebilir native claimable bakiye döndürülmedi.") : tr("Claimable balance observations are temporarily unavailable.", "Claimable bakiye gözlemlerine geçici olarak erişilemiyor.")}</div>}
         </div>
       </div>
 

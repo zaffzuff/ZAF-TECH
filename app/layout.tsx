@@ -17,7 +17,7 @@ export const viewport = { themeColor: "#f7f8fa", width: "device-width", initialS
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="bg-background">
+    <html lang="en" className="bg-background" suppressHydrationWarning>
       <head>
         <script id="zaf-pi-sdk" src="https://sdk.minepi.com/pi-sdk.js" async />
         <script dangerouslySetInnerHTML={{ __html: `
@@ -57,6 +57,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               document.documentElement.classList.toggle("dark", dark);
               document.documentElement.classList.toggle("light", !dark);
             }
+            // Keep browser chrome in the selected theme, including after route metadata updates.
+            function syncThemeChrome() {
+              var color = document.documentElement.classList.contains("dark") ? "#1a1b22" : "#f7f8fa";
+              document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) {
+                if (meta.getAttribute("content") !== color) meta.setAttribute("content", color);
+              });
+            }
+            new MutationObserver(syncThemeChrome).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+            new MutationObserver(syncThemeChrome).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
+            syncThemeChrome();
           })();
         ` }} />
         <style>{`

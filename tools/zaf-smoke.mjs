@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
+import { createHash } from "node:crypto";
 
 const root = process.cwd();
 const port = Number(process.env.SMOKE_PORT ?? (3200 + (process.pid % 500)));
@@ -121,20 +122,32 @@ try {
     }
   }
 
-  // Next's global headers must not override this first-party-only page policy.
-  // This HTTP smoke validates headers, not actual form navigation. A separate
-  // browser click must verify generated Origin and the cross-origin 303 chain.
+  // The anonymous GET can render in Pi's trusted shell with one hashed script.
+  // Only the first-party POST sets the harmless visit marker and redirects.
   const storageSetup = await request('/signin/storage?lang=tr');
   const storageCsp = storageSetup.headers['content-security-policy'] ?? '';
   const storageFormAction = storageCsp.split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
+  const storageScripts = [...storageSetup.text.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  const storageScriptHash = storageScripts.length === 1 ? createHash('sha256').update(storageScripts[0][1]).digest('base64') : null;
   if (storageSetup.status !== 200 ||
-      !storageCsp.includes("frame-ancestors 'none'") ||
+      !storageCsp.includes("frame-ancestors 'self' https://app-cdn.minepi.com") ||
       !storageCsp.includes("default-src 'none'") ||
+      !storageScriptHash || !storageCsp.includes(`script-src 'sha256-${storageScriptHash}'`) ||
       storageFormAction !== "form-action 'self' https://zaftechpu0455.pinet.com" ||
       storageSetup.headers['referrer-policy'] !== 'same-origin' ||
-      storageSetup.headers['x-frame-options'] !== 'DENY' ||
-      !storageSetup.text.includes('method="post"') || /<script/i.test(storageSetup.text)) {
-    throw new Error('Pi storage setup must preserve same-origin form Origin and permit only the fixed PiNet redirect under its strict CSP.');
+      storageSetup.headers['set-cookie'] || !storageSetup.text.includes('method="post"')) {
+    throw new Error('Anonymous Pi recovery GET must preserve the trusted-shell policy and its exact hashed script without setting cookies.');
+  }
+  const storageVisit = await request('/signin/storage', { method: 'POST', headers: { Origin: baseUrl } });
+  if (storageVisit.status !== 303 || storageVisit.headers.location !== 'https://zaftechpu0455.pinet.com/' ||
+      !(storageVisit.headers['content-security-policy'] ?? '').includes("frame-ancestors 'none'") ||
+      storageVisit.headers['x-frame-options'] !== 'DENY' || storageVisit.headers['referrer-policy'] !== 'same-origin' ||
+      !(storageVisit.headers['set-cookie'] ?? '').includes('__Host-zaf-pi-storage-visit=1')) {
+    throw new Error('First-party Pi recovery POST must retain its strict frame policy and fixed PiNet redirect.');
+  }
+  const foreignVisit = await request('/signin/storage', { method: 'POST', headers: { Origin: 'https://example.org' } });
+  if (foreignVisit.status !== 403 || foreignVisit.headers['set-cookie']) {
+    throw new Error('Pi recovery POST must reject foreign origins without setting cookies.');
   }
 
   // Policy pages must work before hydration, including direct Turkish terms.

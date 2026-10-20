@@ -6,7 +6,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi-browser", authenticate, sessionUsername = "server-verified", storageAvailable = true, requestStorageAccess, deleteSession } = {}) {
+function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi-browser", authenticate, authStatus = 200, pageSession = "valid", sessionUsername = "server-verified", storageAvailable = true, requestStorageAccess, deleteSession } = {}) {
   const cache = new Map(), storage = new Map(), states = [], effects = [], navigations = [], requests = [], calls = [], logs = [];
   let cursor = 0;
   const window = {
@@ -27,6 +27,7 @@ function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi
     sessionStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
   });
   const mocks = {
+    "@/components/zaf-overlay": { ZafOverlay: "dialog" },
     "@/lib/zaf/client-request": { requestJson: async (url, options) => {
       requests.push({ url, options });
       let body;
@@ -34,12 +35,13 @@ function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi
       else if (url === "/api/zaf/pi/session") {
         if (options.method === "DELETE") { deleteSession?.(); body = { ok: true }; }
         else {
-          const username = typeof sessionUsername === "function" ? sessionUsername() : sessionUsername;
+          const username = options.headers?.["X-ZAF-Pi-Session-Transport"] === "memory" && !options.headers.Authorization ? null : typeof sessionUsername === "function" ? sessionUsername() : sessionUsername;
           body = { user: username === null ? null : { username } };
         }
-      } else if (url === "/api/zaf/pi/auth") body = { user: { username: "server-verified" } };
+      } else if (url === "/api/zaf/pi/auth") body = { user: { username: "server-verified" }, ...(options.headers?.["X-ZAF-Pi-Session-Transport"] === "memory" ? { session: pageSession === "valid" ? { token: "page-session-fixture-".repeat(6), expiresIn: 1800 } : pageSession } : {}) };
       else throw new Error("Unexpected request " + url);
-      return { response: { ok: true, status: 200 }, body };
+      const status = url === "/api/zaf/pi/auth" ? authStatus : 200;
+      return { response: { ok: status === 200, status }, body };
     } },
     "@/lib/zaf/pi/sdk": {
       loadPiSdk: async () => { calls.push("load"); }, initializePiSdk: async () => { calls.push("init"); return sdk; },
@@ -168,7 +170,7 @@ test("framed native consent timeout offers one explicit canonical recovery link"
   const fixture = entryFixture({ authenticate: () => { throw new Error("Pi Browser did not respond to the sign-in request within 45 seconds."); } });
   await clickSignIn(fixture.render());
   const rendered = descendants(fixture.render());
-  assert.equal(rendered.filter(node => node.props?.className?.includes("zaf-pi-status-bubble")).length, 1);
+  assert.equal(rendered.filter(node => node.type === "dialog").length, 1);
   const links = rendered.filter(node => node.type === "a");
   assert.equal(links.length, 1);
   assert.equal(links[0].props.href, "https://zaftechpu0455.pinet.com");
@@ -177,21 +179,16 @@ test("framed native consent timeout offers one explicit canonical recovery link"
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
 });
 
-test("successful native verification with an absent blocked cookie never displays Pi Verified", async () => {
+test("page login still requires a matching server session after native verification", async () => {
   const fixture = entryFixture({ userAgent: "iPhone PiBrowser", sessionUsername: null, storageAvailable: false });
   await clickSignIn(fixture.render());
   const tree = fixture.render();
-  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
-  assert.equal(fixture.requests[1].url, "/api/zaf/pi/session");
-  assert.equal(fixture.requests.filter(request => request.url === "/api/zaf/pi/storage").length, 2);
+  assert.equal(fixture.requests.filter(r => r.url === "/api/zaf/pi/storage").length, 2);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
   assert.doesNotMatch(renderedText(tree), /Pi Verified|Pi Account Verified|Verified username:/);
-  assert.match(renderedText(tree), /needs permission/);
-  const link = descendants(tree).find(node => node.type === "a");
-  assert.equal(link.props.href, "/signin/storage");
-  assert.equal(link.props.target, "_top");
+  assert.match(renderedText(tree), /ZAF-PI-SESSION/);
+  assert.equal(fixture.load("@/lib/zaf/pi/page-session").piSessionRequestOptions("GET").headers.Authorization, undefined);
   assert.equal(fixture.navigations.length, 0);
-  assert.equal(JSON.stringify([...fixture.storage.values()]).includes("private-fixture-token"), false);
 });
 
 for (const sessionUsername of [null, "different-account"]) test(`native verification cannot trust its POST name over ${sessionUsername === null ? "a missing" : "another"} session identity`, async () => {
@@ -234,45 +231,66 @@ test("a permission gesture restores the existing server identity without Pi auth
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
 });
 
-test("denied storage permission starts no native authentication and offers only the fixed setup path", async () => {
+test("denied storage permission uses a verified page session instead of a Resume loop", async () => {
   let permissionCalls = 0;
   const fixture = entryFixture({
     userAgent: "iPhone PiBrowser", storageAvailable: false,
     requestStorageAccess() { permissionCalls++; return Promise.reject(new Error("User declined")); },
   });
-  fixture.window.location.search = "?returnTo=https://attacker.example&setupPath=https://attacker.example";
   assert.equal(await fixture.load("@/lib/zaf/pi/storage-access").checkPiStorageAccess(), false);
-  await clickSignIn(fixture.render("tr"));
-  const links = descendants(fixture.render("tr")).filter(node => node.type === "a");
+  const initial = fixture.render();
+  assert.doesNotMatch(renderedText(initial), /Resume session/);
+  await clickSignIn(initial);
   assert.equal(permissionCalls, 1);
-  assert.deepEqual(fixture.calls, []);
-  assert.equal(fixture.requests.some(request => request.url === "/api/zaf/pi/auth" || request.url === "/api/zaf/pi/session"), false);
-  assert.equal(links.length, 1);
-  assert.equal(links[0].props.href, "/signin/storage?lang=tr");
-  assert.equal(links[0].props.target, "_top");
-  assert.deepEqual(fixture.navigations, []);
-  assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
-  assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
-});
-
-test("blocked native session can be granted and restored without repeating Pi consent", async () => {
-  let granted = false, permissionCalls = 0;
-  const fixture = entryFixture({
-    userAgent: "iPhone PiBrowser", sessionUsername: () => granted ? "server-verified" : null, storageAvailable: () => granted,
-    requestStorageAccess() { permissionCalls++; granted = true; return Promise.resolve(); },
-  });
-  await clickSignIn(fixture.render());
-  assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
-  assert.equal(fixture.load("@/lib/zaf/pi/storage-access").isPiSessionStorageBlocked(), true);
-  await clickSignIn(fixture.render());
-  assert.equal(permissionCalls, 1);
-  assert.equal(fixture.calls.filter(call => call === "authenticate").length, 1);
-  assert.equal(fixture.requests.filter(request => request.url === "/api/zaf/pi/auth").length, 1);
-  assert.equal(fixture.requests.filter(request => request.url === "/api/zaf/pi/session").length, 2);
+  assert.deepEqual(fixture.calls, ["load", "init", "host", "authenticate"]);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay().current, true);
   assert.match(renderedText(fixture.render()), /Pi Account Verified/);
-  assert.doesNotMatch(renderedText(fixture.render()), /needs permission/);
-  assert.equal(JSON.stringify([...fixture.storage.values()]).includes("private-fixture-token"), false);
+  assert.match(renderedText(fixture.render()), /refresh or close this page/);
+  assert.doesNotMatch(renderedText(fixture.render()), /Session help|Resume session/);
+  for (const request of fixture.requests.filter(r => r.url !== "/api/zaf/pi/storage")) {
+    assert.equal(request.options.credentials, "omit");
+    assert.equal(request.options.headers["X-ZAF-Pi-Session-Transport"], "memory");
+  }
+  assert.deepEqual(fixture.navigations, []);
+  const saved = JSON.stringify([...fixture.storage.values()]);
+  assert.ok(!saved.includes("private-fixture-token") && !saved.includes("page-session-fixture"));
+  assert.ok(!JSON.stringify(fixture.logs).includes("page-session-fixture"));
+  const beforePoll = fixture.requests.length;
+  await fixture.load("@/lib/zaf/pi/session-state").refreshPiSession();
+  assert.deepEqual(fixture.requests.slice(beforePoll).map(r => r.url), ["/api/zaf/pi/session"]);
+  assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay().current, true);
+  assert.equal(fixture.calls.filter(call => call === "authenticate").length, 1);
+});
+
+test("blocked cookies do not prevent page signout and a new native login", async () => {
+  let permissionCalls = 0;
+  const fixture = entryFixture({ userAgent: "iPhone PiBrowser", storageAvailable: false,
+    requestStorageAccess() { permissionCalls++; return Promise.reject(new Error("Unavailable")); } });
+  await clickSignIn(fixture.render());
+  const display = fixture.load("@/lib/zaf/pi/oauth");
+  assert.equal(display.readPiDisplay().current, true);
+  const before = fixture.requests.length;
+  await clickSignIn(fixture.render());
+  const signOut = descendants(fixture.render()).find(node => node.type === "button" && renderedText(node) === "Sign out");
+  signOut.props.onClick();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(display.readPiDisplay(), null);
+  assert.equal(permissionCalls, 0);
+  const logout = fixture.requests.slice(before);
+  assert.deepEqual(logout.map(r => r.options.method), ["DELETE", "GET"]);
+  assert.match(logout[0].options.headers.Authorization, /^Bearer /);
+  assert.equal(logout[1].options.headers.Authorization, undefined);
+  assert.ok(logout.every(r => r.options.credentials === "omit"));
+  await clickSignIn(fixture.render());
+  assert.equal(display.readPiDisplay().current, true);
+  assert.equal(fixture.calls.filter(call => call === "authenticate").length, 2);
+});
+
+for (const pageSession of [null, {}, {token: "bad", expiresAt: Date.now()+60_000}]) test("malformed page credential cannot establish a login: " + JSON.stringify(pageSession), async () => {
+  const fixture = entryFixture({ userAgent: "iPhone PiBrowser", storageAvailable: false, pageSession });
+  await clickSignIn(fixture.render());
+  assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
+  assert.match(renderedText(fixture.render()), /ZAF-PI-SESSION/);
 });
 
 test("blocked iOS sign-out requests permission synchronously before deleting and confirming the session", async () => {
@@ -367,6 +385,7 @@ test("an immediate historical-name sign-out discovers blocked cookies before any
   fixture.states[0] = display.readPiDisplay();
   assert.equal(fixture.states[0].current, false);
   assert.equal(fixture.load("@/lib/zaf/pi/storage-access").isPiSessionStorageBlocked(), false);
+  await clickSignIn(fixture.render());
   const signOut = descendants(fixture.render()).find(node => node.type === "button" && renderedText(node) === "Sign out");
   signOut.props.onClick();
   await new Promise(resolve => setImmediate(resolve));
@@ -379,4 +398,30 @@ test("an immediate historical-name sign-out discovers blocked cookies before any
   assert.equal(display.readPiDisplay().current, false);
   assert.match(renderedText(fixture.render()), /Sign-out failed/);
   assert.equal(display.isPiSignInBusy(), false);
+});
+
+test("generic iOS user agent with native SDK host cannot start unbridged consent", async () => {
+  const fixture = entryFixture({ userAgent: "Mozilla/5.0 iPhone", topLevel: true });
+  await clickSignIn(fixture.render());
+  assert.deepEqual(fixture.calls, ["load", "init", "host"]);
+  assert.equal(fixture.requests.length, 0);
+  assert.equal(fixture.navigations.length, 0);
+  const link = descendants(fixture.render()).find(node => node.type === "a");
+  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
+  assert.equal(link.props.target, "_top");
+});
+
+test("native upstream 502 offers registered entry without trusting SDK identity or retrying another verifier", async () => {
+  const fixture = entryFixture({ authStatus: 502 });
+  await clickSignIn(fixture.render());
+  const updated = fixture.render();
+  assert.match(renderedText(updated), /ZAF-PI-502/);
+  const link = descendants(updated).find(node => node.type === "a");
+  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
+  assert.equal(link.props.target, "_top");
+  assert.equal(fixture.requests.length, 1);
+  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
+  assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
+  assert.equal(fixture.navigations.length, 0);
+  assert.equal(JSON.stringify(fixture.logs).includes("private-fixture-token"), false);
 });

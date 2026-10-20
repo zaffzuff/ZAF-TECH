@@ -79,7 +79,7 @@ export function ZafLaunchpadObservatory({ locale, tr }: { locale: Locale; tr: (e
           <div className="mt-1 text-[9px] text-muted-foreground">{tr("No direct public API wired", "Doğrudan herkese açık API bağlı değil")}</div>
         </div>
         <div className="rounded-xl border border-border bg-card p-3">
-          <div className="text-xl font-bold text-foreground">{loading ? "…" : tr("Not Observed", "Gözlemlenmedi")}</div>
+          <div className="text-xl font-bold text-foreground">{loading ? "…" : tr("Coming Soon", "Yakında")}</div>
           <div className="mt-1 text-[10px] font-medium text-foreground">{tr("Mainnet Launchpad", "Mainnet Launchpad")}</div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { requestJson } from "@/lib/zaf/client-request";
 import { clearPiDisplay, getPiDisplayRevision, isPiSignInBusy, markPiDisplayUnconfirmed, savePiDisplay } from "./oauth";
 import { checkPiStorageAccess, isPiStorageContext } from "./storage-access";
+import { usesPiPageSession, piSessionRequestOptions } from "./page-session";
 
 let pending: Promise<void> | null = null;
 
@@ -14,13 +15,11 @@ export function refreshPiSession(): Promise<void> {
     try {
       // On older iOS, permission is per page. A blocked cookie is not a logout.
       // Keep a historical name only; a user gesture must restore real access.
-      if (isPiStorageContext() && !await checkPiStorageAccess()) {
+      if (!usesPiPageSession() && isPiStorageContext() && !await checkPiStorageAccess()) {
         if (stillCurrent()) markPiDisplayUnconfirmed();
         return;
       }
-      const { response, body } = await requestJson<{ user?: { username?: unknown } | null }>("/api/zaf/pi/session", {
-        method: "GET", cache: "no-store", credentials: "same-origin",
-      });
+      const { response, body } = await requestJson<{ user?: { username?: unknown } | null }>("/api/zaf/pi/session", piSessionRequestOptions("GET"));
       // A late restoration must never replace a newer sign-in or sign-out.
       if (!stillCurrent()) return;
       if (!response.ok) { markPiDisplayUnconfirmed(); return; }
@@ -39,17 +38,13 @@ export function refreshPiSession(): Promise<void> {
 
 /** Confirm the HttpOnly cookie round-trip before presenting a successful login. */
 export async function confirmPiSession(expectedUsername?: string): Promise<string | null> {
-  const { response, body } = await requestJson<{ user?: { username?: unknown } | null }>("/api/zaf/pi/session", {
-    method: "GET", cache: "no-store", credentials: "same-origin",
-  });
+  const { response, body } = await requestJson<{ user?: { username?: unknown } | null }>("/api/zaf/pi/session", piSessionRequestOptions("GET"));
   const username = body?.user?.username;
   return response.ok && typeof username === "string" && /^[^\s\x00-\x1f\x7f]{1,100}$/.test(username) &&
     (expectedUsername === undefined || username === expectedUsername) ? username : null;
 }
 
 export async function confirmPiSignOut(): Promise<boolean> {
-  const { response, body } = await requestJson<{ user?: unknown }>("/api/zaf/pi/session", {
-    method: "GET", cache: "no-store", credentials: "same-origin",
-  });
+  const { response, body } = await requestJson<{ user?: unknown }>("/api/zaf/pi/session", piSessionRequestOptions("GET"));
   return response.ok && body?.user === null;
 }
