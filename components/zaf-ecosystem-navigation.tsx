@@ -255,21 +255,23 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
   const [expanded, setExpanded] = useState<ZafSection | null>(null);
   return <nav ref={container} onKeyDown={event => { if (event.key === "Escape" && expanded) { triggers.current[expanded]?.focus(); setExpanded(null); } }} className="zaf-header-navigation" aria-label={translate(locale, "Ecosystem Sections", "Ekosistem Bölümleri")}>
     <div className="zaf-header-primary">
-      {sections.map(([id, title]) => <button ref={element => { triggers.current[id] = element; }} key={id} type="button"
-        aria-pressed={section === id} aria-expanded={ZAF_SECTION_TABS[id].length ? expanded === id : undefined}
-        aria-controls={ZAF_SECTION_TABS[id].length ? "zaf-subnavigation" : undefined}
-        onClick={() => {
-          if (section !== id) { onSectionChange(id); onSubtabChange(ZAF_SECTION_TABS[id][0] ?? ""); }
-          setExpanded(expanded === id ? null : id);
-        }} className={"zaf-header-primary-item " + (section === id ? "is-active" : "")}>
-        <Icon name={sectionMeta[id].icon} size={17} />
-        <span>{label(title, locale)}</span>
-      </button>)}
+      {sections.map(([id, title]) => <div key={id} className="zaf-header-primary-cell">
+        <button ref={element => { triggers.current[id] = element; }} type="button"
+          aria-pressed={section === id} aria-expanded={ZAF_SECTION_TABS[id].length ? expanded === id : undefined}
+          aria-controls={ZAF_SECTION_TABS[id].length ? "zaf-subnavigation" : undefined}
+          onClick={() => {
+            if (section !== id) { onSectionChange(id); onSubtabChange(ZAF_SECTION_TABS[id][0] ?? ""); }
+            setExpanded(expanded === id ? null : id);
+          }} className={"zaf-header-primary-item " + (section === id ? "is-active" : "")}>
+          <Icon name={sectionMeta[id].icon} size={17} />
+          <span>{label(title, locale)}</span>
+        </button>
+        {expanded === id && ZAF_SECTION_TABS[id].length ? <div id="zaf-subnavigation" className="zaf-header-subnavigation">
+          <ul aria-label={label(sectionMeta[id].title, locale)}>
+            {ZAF_SECTION_TABS[id].map(item => <li key={item}><button type="button" aria-current={subtab === item ? "page" : undefined} onClick={() => { onSubtabChange(item); setExpanded(null); triggers.current[id]?.focus(); }}>{label(item, locale)}</button></li>)}
+          </ul>
+        </div> : null}
+      </div>)}
     </div>
-    {expanded && ZAF_SECTION_TABS[expanded].length ? <div id="zaf-subnavigation" className="zaf-header-subnavigation">
-      <ul aria-label={label(sectionMeta[expanded].title, locale)}>
-        {ZAF_SECTION_TABS[expanded].map(item => <li key={item}><button type="button" aria-current={subtab === item ? "page" : undefined} onClick={() => { onSubtabChange(item); setExpanded(null); triggers.current[expanded]?.focus(); }}>{label(item, locale)}</button></li>)}
-      </ul>
-    </div> : null}
   </nav>;
 }

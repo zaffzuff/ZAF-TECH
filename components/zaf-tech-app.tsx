@@ -607,14 +607,20 @@ export function ZafTechApp() {
         {pullRefresh.distance > 10 ? <div className="zaf-pull-indicator" role="status" aria-live="polite">{pullRefresh.refreshing ? tr("Refreshing…", "Yenileniyor…") : pullRefresh.distance >= 80 ? tr("Release to refresh", "Yenilemek için bırak") : tr("Pull down to refresh", "Yenilemek için aşağı çek")}</div> : null}
         <header className="zaf-sticky-header">
           <div className="zaf-desktop-header flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3">
-              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={96} height={96} className="h-11 w-11 shrink-0 object-contain" priority />
+            <div className="zaf-header-brand flex min-w-0 items-center gap-3">
+              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={144} height={144} className="h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
                 <ZafWordmark className="text-[1.45rem]" />
                 <p className="text-[11px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          </div>
+          <div className="zaf-desktop-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
+            <div className="zaf-pi-action-group">
+              <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
+              <ZafPiSignIn locale={locale} />
+            </div>
+            <div className="zaf-header-tools flex items-center gap-2">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} compact />
               <LanguageSelector locale={locale} onChange={setLocale} />
               <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-foreground">{theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")}</button>
@@ -622,27 +628,25 @@ export function ZafTechApp() {
 
             </div>
           </div>
-          <div className="zaf-desktop-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
-            <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
-            <ZafPiSignIn locale={locale} />
-          </div>
           <div className="zaf-mobile-header flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
-              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={48} height={48} className="zaf-mobile-brand-logo h-11 w-11 shrink-0 object-contain" priority />
+            <div className="zaf-header-brand flex min-w-0 items-center gap-2">
+              <Image src="/zaf-tech-logo.png?v=20261016" alt="ZAF Tech" width={80} height={80} className="zaf-mobile-brand-logo h-11 w-11 shrink-0 object-contain" priority />
               <div className="min-w-0">
                 <ZafWordmark className="text-[clamp(1.12rem,5vw,1.4rem)]" />
                 <p className="truncate text-[9px] leading-tight text-muted-foreground">{tr("Pi Ecosystem Observatory", "Pi Ekosistem Gözlem Merkezi")}</p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-1">
+          </div>
+          <div className="zaf-mobile-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
+            <div className="zaf-pi-action-group">
+              <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
+              <ZafPiSignIn locale={locale} />
+            </div>
+            <div className="zaf-header-tools flex shrink-0 items-center gap-1">
               <SearchPanel locale={locale} tr={tr} onNavigate={navigateResult} mobile />
               <LanguageSelector locale={locale} onChange={setLocale} className="zaf-mobile-language" />
               <button type="button" onClick={toggleTheme} aria-label={tr("Theme", "Tema")} title={theme === "light" ? tr("Dark", "Koyu") : tr("Light", "Açık")} className="zaf-mobile-header-icon rounded-lg border border-border bg-card text-base text-foreground"><span aria-hidden="true">{theme === "light" ? "◐" : "☼"}</span></button>
             </div>
-          </div>
-          <div className="zaf-mobile-pi-actions" aria-label={tr("Pi actions", "Pi işlemleri")}>
-            <a href="/start-with-pi" className="zaf-start-pi-link" aria-label="Start Pi">{tr("Start Pi", "Start Pi")}</a>
-            <ZafPiSignIn locale={locale} />
           </div>
           <ZafEcosystemNavigation locale={locale} section={section} subtab={subtab} onSectionChange={(next) => { setSection(next); const first = ZAF_SECTION_TABS[next][0] ?? ""; setSubtab(first); }} onSubtabChange={setSubtab} />
         </header>

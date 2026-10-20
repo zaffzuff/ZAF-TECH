@@ -1971,3 +1971,43 @@ html{scrollbar-gutter:stable;}
  .zaf-graph-filter-options { display: flex; flex-wrap: wrap; min-width: 0; width: 100%; gap: 4px; }
  .zaf-main-shell .zaf-graph-filter-options button { flex: 0 1 auto; min-width: 0; max-width: 100%; min-height: 28px; height: auto; padding: 4px 6px; font-size: 9px; line-height: 1.3; white-space: normal; overflow-wrap: anywhere; }
 }
+
+/* Centered brand above the action row; each submenu belongs to one tab. */
+.zaf-pi-action-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.zaf-main-shell .zaf-sticky-header .zaf-header-brand { display: flex; flex: 0 1 auto; justify-content: center; align-items: center; gap: 18px; width: auto; max-width: 100%; }
+.zaf-header-brand > div { text-align: center; min-width: 0; }
+.zaf-header-primary-cell { position: relative; min-width: 0; }
+.zaf-header-primary-cell > .zaf-header-primary-item { width: 100%; height: 100%; }
+.zaf-header-primary-cell .zaf-header-subnavigation { left: 0; right: auto; top: calc(100% + 6px); width: 100%; min-width: 0; padding: 3px; }
+.zaf-header-primary-cell .zaf-header-subnavigation button { position: relative; min-width: 0; white-space: normal; overflow-wrap: anywhere; hyphens: auto; padding: 8px 5px; }
+.zaf-header-subnavigation button[aria-current=page] { padding-right: 16px; }
+.zaf-header-subnavigation button[aria-current=page]::after { position: absolute; right: 4px; top: 9px; }
+@media(min-width:1024px) {
+ .zaf-main-shell .zaf-sticky-header .zaf-desktop-header { display: flex; justify-content: center; padding: 14px 12px 10px; }
+ .zaf-main-shell .zaf-sticky-header .zaf-desktop-header .zaf-header-brand img { width: 112px; height: 112px; }
+ .zaf-main-shell .zaf-sticky-header .zaf-desktop-header .zaf-header-brand .zaf-wordmark { font-size: clamp(36px,3.2vw,46px); line-height: 1.25; }
+ .zaf-main-shell .zaf-sticky-header .zaf-desktop-header .zaf-header-brand p { font-size: 12px; margin-top: 5px; }
+ .zaf-sticky-header .zaf-desktop-pi-actions { display: flex; justify-content: space-between; gap: 18px; margin: 0 12px 8px; }
+ .zaf-desktop-pi-actions .zaf-header-tools { margin-left: auto; flex: 0 1 auto; min-width: 0; }
+ .zaf-desktop-pi-actions .zaf-desktop-search { width: clamp(150px,20vw,280px); }
+ .zaf-header-primary-item .zaf-nav-icon { width: 28px; height: 28px; }
+}
+@media(max-width:1023px) {
+ .zaf-main-shell .zaf-sticky-header .zaf-mobile-header { display: flex; justify-content: center; padding: 10px 6px 6px; }
+ .zaf-main-shell .zaf-sticky-header .zaf-mobile-header .zaf-header-brand { gap: 10px; }
+ .zaf-main-shell .zaf-sticky-header .zaf-mobile-header .zaf-header-brand img { width: 60px; height: 60px; }
+ .zaf-main-shell .zaf-sticky-header .zaf-mobile-header .zaf-wordmark { font-size: clamp(21px,6vw,30px); }
+ .zaf-main-shell .zaf-sticky-header .zaf-mobile-header .zaf-header-brand p { white-space: normal; font-size: 9px; }
+ .zaf-sticky-header .zaf-mobile-pi-actions { justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 4px 8px 0; }
+ .zaf-mobile-pi-actions .zaf-header-tools { margin-left: auto; }
+ .zaf-header-primary-item .zaf-nav-icon { width: 20px; height: 20px; }
+ .zaf-header-primary-cell .zaf-header-subnavigation button { min-height: 36px; font-size: 9px; padding: 7px 3px; }
+ .zaf-header-primary-cell .zaf-header-subnavigation button[aria-current=page] { padding-right: 10px; }
+ .zaf-header-primary-cell .zaf-header-subnavigation button[aria-current=page]::after { right: 2px; font-size: 8px; }
+}
+
+.zaf-main-shell .zaf-sticky-header .zaf-header-brand > div { text-align: center; }
+
+@media(min-width:1024px) {
+ .zaf-header-primary-cell > .zaf-header-primary-item { height: 49px; min-height: 49px; padding: 2px .2rem; gap: 2px; }
+}
