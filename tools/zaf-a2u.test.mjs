@@ -55,6 +55,8 @@ test("A2U is disabled without every setting, on Mainnet, and with pooled databas
   for(const key of Object.keys(env)){const missing={...env};delete missing[key];assert.equal(a2uConfig(missing).ready,false,key);}
   assert.equal(a2uConfig({...env,PI_NETWORK:"mainnet"}).ready,false);
   assert.equal(a2uConfig({...env,PI_TESTNET_DATABASE_URL:"postgres://user:pass@db-pooler.example/test"}).ready,false);
+  assert.equal(a2uConfig({...env,PI_TESTNET_DATABASE_URL:"postgres://user:pass@db-pooler.example/test",PI_TESTNET_DATABASE_URL_UNPOOLED:"postgres://user:pass@direct.example/test"}).ready,true);
+  assert.equal(a2uConfig({...env,PI_TESTNET_DATABASE_URL_UNPOOLED:"postgres://user:pass@db-pooler.example/test"}).ready,false);
   assert.equal(a2uConfig({...env,PI_TESTNET_A2U_WALLETS:Array.from({length:6},(_,i)=>"G"+String.fromCharCode(65+i).repeat(55)).join(",")}).ready,false);
 });
 

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import postgres from "postgres";
 import { Account, Asset, Keypair, Memo, Operation, StrKey, TransactionBuilder } from "@stellar/stellar-sdk";
 import { A2U_AMOUNT, A2U_CAMPAIGN, A2uError, runA2uClaim, type A2uClaim, type A2uGateway, type A2uStore } from "./a2u-flow";
-import { requireA2uConfig } from "./a2u-config";
+import { a2uDatabaseUrl, requireA2uConfig } from "./a2u-config";
 
 // These destinations and signing passphrase are deliberately not configurable.
 const HORIZON = "https://api.testnet.minepi.com";
@@ -10,7 +10,7 @@ const PLATFORM = "https://api.minepi.com/v2";
 let database: ReturnType<typeof postgres> | null = null;
 function db() {
   requireA2uConfig();
-  return database ||= postgres(process.env.PI_TESTNET_DATABASE_URL!, { max: 2, prepare: false, connect_timeout: 5, idle_timeout: 20 });
+  return database ||= postgres(a2uDatabaseUrl(), { max: 2, prepare: false, connect_timeout: 5, idle_timeout: 20 });
 }
 async function responseJson(url: string, options: RequestInit = {}, allowMissing = false) {
   const response = await fetch(url, { ...options, cache: "no-store", redirect: "error", signal: AbortSignal.timeout(7_000) });

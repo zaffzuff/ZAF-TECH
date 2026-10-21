@@ -21,7 +21,10 @@ from the Wallet app is not substituted for this flow.
 2. `PI_TESTNET_API_KEY`: server API key from **ZAF Tech Testnet** in Develop.
 3. `PI_TESTNET_WALLET_SECRET`: secret seed (S...) of that application's outgoing
    **app wallet**, not a user's wallet password or 24-word phrase.
-4. `PI_TESTNET_DATABASE_URL`: direct PostgreSQL connection to a separate Testnet
+4. `PI_TESTNET_DATABASE_URL_UNPOOLED`: Neon direct PostgreSQL connection automatically
+   injected by the Testnet-only Vercel integration with prefix `PI_TESTNET`.
+   This takes precedence over `PI_TESTNET_DATABASE_URL`, which Neon fills with a pooled URL.
+   For manual setup, `PI_TESTNET_DATABASE_URL` must be a direct connection to a separate Testnet
    record store. Do not use a PgBouncer/transaction-pooler URL: session advisory
    locks must remain on the same PostgreSQL backend. For Neon use its direct
    unpooled URL, not a hostname containing `-pooler`.

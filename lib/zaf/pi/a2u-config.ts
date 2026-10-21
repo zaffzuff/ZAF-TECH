@@ -1,10 +1,14 @@
 import { A2uError } from "./a2u-flow";
 
+export function a2uDatabaseUrl(env: NodeJS.ProcessEnv = process.env) {
+  return env.PI_TESTNET_DATABASE_URL_UNPOOLED || env.PI_TESTNET_DATABASE_URL || "";
+}
+
 export function a2uConfig(env: NodeJS.ProcessEnv = process.env) {
   const wallets = [...new Set((env.PI_TESTNET_A2U_WALLETS || "").split(/[\s,]+/).filter(Boolean))];
   let directDatabase = false;
   try {
-    const url = new URL(env.PI_TESTNET_DATABASE_URL || "");
+    const url = new URL(a2uDatabaseUrl(env));
     directDatabase = ["postgres:", "postgresql:"].includes(url.protocol) &&
       !/pooler|pgbouncer/i.test(url.hostname) && Boolean(url.hostname && url.username && url.password);
   } catch { /* Missing or malformed configuration keeps all transfers disabled. */ }
