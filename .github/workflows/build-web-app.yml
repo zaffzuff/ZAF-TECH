@@ -57,6 +57,8 @@ jobs:
         run: npm run test:news
       - name: Pre-integration safeguards
         run: npm run test:readiness
+      - name: Testnet A2U safeguards
+        run: npm run test:a2u
       - name: Final user-flow safeguards
         run: npm run test:final
       - name: Build

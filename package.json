@@ -10,6 +10,8 @@
     "regression": "node tools/zaf-regression.mjs",
     "test:news": "node --test tools/zaf-news.test.mjs",
     "test:readiness": "node --test tools/zaf-readiness.test.mjs",
+    "test:a2u": "node --test tools/zaf-a2u.test.mjs",
+    "a2u:preflight": "node tools/zaf-a2u-preflight.mjs",
     "test:final": "node --test tools/zaf-history.test.mjs tools/zaf-wallet.test.mjs tools/zaf-ui-flows.test.mjs tools/zaf-connector-security.test.mjs tools/zaf-session-ui.test.mjs tools/zaf-defi.test.mjs tools/zaf-pi-entry.test.mjs tools/zaf-storage-access.test.mjs tools/zaf-session-transport.test.mjs tools/zaf-pull-refresh.test.mjs",
     "smoke": "node tools/zaf-smoke.mjs",
     "lint": "eslint app components lib",
@@ -17,6 +19,7 @@
     "test:updates": "node --test tools/zaf-mobile-updates.test.mjs tools/zaf-pull-refresh.test.mjs"
   },
   "dependencies": {
+    "@stellar/stellar-sdk": "17.3.0",
     "geist": "latest",
     "next": "15.5.27",
     "postgres": "^3.4.7",

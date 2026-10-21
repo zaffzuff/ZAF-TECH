@@ -1,4 +1,6 @@
 "use client";
+import { ZafA2uNotice } from "@/components/zaf-a2u-notice";
+
 
 import Link from "next/link";
 import { ZafBrand } from "@/components/zaf-brand";
@@ -149,6 +151,7 @@ export default function AboutPage() {
           <LanguageSelector locale={locale} onChange={changeLocale} />
         </div>
         <h1 className="mt-6 text-2xl font-bold">{t.title}</h1>
+        <ZafA2uNotice locale={locale} />
         <p className="mt-2 text-sm text-muted-foreground">{t.subtitle}</p>
         <section className="mt-5 rounded-xl border border-border bg-card p-4 text-sm">
           <h2 className="font-semibold">{servicePolicy[locale].label}</h2>

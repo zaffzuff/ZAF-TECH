@@ -123,6 +123,19 @@ try {
   }
 
   // The anonymous GET can render in Pi's trusted shell with one hashed script.
+  if (process.env.PI_NETWORK === "testnet") {
+    const testPage = await request('/a2u');
+    if (testPage.status !== 200 || !testPage.text.includes('Test-Pi')) throw new Error('Testnet receive page must render.');
+    const setup = await request('/api/zaf/pi/a2u');
+    const config = JSON.parse(setup.text);
+    if (setup.status !== 200 || config.network !== 'Pi Testnet' || config.amount !== '0.01' || config.maximumRecipients !== 5) throw new Error('Testnet receive settings are incorrect.');
+    if (config.enabled === false) {
+      const blocked = await request('/api/zaf/pi/a2u', { method: 'POST', headers: { Origin: baseUrl, 'Content-Type': 'application/json' }, body: '{}' });
+      if (blocked.status !== 503 || JSON.parse(blocked.text).code !== 'TEST_NOT_ENABLED') throw new Error('An unconfigured Testnet campaign must not accept transfer requests.');
+    }
+  }
+
+  // The anonymous GET can render in Pi's trusted shell with one hashed script.
   // Only the first-party POST sets the harmless visit marker and redirects.
   const storageSetup = await request('/signin/storage?lang=tr');
   const storageCsp = storageSetup.headers['content-security-policy'] ?? '';

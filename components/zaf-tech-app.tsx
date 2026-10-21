@@ -952,6 +952,7 @@ export function ZafTechApp() {
           </div>
           <div className="mt-2 flex flex-wrap gap-3">
             <a href="/about" className="underline underline-offset-2">{tr("About", "Hakkında")}</a>
+            <a href="/a2u" className="underline underline-offset-2">Test-Pi</a>
             <a href="/privacy" className="underline underline-offset-2">{tr("Privacy", "Gizlilik")}</a>
             <a href={locale === "tr" ? "/terms?lang=tr" : "/terms"} className="underline underline-offset-2">{tr("Terms of Service", "Kullanım Koşulları")}</a>
           </div>

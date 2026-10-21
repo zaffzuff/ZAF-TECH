@@ -1,4 +1,6 @@
 "use client";
+import { ZafA2uNotice } from "@/components/zaf-a2u-notice";
+
 
 import Link from "next/link";
 import { ZafBrand } from "@/components/zaf-brand";
@@ -249,6 +251,7 @@ export default function PrivacyPage() {
           <LanguageSelector locale={locale} onChange={changeLocale} />
         </div>
         <h1 className="mt-6 text-2xl font-bold">{t.title}</h1>
+        <ZafA2uNotice locale={locale} />
         <p className="mt-2 text-xs text-muted-foreground">{t.subtitle}</p>
         <p lang={supplementLocale} className="mt-2 text-xs text-muted-foreground">{supplement.updated}: <time dateTime={LEGAL_UPDATED}>{LEGAL_UPDATED}</time> · <Link href={`/terms?lang=${supplementLocale}`} className="underline underline-offset-2">{supplement.terms}</Link></p>
         <section lang={supplementLocale} aria-label={supplement.label} className="mt-6 space-y-5 rounded-xl border border-border bg-card p-4 text-sm leading-relaxed text-muted-foreground">

@@ -1,3 +1,4 @@
+import { ZafA2uNotice } from "@/components/zaf-a2u-notice";
 import Link from "next/link";
 import { ZafBrand } from "@/components/zaf-brand";
 import { CONTACT_EMAIL, LEGAL_UPDATED, OPERATOR } from "@/lib/zaf/legal-notice";
@@ -48,6 +49,7 @@ export default async function TermsPage({ searchParams }: { searchParams: Promis
           </nav>
         </div>
         <h1 className="mt-6 text-2xl font-bold">{t.title}</h1>
+        <ZafA2uNotice locale={locale} />
         <p className="mt-2 text-xs text-muted-foreground">{t.updated}: <time dateTime={LEGAL_UPDATED}>{LEGAL_UPDATED}</time></p>
         <p className="mt-4 text-sm leading-relaxed">{t.intro}</p>
         <div className="mt-6 space-y-5 text-sm leading-relaxed text-muted-foreground">
