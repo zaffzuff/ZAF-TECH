@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "node tools/zaf-a2u-build-preflight.mjs && next build",
     "dev": "next dev",
     "start": "next start",
     "node:connector": "node tools/zaf-node-connector.mjs",

@@ -24,6 +24,13 @@ if(root.network_passphrase!=="Pi Testnet")throw new Error("The network did not i
 const account=await read("https://api.testnet.minepi.com/accounts/"+source);
 if(account.account_id!==source)throw new Error("Could not confirm the app wallet on Testnet.");
 const native=account.balances.find(balance=>balance.asset_type==="native");
+const ledgerPage=await read("https://api.testnet.minepi.com/ledgers?order=desc&limit=1");
+const reserveStroops=Number(ledgerPage._embedded?.records?.[0]?.base_reserve_in_stroops);
+if(!Number.isFinite(reserveStroops)||reserveStroops<=0)throw new Error("Cannot verify Testnet reserve.");
+const reserve=(2+Number(account.subentry_count||0)+Number(account.num_sponsoring||0)-Number(account.num_sponsored||0))*reserveStroops/1e7;
+const spendable=Number(native?.balance||0)-Number(native?.selling_liabilities||0)-reserve;
+if(!Number.isFinite(spendable)||spendable<wallets.length*0.11)throw new Error("Insufficient Test-Pi above the account reserve for payments and fee limits.");
+if(wallets.includes(source))throw new Error("A recipient cannot be the sending app wallet.");
 console.log("Testnet app wallet exists. Native Test-Pi balance: "+(native?.balance||"unknown"));
 for(const destination of wallets){
   const recipient=await read("https://api.testnet.minepi.com/accounts/"+destination);
