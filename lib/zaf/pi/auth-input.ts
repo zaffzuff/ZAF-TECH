@@ -6,17 +6,7 @@ export class PiInputError extends Error {
 /** Bound actual streamed bytes, including bodies without Content-Length. */
 export async function readPiAuthInput(request: Request) {
   if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") throw new PiInputError(415, "A JSON request is required.");
-  const origin = request.headers.get("origin");
-  // Next may reconstruct request.url using its internal localhost name. Host
-  // is the actual HTTP authority; browsers cannot set it via fetch headers.
-  // Do not trust arbitrary x-forwarded-host values for this check.
-  const target = new URL(request.url);
-  const host = request.headers.get("host");
-  if (host) {
-    if (!/^[a-zA-Z0-9.\-:\[\]]+$/.test(host)) throw new PiInputError(403, "Invalid request host.");
-    target.host = host;
-  }
-  if (!origin || origin !== target.origin) throw new PiInputError(403, "A same-origin request is required.");
+  assertPiSameOrigin(request);
   const length = request.headers.get("content-length");
   if (length && (!/^\d+$/.test(length) || Number(length) > PI_AUTH_BODY_LIMIT)) throw new PiInputError(413, "Request body is too large.");
   if (!request.body) throw new PiInputError(400, "A valid JSON body is required.");
@@ -59,4 +49,19 @@ export function validPiProfile(value: unknown): value is { uid: string; username
 export function piRetryAfter(value: string | null, now = Date.now()) {
   const seconds = value && /^\d+$/.test(value) ? Number(value) : value ? Math.ceil((Date.parse(value) - now) / 1000) : 60;
   return Math.min(300, Math.max(1, Number.isFinite(seconds) ? seconds : 60));
+}
+
+export function assertPiSameOrigin(request: Request) {
+  if (request.headers.get("sec-fetch-site") === "cross-site") throw new PiInputError(403, "A same-origin request is required.");
+  const origin = request.headers.get("origin");
+  // Next may reconstruct request.url using its internal localhost name. Host
+  // is the actual HTTP authority; browsers cannot set it via fetch headers.
+  // Do not trust arbitrary x-forwarded-host values for this check.
+  const target = new URL(request.url);
+  const host = request.headers.get("host");
+  if (host) {
+    if (!/^[a-zA-Z0-9.\-:\[\]]+$/.test(host)) throw new PiInputError(403, "Invalid request host.");
+    target.host = host;
+  }
+  if (!origin || origin !== target.origin) throw new PiInputError(403, "A same-origin request is required.");
 }

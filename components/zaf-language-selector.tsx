@@ -11,11 +11,12 @@ function FlagIcon({ locale }: { locale: Locale }) {
 
   return (
     <img
-      src={`https://flagcdn.com/${flag}.svg`}
+      src={`/flags/${flag}.svg`}
       alt=""
-      width={20}
-      height={14}
-      className="h-3.5 w-5 shrink-0 rounded-[2px] object-cover"
+      width={24}
+      height={16}
+      decoding="sync"
+      className="zaf-language-flag shrink-0 object-contain"
       aria-hidden="true"
     />
   );

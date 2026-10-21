@@ -1,8 +1,18 @@
 # Pre-Pi integration verification
 
-The observatory remains read-only. Username sign-in verifies a Pi token through the server's `/me` request and displays the verified username; stored display state is not an authenticated application session. Do not authorize protected APIs from a browser-stored username.
+The observatory remains read-only. As of October 18, sign-in exchanges the Pi access token with App Studio server-side and creates a separate encrypted 30-minute HttpOnly/Secure session. Neither upstream token is stored. sessionStorage display names never authorize API access. See pi-auth-security.md for the current boundary.
 
-## Scope confirmed October 15
+## October 18 maintenance and current release gate
+
+- One browser clock updates the observation banner and freshness cards together, including after tab resume.
+- Root package-lock.json is tracked; web CI uses npm ci on Node 24 to match Vercel.
+- Manual Node Connector releases preserve older releases/tags for rollback. No release workflow is dispatched by this maintenance.
+- Pi sign-in is NOT currently verified end-to-end: the owner’s October 18 native attempt reached App Studio, which returned HTTP 404. Public authentication must not fall back to unverified browser identity or direct Platform /me.
+- The official App Studio frontend shows that Verify My App verifies ownership, creates the converted app, then waits for a native sign-in. The subsequent screen offers Publish separately and explicitly permits keeping the app unlisted. This is observed frontend behavior, not confirmation that this account’s claim is still valid.
+- Complete technical verification and real-device login before final listing approval. Do not publish or submit an ecosystem listing as part of maintenance. Historical device results below predate the App Studio change.
+- Current SDK init awaits version 2.0 with no sandbox parameter; environment detection is delegated to Pi. Pi Network/Horizon configuration is unchanged. CSP permits the explicit Pi host families and production App Studio shell; see next.config.mjs for the current source list. The historical CSP description below is superseded.
+
+## Scope confirmed October 15 (historical)
 
 ZAF Tech is free, not for profit, and accepts no user payments. Payment integration and payment credentials are out of scope. Public observations remain available without sign-in on iOS, Android and desktop web. No personalized write endpoints currently require an application session; add server authentication/authorization before introducing such features in the later Pi integration phase.
 
@@ -33,7 +43,7 @@ The owner reported successful Pi Browser opening/sign-in on two Android devices 
 4. Verify scheduled collection wrote a new history record after deployment. Five minutes is the news cache duration; unattended collection is daily, not every five minutes.
 5. Treat missing public directory records and empty baselines as coverage limitations. Reachable source pages do not imply complete app data.
 6. Node/Compute uses a local Connector. A phone's localhost is the phone, not the user's desktop. Remote node reporting needs a separately designed authenticated transport.
-7. Keep public read-only access free and optional sign-in separate. Payment features are excluded. Server sessions become required only if the later integration introduces personalized writes or protected data.
+7. Keep public read-only access free and optional sign-in separate. Payment features are excluded. The optional encrypted session now exists; any future protected API must explicitly validate it server-side.
 
 ## Operations
 

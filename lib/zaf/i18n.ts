@@ -1,22 +1,30 @@
+import { updatedCopy } from "./ui-update-copy";
 import { supplementalRussianUiTranslations, supplementalUiTranslations } from "./ui-translations";
 
 export type Locale = "en" | "es" | "tr" | "zh" | "it" | "fr" | "de" | "pt" | "ru";
 
 export const localeLabels: Record<Locale, string> = {
   en: "English",
-  es: "Spanish",
-  tr: "Turkish",
-  zh: "Chinese",
-  it: "Italian",
-  fr: "French",
-  de: "German",
-  pt: "Portuguese",
-  ru: "Russian",
+  es: "Español",
+  tr: "Türkçe",
+  zh: "中文",
+  it: "Italiano",
+  fr: "Français",
+  de: "Deutsch",
+  pt: "Português",
+  ru: "Русский",
 };
 
 const translations: Record<Locale, Record<string, string>> = {
   en: {},
   tr: {
+    "Pi Sign-In": "Pi Girişi",
+    "Close": "Kapat",
+    "Loading…": "Yükleniyor…",
+    "Release to refresh": "Yenilemek için bırak",
+    "Pull down to refresh": "Yenilemek için aşağı çek",
+    "Session help": "Oturum yardımı",
+    "This session ends when you refresh or close this page.": "Bu oturum sayfayı yenileyince veya kapatınca sona erer.",
     "A compact daily view of observed Mainnet activity and meaningful ecosystem changes.": "Gözlemlenen Mainnet aktivitesi ve anlamlı ekosistem değişikliklerinin kısa günlük görünümü.",
     "Daily Changes": "Günlük Değişiklikler",
     "Changes are compared with the latest stored ecosystem snapshot. They describe observed differences only.": "Değişiklikler son kayıtlı ekosistem snapshot'ı ile karşılaştırılır. Yalnızca gözlemlenen farklılıkları açıklar.",
@@ -215,9 +223,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Filters and search apply to the latest transaction sample returned by Pi Mainnet Horizon.": "Filtreler ve arama, Pi Mainnet Horizon tarafından döndürülen son işlem örneklemine uygulanır.",
   },
   es: {
-    "Test environment": "Entorno de pruebas",
-    "Observation data: Mainnet": "Datos observados: Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Las etiquetas Mainnet identifican datos públicos observados, no la red Pi de esta aplicación. Los demás paneles indican su propia red de origen.",
+    "Pi Sign-In": "Acceso con Pi",
+    "Close": "Cerrar",
+    "Loading…": "Cargando…",
+    "Release to refresh": "Suelta para actualizar",
+    "Pull down to refresh": "Desliza hacia abajo para actualizar",
+    "Session help": "Ayuda de sesión",
+    "This session ends when you refresh or close this page.": "Esta sesión termina al recargar o cerrar esta página.",
     "Current Day": "Día Actual",
     "Previous Day": "Día Anterior",
     "App Change": "Cambio De Aplicaciones",
@@ -597,9 +609,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "La Solicitud Falló",
   },
   zh: {
-    "Test environment": "测试环境",
-    "Observation data: Mainnet": "观测数据：Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Mainnet 标签表示公开观测数据的来源，而非此应用的 Pi 网络。其他数据面板会标明各自的来源网络。",
+    "Pi Sign-In": "Pi 登录",
+    "Close": "关闭",
+    "Loading…": "加载中…",
+    "Release to refresh": "松开以刷新",
+    "Pull down to refresh": "下拉刷新",
+    "Session help": "会话帮助",
+    "This session ends when you refresh or close this page.": "刷新或关闭此页面后，会话将结束。",
     "Current Day": "当前日期",
     "Previous Day": "前一天",
     "App Change": "应用变化",
@@ -1082,9 +1098,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "请求失败",
   },
   it: {
-    "Test environment": "Ambiente di test",
-    "Observation data: Mainnet": "Dati osservati: Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Le etichette Mainnet indicano i dati pubblici osservati, non la rete Pi di questa app. Gli altri pannelli indicano la propria rete di origine.",
+    "Pi Sign-In": "Accesso con Pi",
+    "Close": "Chiudi",
+    "Loading…": "Caricamento…",
+    "Release to refresh": "Rilascia per aggiornare",
+    "Pull down to refresh": "Trascina verso il basso per aggiornare",
+    "Session help": "Aiuto per la sessione",
+    "This session ends when you refresh or close this page.": "Questa sessione termina quando aggiorni o chiudi questa pagina.",
     "Current Day": "Giorno Corrente",
     "Previous Day": "Giorno Precedente",
     "App Change": "Variazione App",
@@ -1623,9 +1643,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Request failed": "Richiesta Non Riuscita",
   },
   de: {
-    "Test environment": "Testumgebung",
-    "Observation data: Mainnet": "Beobachtungsdaten: Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Mainnet-Angaben kennzeichnen öffentliche Beobachtungsdaten, nicht das Pi-Netzwerk dieser App. Andere Datenbereiche zeigen ihr eigenes Quellnetzwerk an.",
+    "Pi Sign-In": "Pi-Anmeldung",
+    "Close": "Schließen",
+    "Loading…": "Wird geladen…",
+    "Release to refresh": "Zum Aktualisieren loslassen",
+    "Pull down to refresh": "Zum Aktualisieren nach unten ziehen",
+    "Session help": "Sitzungshilfe",
+    "This session ends when you refresh or close this page.": "Diese Sitzung endet, wenn du diese Seite neu lädst oder schließt.",
     "Current Day": "Aktueller Tag",
     "Previous Day": "Vortag",
     "App Change": "App-Änderung",
@@ -2006,9 +2030,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Independent Community-Developed Technology Project": "Unabhängiges, Von Der Community Entwickeltes Technologieprojekt",
   },
   pt: {
-    "Test environment": "Ambiente de teste",
-    "Observation data: Mainnet": "Dados observados: Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "As etiquetas Mainnet identificam dados públicos observados, não a rede Pi desta aplicação. Os outros painéis indicam a sua própria rede de origem.",
+    "Pi Sign-In": "Entrar com Pi",
+    "Close": "Fechar",
+    "Loading…": "Carregando…",
+    "Release to refresh": "Solte para atualizar",
+    "Pull down to refresh": "Puxe para baixo para atualizar",
+    "Session help": "Ajuda da sessão",
+    "This session ends when you refresh or close this page.": "Esta sessão termina quando atualizar ou fechar esta página.",
     "Current Day": "Dia Atual",
     "Previous Day": "Dia Anterior",
     "App Change": "Variação De Apps",
@@ -2389,9 +2417,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Independent Community-Developed Technology Project": "Projeto Tecnológico Independente Desenvolvido Pela Comunidade",
   },
   ru: {
-    "Test environment": "Тестовая среда",
-    "Observation data: Mainnet": "Данные наблюдений: Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Метки Mainnet обозначают общедоступные данные наблюдений, а не сеть Pi этого приложения. Другие панели указывают собственную сеть источника.",
+    "Pi Sign-In": "Вход через Pi",
+    "Close": "Закрыть",
+    "Loading…": "Загрузка…",
+    "Release to refresh": "Отпустите для обновления",
+    "Pull down to refresh": "Потяните вниз для обновления",
+    "Session help": "Помощь с сеансом",
+    "This session ends when you refresh or close this page.": "Сеанс завершится при обновлении или закрытии этой страницы.",
     "ZAF Tech does not claim Pi Authentication, Pi Payments, PiNet, Mainnet/Testnet status or application health until the relevant property has been independently verified by an observable check. Category is a ZAF Tech classification based on the public name/URL signal and is not an official Pi category.": "ZAF Tech не заявляет о наличии Pi Authentication, Pi Payments, PiNet, статусе Mainnet/Testnet или состоянии приложения, пока соответствующее свойство не подтверждено независимой наблюдаемой проверкой. Категория ZAF Tech основана на публичном имени/URL и не является официальной категорией Pi.",
     "Historical storage is optional. Set DATABASE_URL to enable persistent DeFi history and change alerts.": "Историческое хранилище необязательно. Настройте DATABASE_URL, чтобы включить сохранение истории DeFi и уведомления об изменениях.",
     "Boundary: alerts are generated from observable sample changes only. They do not prove network-wide activity, intent, ownership, or economic significance.": "Граница: уведомления формируются только по изменениям наблюдаемой выборки. Они не доказывают активность всей сети, намерения, владение или экономическую значимость.",
@@ -3201,9 +3233,13 @@ const translations: Record<Locale, Record<string, string>> = {
     "Coming soon target": "Ближайшая цель",
   },
   fr: {
-    "Test environment": "Environnement de test",
-    "Observation data: Mainnet": "Données observées : Mainnet",
-    "Mainnet labels identify public observation data, not this app's Pi network. Other data panels show their own source network.": "Les mentions Mainnet désignent les données publiques observées, pas le réseau Pi de cette application. Les autres panneaux indiquent leur propre réseau source.",
+    "Pi Sign-In": "Connexion Pi",
+    "Close": "Fermer",
+    "Loading…": "Chargement…",
+    "Release to refresh": "Relâchez pour actualiser",
+    "Pull down to refresh": "Tirez vers le bas pour actualiser",
+    "Session help": "Aide de session",
+    "This session ends when you refresh or close this page.": "Cette session prend fin lorsque vous actualisez ou fermez cette page.",
     "Current Day": "Jour Actuel",
     "Previous Day": "Jour Précédent",
     "App Change": "Variation Des Apps",
@@ -3624,4 +3660,7 @@ export function t(locale: Locale, key: string, trText?: string): string {
   return translations[locale][key] ?? supplementalUiTranslations[key]?.[locale as Exclude<Locale, "en" | "tr">] ?? (locale === "ru" ? supplementalRussianUiTranslations[key] : undefined) ?? key;
 }
 
-export const translate = t;
+export function translate(locale: Locale, key: string, trText?: string): string {
+  const value = updatedCopy(locale, key) ?? t(locale, key, trText);
+  return key.startsWith("Boundary:") ? value.replace(/([:：]\s*)(\p{L})/u, (_, prefix: string, letter: string) => prefix + letter.toLocaleUpperCase(intlLocale(locale))) : value;
+}

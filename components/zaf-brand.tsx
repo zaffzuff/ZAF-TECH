@@ -8,6 +8,10 @@ export function ZafWordmark({ className = "" }: { className?: string }) {
   </div>;
 }
 
+export function ZafFooterName() {
+  return <span className="zaf-footer-wordmark">ZAF Tech</span>;
+}
+
 export function ZafBrand({ className = "" }: { className?: string }) {
   return <a href="/" aria-label="ZAF Tech Testnet" className={`zaf-brand-lockup ${className}`}>
     <Image src="/zaf-tech-logo.png?v=20261016" alt="" width={48} height={48} className="h-12 w-12 shrink-0 object-contain" />

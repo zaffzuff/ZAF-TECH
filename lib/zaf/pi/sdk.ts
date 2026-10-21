@@ -1,6 +1,6 @@
 export type PiAuthResult = { accessToken: string; user?: { username?: string; uid?: string } };
 export type PiSdk = {
-  init: (options: { version: "2.0"; sandbox: boolean }) => Promise<unknown> | void;
+  init: (options: { version: "2.0"; sandbox?: boolean }) => Promise<unknown> | void;
   authenticate: (scopes: string[], onIncompletePaymentFound?: (payment: unknown) => void) => Promise<PiAuthResult>;
   getPiHostAppInfo?: () => Promise<{ hostApp?: string }>;
 };
@@ -9,7 +9,7 @@ declare global { interface Window { Pi?: PiSdk } }
 
 let loading: Promise<void> | null = null;
 let initializing: Promise<PiSdk> | null = null;
-let initializedMode: boolean | null = null;
+let initialized = false;
 let reloadRequired = false;
 
 export function piReloadRequired() { return reloadRequired; }
@@ -25,13 +25,13 @@ export function loadPiSdk(): Promise<void> {
   if (reloadRequired) return Promise.reject(new Error("Reload ZAF Tech to retry Pi SDK loading."));
   if (window.Pi) return Promise.resolve();
   if (loading) return loading;
-  const script = document.createElement("script");
-  script.src = "https://sdk.minepi.com/pi-sdk.js";
-  script.async = true;
+  const existing = document.getElementById?.("zaf-pi-sdk") as HTMLScriptElement | null;
+  const script = existing || document.createElement("script");
+  if (!existing) { script.src = "https://sdk.minepi.com/pi-sdk.js"; script.async = true; }
   const pending = new Promise<void>((resolve, reject) => {
     script.onload = () => window.Pi ? resolve() : reject(new Error("Pi SDK did not initialize."));
     script.onerror = () => reject(new Error("Pi SDK could not be loaded."));
-    document.head.appendChild(script);
+    if (!existing) document.head.appendChild(script);
   });
   loading = withPiTimeout(pending, 12_000, "Pi SDK loading timed out.", () => {
     // Removing a script cannot guarantee cancellation after execution has begun.
@@ -51,12 +51,13 @@ export function initializePiSdk(): Promise<PiSdk> {
   if (reloadRequired) return Promise.reject(new Error("Reload ZAF Tech to retry Pi SDK initialization."));
   const pi = window.Pi;
   if (!pi) return Promise.reject(new Error("Pi SDK is unavailable."));
-  const sandbox = isPiSandboxRoute() || process.env.NEXT_PUBLIC_PI_SDK_MODE?.trim().toLowerCase() === "sandbox";
-  if (initializedMode === sandbox) return Promise.resolve(pi);
+  if (initialized) return Promise.resolve(pi);
   if (initializing) return initializing;
-  const pending = Promise.resolve().then(() => pi.init({ version: "2.0", sandbox }));
+  const pending = Promise.resolve().then(() => isPiSandboxRoute()
+    ? pi.init({ version: "2.0", sandbox: true })
+    : pi.init({ version: "2.0" }));
   initializing = withPiTimeout(pending, 12_000, "Pi SDK initialization timed out.", () => { reloadRequired = true; })
-    .then(() => { initializedMode = sandbox; return pi; })
+    .then(() => { initialized = true; return pi; })
     .catch(error => { initializing = null; throw error; });
   return initializing;
 }

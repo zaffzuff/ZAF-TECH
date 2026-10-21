@@ -26,19 +26,23 @@ const nextConfig = {
       {
         // A standalone, anonymous diagnostic must be visible inside the native
         // browser shell so its actual frame origin can be identified.
-        source: "/((?!browser-check\\.html$|sandbox/?$).*)",
+        // Storage recovery GET and first-party bootstrap POST supply separate CSPs.
+        source: "/((?!browser-check\\.html$|signin/storage/?$|sandbox/?$).*)",
         headers: [
           // Verified on physical iOS Pi Browser: its ancestor is app-cdn.minepi.com.
           // CSP keeps all other external embedders blocked. SAMEORIGIN would
           // conflict with the required cross-origin Pi host, so do not emit it.
-          { key: "Content-Security-Policy", value: `frame-ancestors 'self' https://app-cdn.minepi.com${sandbox ? " https://sandbox.minepi.com" : ""};` },
+          { key: "Content-Security-Policy", value: `connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com${sandbox ? " https://sandbox.minepi.com" : ""};` },
         ],
       },
       {
         source: "/sandbox",
-        headers: [
-          { key: "Content-Security-Policy", value: `frame-ancestors 'self' https://app-cdn.minepi.com${process.env.PI_NETWORK?.trim().toLowerCase() === "testnet" ? " https://sandbox.minepi.com" : ""};` },
-        ],
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self' https://app-cdn.minepi.com https://sandbox.minepi.com;" }],
+      },
+      {
+        // Keep local Next and Vercel responses consistent for native form POSTs.
+        source: "/signin/storage",
+        headers: [{ key: "Referrer-Policy", value: "same-origin" }],
       },
       {
         source: "/browser-check.html",

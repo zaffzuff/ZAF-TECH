@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
+import { createHash } from "node:crypto";
 
 const root = process.cwd();
 const port = Number(process.env.SMOKE_PORT ?? (3200 + (process.pid % 500)));
@@ -7,6 +8,8 @@ const baseUrl = process.env.SMOKE_BASE_URL ?? `http://127.0.0.1:${port}`;
 const external = Boolean(process.env.SMOKE_LIVE);
 
 const checks = [
+  { path: "/pi-app-validation.txt", status: 200 },
+  { path: "/api/zaf/pi/session", status: 200 },
   { path: "/", status: 200 },
   { path: "/about", status: 200 },
   { path: "/privacy", status: 200 },
@@ -26,7 +29,7 @@ const checks = [
 const requiredHeaders = [
   ["x-content-type-options", "nosniff"],
   ["referrer-policy", "strict-origin-when-cross-origin"],
-  ["content-security-policy", "frame-ancestors 'self' https://app-cdn.minepi.com;"],
+  ["content-security-policy", "connect-src 'self' https://socialchain.app http://127.0.0.1:39100; frame-ancestors 'self' https://app-cdn.minepi.com https://*.pinet.com https://*.minepi.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com;"],
   ["permissions-policy", "camera=(), microphone=(), geolocation=()"],
   ["strict-transport-security", "max-age=31536000; includeSubDomains; preload"],
 ];
@@ -117,6 +120,34 @@ try {
     if (response.status !== check.status) {
       throw new Error(`${check.path} expected ${check.status}, received ${response.status}: ${response.text.slice(0, 220)}`);
     }
+  }
+
+  // The anonymous GET can render in Pi's trusted shell with one hashed script.
+  // Only the first-party POST sets the harmless visit marker and redirects.
+  const storageSetup = await request('/signin/storage?lang=tr');
+  const storageCsp = storageSetup.headers['content-security-policy'] ?? '';
+  const storageFormAction = storageCsp.split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
+  const storageScripts = [...storageSetup.text.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  const storageScriptHash = storageScripts.length === 1 ? createHash('sha256').update(storageScripts[0][1]).digest('base64') : null;
+  if (storageSetup.status !== 200 ||
+      !storageCsp.includes("frame-ancestors 'self' https://app-cdn.minepi.com") ||
+      !storageCsp.includes("default-src 'none'") ||
+      !storageScriptHash || !storageCsp.includes(`script-src 'sha256-${storageScriptHash}'`) ||
+      storageFormAction !== "form-action 'self' https://zaf-tech-testnet.vercel.app" ||
+      storageSetup.headers['referrer-policy'] !== 'same-origin' ||
+      storageSetup.headers['set-cookie'] || !storageSetup.text.includes('method="post"')) {
+    throw new Error('Anonymous Pi recovery GET must preserve the trusted-shell policy and its exact hashed script without setting cookies.');
+  }
+  const storageVisit = await request('/signin/storage', { method: 'POST', headers: { Origin: baseUrl } });
+  if (storageVisit.status !== 303 || storageVisit.headers.location !== 'https://zaf-tech-testnet.vercel.app/' ||
+      !(storageVisit.headers['content-security-policy'] ?? '').includes("frame-ancestors 'none'") ||
+      storageVisit.headers['x-frame-options'] !== 'DENY' || storageVisit.headers['referrer-policy'] !== 'same-origin' ||
+      !(storageVisit.headers['set-cookie'] ?? '').includes('__Host-zaf-pi-storage-visit=1')) {
+    throw new Error('First-party Pi recovery POST must retain its strict frame policy and fixed PiNet redirect.');
+  }
+  const foreignVisit = await request('/signin/storage', { method: 'POST', headers: { Origin: 'https://example.org' } });
+  if (foreignVisit.status !== 403 || foreignVisit.headers['set-cookie']) {
+    throw new Error('Pi recovery POST must reject foreign origins without setting cookies.');
   }
 
   // Policy pages must work before hydration, including direct Turkish terms.

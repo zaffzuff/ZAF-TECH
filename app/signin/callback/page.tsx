@@ -3,6 +3,7 @@ import { ZafBrand } from "@/components/zaf-brand";
 
 import { useEffect, useRef, useState } from "react";
 import { requestJson } from "@/lib/zaf/client-request";
+import { confirmPiSession } from "@/lib/zaf/pi/session-state";
 import {
   getSafePiSignInReturnPath,
   PI_SIGNIN_RETURN_TO_KEY,
@@ -71,7 +72,7 @@ export default function PiSignInCallbackPage() {
         return;
       }
 
-      const { response, body } = await requestJson<{ user?: { username?: string } }>("/api/zaf/pi/auth", {
+      const { response, body } = await requestJson<{ user?: { username?: string } }>("/api/zaf/pi/oauth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessToken }),
@@ -82,11 +83,16 @@ export default function PiSignInCallbackPage() {
 
       if (!response.ok || !username) {
         setFailed(true);
-        setMessage("Pi returned, but ZAF Tech could not verify the account. Please start again. / Pi'den dönüş alındı ancak hesap doğrulanamadı. Yeniden başlat.");
+        setMessage(`Pi returned, but ZAF Tech could not verify the account. Please start again. / Pi'den dönüş alındı ancak hesap doğrulanamadı. Yeniden başlat. (ZAF-PI-OAUTH-${response.status})`);
         return;
       }
 
       // Persist only the verified display name, never the access token.
+      if (await confirmPiSession(username) !== username) {
+        setFailed(true);
+        setMessage("Your browser could not keep the ZAF Tech session. Allow cookies for ZAF Tech and start again. / Tarayıcı ZAF Tech oturumunu koruyamadı. ZAF Tech için çerezlere izin verip yeniden başlat. (ZAF-PI-SESSION)");
+        return;
+      }
       savePiDisplay(username);
       window.location.replace(getSafePiSignInReturnPath(returnTo));
     }

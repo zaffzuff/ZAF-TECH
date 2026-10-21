@@ -1,9 +1,10 @@
 "use client";
 
-import { ZafBrand } from "@/components/zaf-brand";
+import { ZafBrand, ZafFooterName } from "@/components/zaf-brand";
 import Link from "next/link";
 import type { DirectoryApp } from "@/lib/zaf/app-directory";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { requestJson } from "@/lib/zaf/client-request";
 import type { Locale } from "@/lib/zaf/i18n";
 import { intlLocale, translate } from "@/lib/zaf/i18n";
 import { LanguageSelector } from "@/components/zaf-language-selector";
@@ -18,12 +19,12 @@ function displayStatus(value: string | null | undefined, locale: Locale) {
     available: { en: "Available", es: "Disponible", tr: "Kullanılabilir", zh: "可用", it: "Disponibile", fr: "Disponible", de: "Verfügbar", pt: "Disponível", ru: "Доступно" },
     unavailable: { en: "Unavailable", es: "No Disponible", tr: "Kullanılamıyor", zh: "不可用", it: "Non Disponibile", fr: "Indisponible", de: "Nicht Verfügbar", pt: "Indisponível", ru: "Недоступно" },
     improving: { en: "Improving", es: "Mejorando", tr: "İyileşiyor", zh: "改善中", it: "In Miglioramento", fr: "En Amélioration", de: "Verbesserung", pt: "Melhorando", ru: "Улучшается" },
-    declining: { en: "Declining", es: "Empeorando", tr: "Geriliyor", zh: "Düşüyor", it: "In Peggioramento", fr: "En Dégradation", de: "Rückläufig", pt: "Em Queda", ru: "Снижается" },
+    declining: { en: "Declining", es: "Empeorando", tr: "Geriliyor", zh: "下降", it: "In Peggioramento", fr: "En Dégradation", de: "Rückläufig", pt: "Em Queda", ru: "Снижается" },
     stable: { en: "Stable", es: "Estable", tr: "Sabit", zh: "稳定", it: "Stabile", fr: "Stable", de: "Stabil", pt: "Estável", ru: "Стабильно" },
     insufficient: { en: "Insufficient Data", es: "Datos Insuficientes", tr: "Yetersiz Veri", zh: "数据不足", it: "Dati Insufficienti", fr: "Données Insuffisantes", de: "Daten Unzureichend", pt: "Dados Insuficientes", ru: "Недостаточно Данных" },
     fresh: { en: "Fresh", es: "Reciente", tr: "Taze", zh: "新鲜", it: "Recente", fr: "Récent", de: "Frisch", pt: "Recente", ru: "Свежие" },
-    aging: { en: "Aging", es: "Envejeciendo", tr: "Yaşlanıyor", zh: "正在变旧", it: "Invecchiando", fr: "Alterando", de: "Alternd", pt: "Envelhecendo", ru: "Устаревает" },
-    stale: { en: "Stale", es: "Eski", tr: "Bayat", zh: "陈旧", it: "Obsoleto", fr: "Stale", de: "Veraltet", pt: "Desatualizado", ru: "Устаревшие" },
+    aging: { en: "Awaiting update", es: "Pendiente de actualización", tr: "Güncelleme bekleniyor", zh: "正在变旧", it: "In attesa di aggiornamento", fr: "En attente de mise à jour", de: "Aktualisierung ausstehend", pt: "A aguardar atualização", ru: "Устаревает" },
+    stale: { en: "Stale", es: "Desactualizado", tr: "Bayat", zh: "陈旧", it: "Obsoleto", fr: "Périmé", de: "Veraltet", pt: "Desatualizado", ru: "Устаревшие" },
     old: { en: "Old", es: "Antiguo", tr: "Eski", zh: "很旧", it: "Vecchio", fr: "Ancien", de: "Alt", pt: "Antigo", ru: "Старые" },
     mainnet: { en: "Mainnet", es: "Mainnet", tr: "Mainnet", zh: "主网", it: "Mainnet", fr: "Mainnet", de: "Mainnet", pt: "Mainnet", ru: "Mainnet" },
     testnet: { en: "Testnet", es: "Testnet", tr: "Testnet", zh: "测试网", it: "Testnet", fr: "Testnet", de: "Testnet", pt: "Testnet", ru: "Testnet" },
@@ -92,43 +93,56 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
   const [trendSummary, setTrendSummary] = useState<AppTrendSummary | null>(null);
   const [trendPoints, setTrendPoints] = useState<AppHealthTrendPoint[]>([]);
   const [healthLoading, setHealthLoading] = useState(false);
+  const [healthError, setHealthError] = useState<"rate-limit" | "request" | null>(null);
+  const healthRequest = useRef<AbortController | null>(null);
 
   const checkHealth = useCallback(async () => {
+    healthRequest.current?.abort();
+    const controller = new AbortController();
+    healthRequest.current = controller;
     setHealthLoading(true);
+    setHealth(null);
+    setHealthError(null);
+    setTrendSummary(null);
+    setTrendPoints([]);
     try {
-      const response = await fetch("/api/apps/check?url=" + encodeURIComponent(app.url), { cache: "no-store" });
-      const result = await response.json();
+      const { response, body: result } = await requestJson<AppHealthResult>("/api/apps/check?url=" + encodeURIComponent(app.url), { cache: "no-store", signal: controller.signal });
+      if (healthRequest.current !== controller) return;
+      if (!response.ok) {
+        setHealthError(response.status === 429 ? "rate-limit" : "request");
+        return;
+      }
+      if (!result || typeof result.reachable !== "boolean" || typeof result.https !== "boolean" || typeof result.responseTimeMs !== "number" || !Number.isFinite(result.responseTimeMs) || typeof result.checkedAt !== "string") {
+        setHealthError("request");
+        return;
+      }
       setHealth(result);
-      if (response.ok) {
-        const trendResponse = await fetch("/api/apps/health/trend?url=" + encodeURIComponent(app.url), { cache: "no-store" });
+      try {
+        const { response: trendResponse, body: trend } = await requestJson<{ summary?: AppTrendSummary; points?: AppHealthTrendPoint[] }>("/api/apps/health/trend?url=" + encodeURIComponent(app.url), { cache: "no-store", signal: controller.signal });
+        if (healthRequest.current !== controller) return;
         if (trendResponse.ok) {
-          const trend = await trendResponse.json();
           setTrendSummary(trend.summary ?? null);
           setTrendPoints(Array.isArray(trend.points) ? trend.points : []);
         }
+      } catch {
+        // A missing historical response does not change the live URL observation.
       }
     } catch {
-      setTrendSummary(null);
-      setTrendPoints([]);
-      setHealth({
-        url: app.url,
-        reachable: false,
-        responseTimeMs: 0,
-        https: app.url.startsWith("https://"),
-        redirect: false,
-        checkedAt: new Date().toISOString(),
-        error: "Request failed",
-      });
+      if (healthRequest.current !== controller) return;
+      setHealthError("request");
     } finally {
-      setHealthLoading(false);
+      if (healthRequest.current === controller) setHealthLoading(false);
     }
   }, [app.url]);
 
-  useEffect(() => { void checkHealth(); }, [checkHealth]);
+  useEffect(() => {
+    void checkHealth();
+    return () => { healthRequest.current?.abort(); healthRequest.current = null; };
+  }, [checkHealth]);
 
   const tr = (en: string, trText: string) => translate(locale, en, trText);
   return (
-    <main className="min-h-screen bg-background">
+    <main lang={locale} className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 pb-10">
         <header className="border-b border-border pb-5 pt-7">
           <ZafBrand className="mb-5" />
@@ -164,6 +178,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
                 {healthLoading ? tr("Checking…", "Kontrol Ediliyor…") : tr("Check Now", "Şimdi Kontrol Et")}
               </button>
             </div>
+            {healthError ? <p role="status" className="mt-3 text-xs text-muted-foreground">{healthError === "rate-limit" ? tr("Too many requests. Please retry later.", "Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin.") : tr("The URL check could not be completed. Check the address or try again later.", "URL kontrolü tamamlanamadı. Adresi kontrol edin veya biraz sonra tekrar deneyin.")}</p> : null}
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
               <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Reachability", "Erişilebilirlik")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? (health.reachable ? tr("Reachable", "Erişilebilir") : tr("Offline", "Çevrimdışı")) : "—"}</div></div>
               <div className="rounded-lg border border-border p-3"><div className="text-[10px] text-muted-foreground">{tr("Response", "Yanıt")}</div><div className="mt-1 text-xs font-semibold text-foreground">{health ? health.responseTimeMs + " ms" : "—"}</div></div>
@@ -333,7 +348,7 @@ export function AppDetails({ app }: { app: DirectoryApp }) {
         </section>
 
         <footer className="mt-8 border-t border-border pt-4 text-[10px] text-muted-foreground">
-          ZAF Tech · {tr("Independent Community-Developed Technology Project", "Bağımsız Topluluk Geliştirmeli Teknoloji Projesi")}
+          <ZafFooterName /> · {tr("Independent Community-Developed Technology Project", "Bağımsız Topluluk Geliştirmeli Teknoloji Projesi")}
         </footer>
       </div>
     </main>

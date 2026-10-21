@@ -122,7 +122,7 @@ if (!piRuntime.includes("const compatible = !(sdkSandbox && network === \"mainne
   throw new Error("Pi SDK Sandbox/network compatibility guard regression");
 }
 const piAuthRoute = readText(path.join(root, "app/api/zaf/pi/auth/route.ts"), "utf8");
-for (const token of ["pi-auth-verify", "/me", "Authorization", "Bearer", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
+for (const token of ["pi-auth-verify", "https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", "sealPiSession", "sessionToken", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
   if (!piAuthRoute.includes(token)) throw new Error("Pi authentication verification regression: " + token);
 }
 if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
@@ -130,7 +130,7 @@ if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
 }
 const piSignIn = readText(path.join(root, "components/zaf-pi-sign-in.tsx"), "utf8");
 const piSdk = readText(path.join(root, "lib/zaf/pi/sdk.ts"), "utf8");
-for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init({ version: \"2.0\", sandbox })", "Pi SDK initialization timed out.", 'pi.authenticate(["username"]', "NEXT_PUBLIC_PI_SDK_MODE", "12_000", "45_000", "reloadRequired"]) {
+for (const token of ["https://sdk.minepi.com/pi-sdk.js", "pi.init({ version: \"2.0\" })", "Pi SDK initialization timed out.", 'pi.authenticate(["username"]', "12_000", "45_000", "reloadRequired"]) {
   if (!piSdk.includes(token)) throw new Error("Pi SDK lifecycle regression: " + token);
 }
 for (const token of ["/api/zaf/pi/auth", "initializePiSdk", "authenticatePi", "acquirePiSignIn", "readPiDisplay", "savePiDisplay"]) {
@@ -176,12 +176,15 @@ for (const token of [
   "function safePiErrorDetail",
   "useEffect(() => {",
   "await initializePiSdk();",
-  'userAgent.includes("pibrowser")',
-  'userAgent.includes("pi-browser")',
-  'info?.hostApp === "pi-browser"',
+  '["pi-browser", "pi-node"].includes(info.hostApp)',
+  'if (info?.hostApp === "pi-net") return false;',
   "insidePiBrowser",
 ]) {
   if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
+}
+const piNativeContext = readText(path.join(root, "lib/zaf/pi/native-context.ts"), "utf8");
+for (const token of ['userAgent.includes("pibrowser")', 'userAgent.includes("pi-browser")', 'window.parent === window', 'https://zaf-tech-testnet.vercel.app']) {
+  if (!piNativeContext.includes(token)) throw new Error("Pi app entry regression: " + token);
 }
 
 const zafAppSource = readText(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
@@ -208,43 +211,17 @@ if (startPiPosition < 0 || mobileSignInPosition < 0 || startPiPosition > mobileS
 }
 const piSignInStyles = readText(path.join(root, "app/globals.css"), "utf8");
 
-for (const token of [
-  ".zaf-sticky-header .zaf-desktop-header .zaf-start-pi-link",
-  ".zaf-sticky-header .zaf-desktop-header .zaf-pi-signin-button",
-  "height: 32px;",
-  "min-height: 32px;",
-  "background-color: #f5e8c7;",
-  "color: #6f3f8f;",
-  "-webkit-text-fill-color: #6f3f8f;",
-  "border-color: #cbb270;",
-]) {
-  if (!piSignInStyles.includes(token)) throw new Error("Desktop Pi action champagne styling regression: " + token);
+for(const token of ['.zaf-pi-control','.zaf-overlay-backdrop','.zaf-overlay-panel','flex-wrap:nowrap','overflow-wrap:anywhere']) {
+ if(!piSignInStyles.includes(token)) throw new Error('Stable header/dialog styling missing: '+token);
 }
-
-for (const token of [
-  ".zaf-mobile-pi-actions .zaf-start-pi-link",
-  ".zaf-mobile-pi-actions .zaf-pi-signin-button",
-  "height: 34px;",
-  "background: #f5e8c7 !important;",
-  "background-image: none !important;",
-  "-webkit-text-fill-color: #6f3f8f !important;",
-  "max-width: min(100%, 240px);",
-  "overflow-wrap: anywhere;",
-]) {
-  if (!piSignInStyles.includes(token)) throw new Error("Mobile Pi Sign-In champagne styling/layout regression: " + token);
-}
-if (!piSignIn.includes("zaf-pi-status-bubble") ||
-    !piSignIn.includes("safePiErrorDetail") ||
-    !piSignIn.includes("Pi Browser did not respond to the sign-in request")) {
-  throw new Error("Pi sign-in must show a compact status bubble and useful timeout diagnosis");
-}
+if(!piSignIn.includes('ZafOverlay') || !piSignIn.includes('safePiErrorDetail') || !piSignIn.includes('Pi Browser did not respond to the sign-in request')) throw new Error('Pi dialog and timeout diagnosis required');
 
 const piOAuthHelpers = readText(path.join(root, "lib/zaf/pi/oauth.ts"), "utf8");
 for (const token of ["PI_SIGNIN_STATE_KEY", "PI_SIGNIN_RETURN_TO_KEY", "PI_SIGNIN_VERIFIED_USERNAME_KEY", "getSafePiSignInReturnPath", 'startsWith("//")']) {
   if (!piOAuthHelpers.includes(token)) throw new Error("Pi OAuth state/redirect safety regression: " + token);
 }
 const piSignInCallback = readText(path.join(root, "app/signin/callback/page.tsx"), "utf8");
-for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/auth", "savePiDisplay", "isPiOAuthStateFresh", "window.location.replace"]) {
+for (const token of ["access_token", "returnedState !== expectedState", "window.history.replaceState", "/api/zaf/pi/oauth", "savePiDisplay", "isPiOAuthStateFresh", "window.location.replace"]) {
   if (!piSignInCallback.includes(token)) throw new Error("Pi OAuth callback regression: " + token);
 }
 
@@ -273,6 +250,16 @@ const app = readText(path.join(root, "components/zaf-tech-app.tsx"), "utf8");
 const i18n = readText(path.join(root, "lib/zaf/i18n.ts"), "utf8");
 if (i18n.includes("spanishCopy")) throw new Error("Pseudo-localization fallback must not return");
 const supplementalTranslations = readText(path.join(root, "lib/zaf/ui-translations.ts"), "utf8");
+// The current translator checks this nine-language catalog before legacy dictionaries.
+// Validate every cell so a key's presence cannot conceal an empty translation.
+const updatedTranslations = readText(path.join(root, "lib/zaf/ui-update-copy.ts"), "utf8");
+const updatedRows = JSON.parse((updatedTranslations.match(/const rows = (\[[\s\S]*?\]) as const;/)?.[1] ?? "null").replace(/,\s*\]$/, "]"));
+const updatedOrder = JSON.parse(updatedTranslations.match(/const order: Locale\[\] = (\[[^\n]+\]);/)?.[1] ?? "null");
+if (!Array.isArray(updatedOrder) || updatedOrder.join(",") !== "en,tr,es,zh,it,fr,de,pt,ru" ||
+    !Array.isArray(updatedRows) || updatedRows.some(row => !Array.isArray(row) || row.length !== updatedOrder.length || row.some(value => typeof value !== "string" || !value.trim()))) {
+  throw new Error("Updated UI translation catalog must contain a nonempty translation for every supported language");
+}
+const updatedCatalog = new Map(updatedRows.map(row => [row[0], row]));
 if (!supplementalTranslations.includes('const localeOrder: SupplementalLocale[] = ["es", "zh", "it", "fr", "de", "pt"]')) {
   throw new Error("Supplemental translation catalog is missing supported locales");
 }
@@ -310,7 +297,8 @@ for (const locale of ["es", "zh", "it", "fr", "de", "pt", "ru"]) {
   for (const key of pairedUiKeys) {
     const inPrimaryDictionary = localeBlock.includes(JSON.stringify(key) + ":");
     const inSupplementalCatalog = locale === "ru" ? russianSupplementalTranslations.includes(JSON.stringify(key) + ":") : supplementalTranslations.includes("  [" + JSON.stringify(key) + ",");
-    if (!inPrimaryDictionary && !inSupplementalCatalog) missing.push(key);
+    const inUpdatedCatalog = Boolean(updatedCatalog.get(key)?.[updatedOrder.indexOf(locale)]);
+    if (!inPrimaryDictionary && !inSupplementalCatalog && !inUpdatedCatalog) missing.push(key);
   }
   if (missing.length) {
     throw new Error(`UI localization regression (${locale}): missing ${missing.length} keys: ${missing.slice(0, 40).join(" | ")}`);
