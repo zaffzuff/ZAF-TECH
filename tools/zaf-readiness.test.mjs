@@ -23,20 +23,20 @@ test("Pi identity API destination rejects every nonofficial endpoint", () => {
   } finally {if(prior===undefined)delete process.env.PI_PLATFORM_API_BASE_URL;else process.env.PI_PLATFORM_API_BASE_URL=prior;}
 });
 
-test("App Studio exchange trusts only server identity and issues a secure session", async () => {
+test("Portal native exchange trusts only Pi Platform identity and rejects legacy App Studio response shapes", async () => {
   const prior=globalThis.fetch, priorSecret=process.env.ZAF_PI_SESSION_SECRET;
   process.env.ZAF_PI_SESSION_SECRET='ab'.repeat(32);
   const route=loader({'next/server':responseMock,'@/lib/zaf/rate-limit':{enforceRateLimit:async()=>null}})('@/app/api/zaf/pi/auth/route');
   const request=()=>new Request('https://zaf-tech.invalid/api/zaf/pi/auth',{method:'POST',headers:{origin:'https://zaf-tech.invalid','content-type':'application/json'},body:JSON.stringify({accessToken:'fixture-token',uid:'attacker',username:'attacker'})});
   try {
-    for(const [status,profile,expected] of [[200,{sessionToken:'upstream-session',user:{uid:'fixture-uid',username:'pioneer'}},200],[401,{},401],[403,{},401],[429,{},429],[500,{},502],[200,{user:{uid:'x',username:'pioneer'}},502],[200,null,502],[200,{sessionToken:'x',user:{uid:'x',username:'a'.repeat(101)}},502]]) {
+    for(const [status,profile,expected] of [[200,{uid:'fixture-uid',username:'pioneer'},200],[401,{},401],[403,{},401],[429,{},429],[500,{},502],[200,{sessionToken:'legacy',user:{uid:'x',username:'pioneer'}},502],[200,null,502],[200,{uid:'x',username:'a'.repeat(101)},502]]) {
       let calls=0;
-      globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,'https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login');assert.equal(options.method,'POST');assert.deepEqual(JSON.parse(options.body),{accessToken:'fixture-token'});assert.equal(options.redirect,'error');assert.equal(options.cache,'no-store');return new Response(JSON.stringify(profile),{status,headers:{'retry-after':'99999'}});};
+      globalThis.fetch=async(url,options)=>{calls++;assert.equal(url,'https://api.minepi.com/v2/me');assert.equal(options.method,'GET');assert.equal(options.headers.Authorization,'Bearer fixture-token');assert.equal(options.body,undefined);assert.equal(options.redirect,'error');assert.equal(options.cache,'no-store');return new Response(JSON.stringify(profile),{status,headers:{'retry-after':'99999'}});};
       const result=await route.POST(request());assert.equal(result.status,expected);assert.equal(calls,1);
       assert.match(result.headers['Cache-Control'],/no-store/);
       assert.equal(JSON.stringify(result.body).includes('fixture-token'),false);assert.equal(JSON.stringify(result.body).includes('fixture-uid'),false);
       assert.equal(JSON.stringify(result).includes('upstream-session'),false);
-      if(expected===200){assert.equal(result.body.user.username,'pioneer');const cookie=result.cookies.values[0];assert.equal(cookie[0],'__Host-zaf-pi-session-v2');assert.deepEqual(cookie[2],{httpOnly:true,secure:true,sameSite:'none',path:'/',maxAge:1800,partitioned:true});const session=loader()('@/lib/zaf/pi/session');assert.deepEqual(session.readPiSession(cookie[1]),{uid:'fixture-uid',username:'pioneer'});assert.equal(result.cookies.values[1][0],session.PI_LEGACY_SESSION_COOKIE);assert.equal(result.cookies.values[1][2].maxAge,0);}
+      if(expected===200){assert.equal(result.body.user.username,'pioneer');const cookie=result.cookies.values[0];assert.equal(cookie[0],'__Host-zaf-pi-session-v2');assert.deepEqual(cookie[2],{httpOnly:true,secure:true,sameSite:'none',path:'/',maxAge:1800,partitioned:true});const session=loader()('@/lib/zaf/pi/session');const identity=session.readPiSession(cookie[1]);assert.equal(identity.username,'pioneer');assert.match(identity.uid,/^pi-native:[a-f0-9]{64}$/);assert.notEqual(identity.uid,'fixture-uid');assert.equal(result.cookies.values[1][0],session.PI_LEGACY_SESSION_COOKIE);assert.equal(result.cookies.values[1][2].maxAge,0);}
       else assert.equal(result.cookies.values.length,0);
       if(status===429)assert.equal(result.headers['Retry-After'],'300');
     }

@@ -88,29 +88,24 @@ async function clickSignIn(component) {
   await new Promise(resolve => setImmediate(resolve));
 }
 
-test("direct self-hosted Pi Browser starts Portal OAuth without an unavailable parent bridge", async () => {
+test("direct self-hosted Pi Browser uses native auth and never unsupported web OAuth", async () => {
   const fixture = entryFixture({ topLevel: true });
   const initial = fixture.render();
   fixture.effects[1]();
   await clickSignIn(initial);
-  assert.deepEqual(fixture.calls, []);
-  assert.equal(fixture.navigations.length, 1);
-  const url = new URL(fixture.navigations[0]);
-  assert.equal(url.origin, "https://accounts.pinet.com");
-  assert.equal(url.searchParams.get("redirect_uri"), "https://zaf-tech.vercel.app/signin/callback");
-  assert.equal(url.searchParams.get("scope"), "username");
-  assert.deepEqual(fixture.requests, []);
+  assert.deepEqual(fixture.calls, ["load", "init", "host", "authenticate"]);
+  assert.equal(fixture.navigations.length, 0);
+  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
+  assert.match(renderedText(fixture.render()), /Pi Account Verified/);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
 });
 
-test("direct Pi OAuth ignores attacker URL destinations", async () => {
+test("direct native Pi login ignores attacker URL destinations", async () => {
   const fixture = entryFixture({ topLevel: true });
   fixture.window.location.search = "?returnTo=https://attacker.example&piAppUrl=javascript:alert(1)";
   await clickSignIn(fixture.render("tr"));
-  const url = new URL(fixture.navigations[0]);
-  assert.equal(url.origin, "https://accounts.pinet.com");
-  assert.equal(url.searchParams.get("redirect_uri"), "https://zaf-tech.vercel.app/signin/callback");
-  assert.equal(url.searchParams.has("piAppUrl"), false);
+  assert.deepEqual(fixture.navigations, []);
+  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
 });
 
 test("PiNet web host uses existing OAuth even when its browser user agent mentions Pi", async () => {
@@ -398,13 +393,12 @@ test("an immediate historical-name sign-out discovers blocked cookies before any
   assert.equal(display.isPiSignInBusy(), false);
 });
 
-test("generic top-level iOS uses OAuth without waiting for the native bridge", async () => {
+test("generic top-level iOS with a native host uses native authentication", async () => {
   const fixture = entryFixture({ userAgent: "Mozilla/5.0 iPhone", topLevel: true });
   await clickSignIn(fixture.render());
-  assert.deepEqual(fixture.calls, []);
-  assert.equal(fixture.requests.length, 0);
-  assert.equal(fixture.navigations.length, 1);
-  assert.equal(new URL(fixture.navigations[0]).origin, "https://accounts.pinet.com");
+  assert.deepEqual(fixture.calls, ["load", "init", "host", "authenticate"]);
+  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
+  assert.equal(fixture.navigations.length, 0);
 });
 
 test("native upstream 502 offers registered entry without trusting SDK identity or retrying another verifier", async () => {

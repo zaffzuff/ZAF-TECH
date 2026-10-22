@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { assertPiSessionConfigured, sealPiSession, sealPiPageSession, PI_SESSION_SECONDS, PI_SESSION_COOKIE, PI_LEGACY_SESSION_COOKIE, piSessionCookieOptions, piLegacyCookieClearOptions } from "@/lib/zaf/pi/session";
 import { enforceRateLimit } from "@/lib/zaf/rate-limit";
@@ -28,13 +29,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const piResponse = await fetch("https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", {
-      method: "POST",
+    const piResponse = await fetch("https://api.minepi.com/v2/me", {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
       },
-      body: JSON.stringify({ accessToken }),
       cache: "no-store",
       redirect: "error",
       signal: AbortSignal.timeout(10_000),
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     if (!piResponse.ok) {
       // Never log the body: upstream errors can contain credentials or identity.
-      console.warn("[ZAF Tech] Pi auth rejected", { stage: "app-studio", status: piResponse.status });
+      console.warn("[ZAF Tech] Pi auth rejected", { stage: "platform-me", status: piResponse.status });
     }
 
     if (piResponse.status === 401 || piResponse.status === 403) {
@@ -65,20 +65,20 @@ export async function POST(request: Request) {
     }
 
     const result: unknown = await piResponse.json();
-    const { user, sessionToken } = (result && typeof result === "object" ? result : {}) as { user?: unknown; sessionToken?: unknown };
-    if (!validPiProfile(user) || typeof sessionToken !== "string" || !/^[\x21-\x7e]{1,16384}$/.test(sessionToken)) {
+    if (!validPiProfile(result)) {
       console.warn("[ZAF Tech] Pi auth rejected", {
-        stage: "app-studio-profile", status: piResponse.status,
-        validProfile: validPiProfile(user), hasSessionToken: typeof sessionToken === "string" && sessionToken.length > 0,
+        stage: "platform-profile", status: piResponse.status,
       });
       return NextResponse.json({ error: "Pi returned an incomplete user profile." }, {
         status: 502,
         headers: { "Cache-Control": "no-store" },
       });
     }
+    // Portal and legacy App Studio identities remain separate; never join by username.
+    const user = { uid: "pi-native:" + createHash("sha256").update(result.uid).digest("hex"), username: result.username };
 
     // An explicitly requested page session is issued only after the same native
-    // App Studio verification. It is our credential, never either upstream token.
+    // Pi Platform verification. It is our credential, never the upstream token.
     const pageSession = request.headers.get("x-zaf-pi-session-transport") === "memory";
     const now = Date.now();
     const response = NextResponse.json({ ok: true, user: { username: user.username },

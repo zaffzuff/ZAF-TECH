@@ -47,9 +47,11 @@ test('memory transport verifies native identity and reads it back without cookie
     let exchanges = 0;
     globalThis.fetch = async (url, options) => {
       exchanges++;
-      assert.equal(url, 'https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login');
-      assert.deepEqual(JSON.parse(options.body), {accessToken:'fixture-access-token'});
-      return Response.json({ user: { uid:'native-private-uid', username:'native-pioneer' }, sessionToken:'upstream-private-session' });
+      assert.equal(url, 'https://api.minepi.com/v2/me');
+      assert.equal(options.method, 'GET');
+      assert.equal(options.headers.Authorization, 'Bearer fixture-access-token');
+      assert.equal(options.body, undefined);
+      return Response.json({ uid:'native-private-uid', username:'native-pioneer' });
     };
     const load = loader({'@/lib/zaf/rate-limit':{enforceRateLimit:async()=>null}});
     const auth = load('@/app/api/zaf/pi/auth/route'), session = load('@/app/api/zaf/pi/session/route'), api = load('@/lib/zaf/pi/session');

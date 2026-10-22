@@ -138,15 +138,6 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     let verificationCode = "ZAF-PI-CONNECTION";
     let storageUnavailable = false;
     try {
-      // Pi Browser can resolve a self-hosted PiNet app to its Vercel origin.
-      // OAuth uses the Portal client and registered callback without a parent bridge.
-      if (window.parent === window) {
-        phase = "oauth-start";
-        const clientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
-        if (!clientId) throw new Error("Pi Sign-In Client ID is not configured.");
-        beginPiOAuthSignIn(clientId);
-        return;
-      }
       if (storagePermission) {
         const available = await withTimeout(storagePermission, 5_000, "Session access timed out.").catch(() => false);
         if (!mounted.current) return;
@@ -183,8 +174,8 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
         return;
       }
 
-      // Some iOS WebViews have a generic user agent. Recheck after SDK host detection.
-      if (window.parent === window) { setEntryRequired(true); return; }
+      // Self-hosted Portal apps may be top-level in Pi Browser. The SDK's
+      // host report determines native support, not whether an iframe exists.
 
       // Old iOS WebViews can reject cookie access even inside the registered
       // app. Do not gate Pi authentication on an unavailable cookie transport.
