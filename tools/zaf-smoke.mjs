@@ -133,13 +133,13 @@ try {
       !storageCsp.includes("frame-ancestors 'self' https://app-cdn.minepi.com") ||
       !storageCsp.includes("default-src 'none'") ||
       !storageScriptHash || !storageCsp.includes(`script-src 'sha256-${storageScriptHash}'`) ||
-      storageFormAction !== "form-action 'self' https://zaftechpu0455.pinet.com" ||
+      storageFormAction !== "form-action 'self' https://zaftech3771.pinet.com" ||
       storageSetup.headers['referrer-policy'] !== 'same-origin' ||
       storageSetup.headers['set-cookie'] || !storageSetup.text.includes('method="post"')) {
     throw new Error('Anonymous Pi recovery GET must preserve the trusted-shell policy and its exact hashed script without setting cookies.');
   }
   const storageVisit = await request('/signin/storage', { method: 'POST', headers: { Origin: baseUrl } });
-  if (storageVisit.status !== 303 || storageVisit.headers.location !== 'https://zaftechpu0455.pinet.com/' ||
+  if (storageVisit.status !== 303 || storageVisit.headers.location !== 'https://zaftech3771.pinet.com/' ||
       !(storageVisit.headers['content-security-policy'] ?? '').includes("frame-ancestors 'none'") ||
       storageVisit.headers['x-frame-options'] !== 'DENY' || storageVisit.headers['referrer-policy'] !== 'same-origin' ||
       !(storageVisit.headers['set-cookie'] ?? '').includes('__Host-zaf-pi-storage-visit=1')) {
