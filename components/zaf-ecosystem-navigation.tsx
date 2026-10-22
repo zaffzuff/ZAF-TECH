@@ -257,15 +257,22 @@ export function ZafEcosystemNavigation({ locale, section, subtab, onSectionChang
     <div className="zaf-header-primary">
       {sections.map(([id, title]) => <div key={id} className="zaf-header-primary-cell">
         <button ref={element => { triggers.current[id] = element; }} type="button"
-          aria-pressed={section === id} aria-expanded={ZAF_SECTION_TABS[id].length ? expanded === id : undefined}
-          aria-controls={ZAF_SECTION_TABS[id].length ? "zaf-subnavigation" : undefined}
+          aria-pressed={section === id} aria-expanded={ZAF_SECTION_TABS[id].length > 1 ? expanded === id : undefined}
+          aria-controls={ZAF_SECTION_TABS[id].length > 1 ? "zaf-subnavigation" : undefined}
           onClick={() => {
+            // A single page (or no child pages) navigates directly; only choices open a menu.
+            if (ZAF_SECTION_TABS[id].length <= 1) {
+              setExpanded(null);
+              onSectionChange(id);
+              if (ZAF_SECTION_TABS[id][0]) onSubtabChange(ZAF_SECTION_TABS[id][0]);
+              return;
+            }
             setExpanded(expanded === id ? null : id);
           }} className={"zaf-header-primary-item " + (section === id ? "is-active" : "")}>
           <Icon name={sectionMeta[id].icon} size={17} />
           <span>{label(title, locale)}</span>
         </button>
-        {expanded === id && ZAF_SECTION_TABS[id].length ? <div id="zaf-subnavigation" className="zaf-header-subnavigation">
+        {expanded === id && ZAF_SECTION_TABS[id].length > 1 ? <div id="zaf-subnavigation" className="zaf-header-subnavigation">
           <ul aria-label={label(sectionMeta[id].title, locale)}>
             {ZAF_SECTION_TABS[id].map(item => <li key={item}><button type="button" aria-current={section === id && subtab === item ? "page" : undefined} onClick={() => { onSectionChange(id); onSubtabChange(item); setExpanded(null); triggers.current[id]?.focus(); }}>{label(item, locale)}</button></li>)}
           </ul>

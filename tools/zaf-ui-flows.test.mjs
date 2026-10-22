@@ -156,7 +156,7 @@ test("a completed empty search displays its actual empty result", async () => {
   h.cleanup();
 });
 
-for (const [index, section, first] of [[0, "overview", "Pulse"], [1, "discover", "App Directory"], [2, "network", "Network"], [3, "intelligence", "Radar"], [4, "wallet", "Wallet"]]) {
+for (const [index, section, first] of [[0, "overview", "Pulse"], [1, "discover", "App Directory"], [2, "network", "Network"], [3, "intelligence", "Radar"]]) {
   test(`primary ${section} opens only its menu; selecting a child navigates`, () => {
     const h = harness(() => { throw new Error("Navigation should not request data"); });
     const Navigation = h.component("components/zaf-ecosystem-navigation.tsx", "ZafEcosystemNavigation");
@@ -170,10 +170,29 @@ for (const [index, section, first] of [[0, "overview", "Pulse"], [1, "discover",
     const menu = nodes(tree, node => node.props?.id === "zaf-subnavigation")[0];
     assert.ok(menu);
     const items = nodes(menu, node => node.type === "button");
-    assert.ok(items.length > 0, "every primary section, including Wallet, has a selectable item");
+    assert.ok(items.length > 1, "only sections with multiple destinations open a menu");
     items[0].props.onClick();
     assert.deepEqual(selections, [["section", section], ["subtab", first]]);
     tree = h.render(Navigation, props);
     assert.equal(nodes(tree, node => node.props?.id === "zaf-subnavigation").length, 0);
   });
 }
+
+test("Wallet navigates directly, closes an open menu and has no expansion controls", () => {
+  const h = harness(() => { throw new Error("Navigation should not request data"); });
+  const Navigation = h.component("components/zaf-ecosystem-navigation.tsx", "ZafEcosystemNavigation");
+  const selections = [];
+  const props = { locale: "en", section: "network", subtab: "DEX", onSectionChange: value => selections.push(["section", value]), onSubtabChange: value => selections.push(["subtab", value]) };
+  let tree = h.render(Navigation, props);
+  const primary = value => nodes(value, node => node.type === "button" && node.props.className?.includes("zaf-header-primary-item"));
+  primary(tree)[1].props.onClick();
+  tree = h.render(Navigation, props);
+  assert.equal(nodes(tree, node => node.props?.id === "zaf-subnavigation").length, 1);
+  const wallet = primary(tree)[4];
+  assert.equal(wallet.props["aria-expanded"], undefined);
+  assert.equal(wallet.props["aria-controls"], undefined);
+  wallet.props.onClick();
+  assert.deepEqual(selections, [["section", "wallet"], ["subtab", "Wallet"]]);
+  tree = h.render(Navigation, props);
+  assert.equal(nodes(tree, node => node.props?.id === "zaf-subnavigation").length, 0);
+});
