@@ -125,11 +125,6 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
 
   async function signIn() {
     if (busy || isPiSignInBusy()) return;
-    // A directly opened page has no native parent to show Pi consent. Let the
-    // user open the registered app explicitly, without an automatic redirect.
-    if (isDirectPiBrowserEntry()) {
-      setMessage(""); setEntryRequired(true); return;
-    }
     setEntryRequired(false);
     if (piReloadRequired()) { window.location.reload(); return; }
     if (!acquirePiSignIn()) return;
@@ -143,6 +138,15 @@ export function ZafPiSignIn({ locale }: { locale: Locale }) {
     let verificationCode = "ZAF-PI-CONNECTION";
     let storageUnavailable = false;
     try {
+      // Pi Browser can resolve a self-hosted PiNet app to its Vercel origin.
+      // OAuth uses the Portal client and registered callback without a parent bridge.
+      if (window.parent === window) {
+        phase = "oauth-start";
+        const clientId = process.env.NEXT_PUBLIC_PI_SIGNIN_CLIENT_ID?.trim();
+        if (!clientId) throw new Error("Pi Sign-In Client ID is not configured.");
+        beginPiOAuthSignIn(clientId);
+        return;
+      }
       if (storagePermission) {
         const available = await withTimeout(storagePermission, 5_000, "Session access timed out.").catch(() => false);
         if (!mounted.current) return;

@@ -1,5 +1,5 @@
-// Fixed App Studio entry; never accept a destination from URL parameters.
-export const ZAF_PI_APP_URL = "https://zaftechpu0455.pinet.com";
+// Fixed Developer Portal Mainnet entry; never accept URL-parameter destinations.
+export const ZAF_PI_APP_URL = "https://zaftech3771.pinet.com";
 
 export function isPiBrowserUserAgent() {
   const userAgent = navigator.userAgent.toLowerCase();

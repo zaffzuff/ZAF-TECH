@@ -88,31 +88,29 @@ async function clickSignIn(component) {
   await new Promise(resolve => setImmediate(resolve));
 }
 
-test("direct top-level Pi Browser offers the registered app without starting the native bridge", async () => {
+test("direct self-hosted Pi Browser starts Portal OAuth without an unavailable parent bridge", async () => {
   const fixture = entryFixture({ topLevel: true });
   const initial = fixture.render();
   fixture.effects[1]();
   await clickSignIn(initial);
-  const updated = fixture.render();
-  const links = descendants(updated).filter(node => node.type === "a");
-  assert.equal(links.length, 1);
-  assert.equal(links[0].props.href, "https://zaftechpu0455.pinet.com");
-  assert.match(links[0].props.children, /Open ZAF Tech in Pi/);
   assert.deepEqual(fixture.calls, []);
-  assert.deepEqual(fixture.navigations, []);
+  assert.equal(fixture.navigations.length, 1);
+  const url = new URL(fixture.navigations[0]);
+  assert.equal(url.origin, "https://accounts.pinet.com");
+  assert.equal(url.searchParams.get("redirect_uri"), "https://zaf-tech.vercel.app/signin/callback");
+  assert.equal(url.searchParams.get("scope"), "username");
   assert.deepEqual(fixture.requests, []);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
 });
 
-test("canonical entry is a fixed user-activated link and ignores attacker URL parameters", async () => {
+test("direct Pi OAuth ignores attacker URL destinations", async () => {
   const fixture = entryFixture({ topLevel: true });
   fixture.window.location.search = "?returnTo=https://attacker.example&piAppUrl=javascript:alert(1)";
   await clickSignIn(fixture.render("tr"));
-  const link = descendants(fixture.render("tr")).find(node => node.type === "a");
-  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
-  assert.equal(new URL(link.props.href).origin, "https://zaftechpu0455.pinet.com");
-  assert.match(link.props.children, /ZAF Tech'i Pi'de aç/);
-  assert.deepEqual(fixture.navigations, []);
+  const url = new URL(fixture.navigations[0]);
+  assert.equal(url.origin, "https://accounts.pinet.com");
+  assert.equal(url.searchParams.get("redirect_uri"), "https://zaf-tech.vercel.app/signin/callback");
+  assert.equal(url.searchParams.has("piAppUrl"), false);
 });
 
 test("PiNet web host uses existing OAuth even when its browser user agent mentions Pi", async () => {
@@ -162,7 +160,7 @@ test("ordinary top-level web browser retains OAuth rather than the Pi entry prom
   await clickSignIn(fixture.render());
   assert.equal(fixture.navigations.length, 1);
   assert.equal(new URL(fixture.navigations[0]).origin, "https://accounts.pinet.com");
-  assert.equal(descendants(fixture.render()).some(node => node.type === "a" && node.props.href === "https://zaftechpu0455.pinet.com"), false);
+  assert.equal(descendants(fixture.render()).some(node => node.type === "a" && node.props.href === "https://zaftech3771.pinet.com"), false);
   assert.equal(fixture.requests.length, 0);
 });
 
@@ -173,7 +171,7 @@ test("framed native consent timeout offers one explicit canonical recovery link"
   assert.equal(rendered.filter(node => node.type === "dialog").length, 1);
   const links = rendered.filter(node => node.type === "a");
   assert.equal(links.length, 1);
-  assert.equal(links[0].props.href, "https://zaftechpu0455.pinet.com");
+  assert.equal(links[0].props.href, "https://zaftech3771.pinet.com");
   assert.equal(fixture.navigations.length, 0);
   assert.equal(fixture.requests.length, 0);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
@@ -400,15 +398,13 @@ test("an immediate historical-name sign-out discovers blocked cookies before any
   assert.equal(display.isPiSignInBusy(), false);
 });
 
-test("generic iOS user agent with native SDK host cannot start unbridged consent", async () => {
+test("generic top-level iOS uses OAuth without waiting for the native bridge", async () => {
   const fixture = entryFixture({ userAgent: "Mozilla/5.0 iPhone", topLevel: true });
   await clickSignIn(fixture.render());
-  assert.deepEqual(fixture.calls, ["load", "init", "host"]);
+  assert.deepEqual(fixture.calls, []);
   assert.equal(fixture.requests.length, 0);
-  assert.equal(fixture.navigations.length, 0);
-  const link = descendants(fixture.render()).find(node => node.type === "a");
-  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
-  assert.equal(link.props.target, "_top");
+  assert.equal(fixture.navigations.length, 1);
+  assert.equal(new URL(fixture.navigations[0]).origin, "https://accounts.pinet.com");
 });
 
 test("native upstream 502 offers registered entry without trusting SDK identity or retrying another verifier", async () => {
@@ -417,7 +413,7 @@ test("native upstream 502 offers registered entry without trusting SDK identity 
   const updated = fixture.render();
   assert.match(renderedText(updated), /ZAF-PI-502/);
   const link = descendants(updated).find(node => node.type === "a");
-  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
+  assert.equal(link.props.href, "https://zaftech3771.pinet.com");
   assert.equal(link.props.target, "_top");
   assert.equal(fixture.requests.length, 1);
   assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");

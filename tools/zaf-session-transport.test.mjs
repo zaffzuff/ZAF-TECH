@@ -152,7 +152,7 @@ test('anonymous storage recovery renders in fixed Pi shells while bootstrap POST
   assert.equal(response.headers.get('x-frame-options'), null);
   const csp = response.headers.get('content-security-policy');
   const ancestors = csp.split(';').map(part => part.trim()).find(part => part.startsWith('frame-ancestors '));
-  assert.equal(ancestors, "frame-ancestors 'self' https://app-cdn.minepi.com https://zaftechpu0455.pinet.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com");
+  assert.equal(ancestors, "frame-ancestors 'self' https://app-cdn.minepi.com https://zaftech3771.pinet.com https://appstudio-u7cm9zhmha0ruwv8.piappengine.com");
   const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   assert.ok(csp.includes("script-src 'sha256-" + createHash('sha256').update(script).digest('base64') + "'"));
   assert.doesNotMatch(csp, /script-src 'unsafe-inline'|frame-ancestors[^;]*\*/);
@@ -171,7 +171,7 @@ test('anonymous storage recovery renders in fixed Pi shells while bootstrap POST
   // not replace clicking the real form and observing its navigation chain.
   assert.equal(response.headers.get('referrer-policy'), 'same-origin');
   const formAction = response.headers.get('content-security-policy').split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
-  assert.equal(formAction, "form-action 'self' https://zaftechpu0455.pinet.com");
+  assert.equal(formAction, "form-action 'self' https://zaftech3771.pinet.com");
   assert.equal(response.headers.get('set-cookie'), null);
 });
 
@@ -185,10 +185,10 @@ test('storage bootstrap server rejects null and foreign Origins while retaining 
   }
   const response = await route.POST(new Request('https://zaf-tech.invalid/signin/storage?returnTo=https://evil.invalid', { method: 'POST', headers: { origin: 'https://zaf-tech.invalid' } }));
   assert.equal(response.status, 303);
-  assert.equal(response.headers.get('location'), 'https://zaftechpu0455.pinet.com/');
+  assert.equal(response.headers.get('location'), 'https://zaftech3771.pinet.com/');
   assert.equal(response.headers.get('referrer-policy'), 'same-origin');
   const formAction = response.headers.get('content-security-policy').split(';').map(part => part.trim()).find(part => part.startsWith('form-action '));
-  assert.equal(formAction, "form-action 'self' https://zaftechpu0455.pinet.com");
+  assert.equal(formAction, "form-action 'self' https://zaftech3771.pinet.com");
   assert.match(response.headers.get('set-cookie'), /^__Host-zaf-pi-storage-visit=1;/);
   assert.match(response.headers.get('set-cookie'), /HttpOnly/);
   assert.match(response.headers.get('set-cookie'), /Max-Age=1800/);
