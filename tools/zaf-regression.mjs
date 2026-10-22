@@ -122,7 +122,7 @@ if (!piRuntime.includes("const compatible = !(sdkSandbox && network === \"mainne
   throw new Error("Pi SDK Sandbox/network compatibility guard regression");
 }
 const piAuthRoute = readText(path.join(root, "app/api/zaf/pi/auth/route.ts"), "utf8");
-for (const token of ["pi-auth-verify", "https://backend.appstudio-u7cm9zhmha0ruwv8.piappengine.com/pi/auth/v1/login", "sealPiSession", "sessionToken", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
+for (const token of ["pi-auth-verify", "https://api.minepi.com/v2/me", "sealPiSession", "sealPiPageSession", "accessToken", "AbortSignal.timeout", "Cache-Control", "no-store"]) {
   if (!piAuthRoute.includes(token)) throw new Error("Pi authentication verification regression: " + token);
 }
 if (piAuthRoute.includes("PI_API_KEY") || piAuthRoute.includes("payments")) {
@@ -183,7 +183,7 @@ for (const token of [
   if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
 }
 const piNativeContext = readText(path.join(root, "lib/zaf/pi/native-context.ts"), "utf8");
-for (const token of ['userAgent.includes("pibrowser")', 'userAgent.includes("pi-browser")', 'window.parent === window', 'https://zaftechpu0455.pinet.com']) {
+for (const token of ['userAgent.includes("pibrowser")', 'userAgent.includes("pi-browser")', 'window.parent === window', 'https://zaftech3771.pinet.com']) {
   if (!piNativeContext.includes(token)) throw new Error("Pi app entry regression: " + token);
 }
 

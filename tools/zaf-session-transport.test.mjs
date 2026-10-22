@@ -159,7 +159,7 @@ test('anonymous storage recovery renders in fixed Pi shells while bootstrap POST
   assert.ok(csp.includes("script-src 'sha256-" + createHash('sha256').update(script).digest('base64') + "'"));
   assert.doesNotMatch(csp, /script-src 'unsafe-inline'|frame-ancestors[^;]*\*/);
   assert.match(html, /<section id="first-party" hidden>/);
-  assert.match(html, /href="https:\/\/zaftechpu0455.pinet.com" target="_top"/);
+  assert.match(html, /href="https:\/\/zaftech3771.pinet.com" target="_top"/);
   for (const topLevel of [true, false]) {
     const elements = { 'first-party': { hidden: true }, embedded: { hidden: false } };
     const window = { parent: {} };
