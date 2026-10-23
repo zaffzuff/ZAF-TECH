@@ -6,7 +6,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi-browser", authenticate, authStatus = 200, pageSession = "valid", sessionUsername = "server-verified", storageAvailable = true, requestStorageAccess, deleteSession } = {}) {
+function entryFixture({ sandbox = false, userAgent = "PiBrowser", topLevel = false, hostApp = "pi-browser", authenticate, authStatus = 200, pageSession = "valid", sessionUsername = "server-verified", storageAvailable = true, requestStorageAccess, deleteSession } = {}) {
   const cache = new Map(), storage = new Map(), states = [], effects = [], navigations = [], requests = [], calls = [], logs = [];
   let cursor = 0;
   const window = {
@@ -46,7 +46,7 @@ function entryFixture({ userAgent = "PiBrowser", topLevel = false, hostApp = "pi
     "@/lib/zaf/pi/sdk": {
       loadPiSdk: async () => { calls.push("load"); }, initializePiSdk: async () => { calls.push("init"); return sdk; },
       authenticatePi: pi => pi.authenticate(["username"], () => undefined),
-      isPiSandboxRoute: () => false, piReloadRequired: () => false, withPiTimeout: promise => promise,
+      isPiSandboxRoute: () => sandbox, piReloadRequired: () => false, withPiTimeout: promise => promise,
     },
     "@/lib/zaf/i18n": { translate: (locale, en, tr) => locale === "tr" ? tr : en },
     react: { useEffect: callback => effects.push(callback), useRef: value => ({ current: value }), useState: initial => {
@@ -424,4 +424,26 @@ test("native upstream 502 offers registered entry without trusting SDK identity 
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").readPiDisplay(), null);
   assert.equal(fixture.navigations.length, 0);
   assert.equal(JSON.stringify(fixture.logs).includes("private-fixture-token"), false);
+});
+
+test("authorized sandbox uses native username authentication even in a desktop browser", async () => {
+  const fixture = entryFixture({ sandbox: true, userAgent: "Mozilla/5.0", hostApp: "pi-net" });
+  await clickSignIn(fixture.render());
+  assert.deepEqual(fixture.calls, ["load", "init", "authenticate"]);
+  assert.equal(fixture.navigations.length, 0);
+  assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");
+});
+
+test("section and ledger URL updates preserve the sandbox route and its SDK mode", () => {
+  const source = fs.readFileSync("components/zaf-tech-app.tsx", "utf8");
+  const updates = source.match(/window\.history\.replaceState\(null, "", [^;]+;/g);
+  assert.equal(updates.length, 2);
+  for (const update of updates) {
+    for (const pathname of ["/sandbox", "/"]) {
+      let result;
+      const window = { location: { pathname }, history: { replaceState: (_state, _title, url) => { result = url; } } };
+      vm.runInNewContext(update, { window, params: new URLSearchParams("sandbox=true&section=wallet&subtab=Wallet") });
+      assert.equal(new URL(result, "https://fixture.example").pathname, pathname);
+    }
+  }
 });
