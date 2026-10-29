@@ -2,7 +2,7 @@ name: Build ZAF Tech Web App
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "fix/mainnet-pinet-signin"]
     paths:
       - "app/**"
       - "components/**"
@@ -17,7 +17,7 @@ on:
       - "tsconfig.json"
       - "vercel.json"
   pull_request:
-    branches: ["master"]
+    branches: ["master", "fix/mainnet-pinet-signin"]
     paths:
       - "app/**"
       - "components/**"
@@ -53,6 +53,10 @@ jobs:
         run: npm audit --audit-level=high
       - name: Regression checks
         run: npm run regression
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
       - name: Official news behavior
         run: npm run test:news
       - name: Pre-integration safeguards

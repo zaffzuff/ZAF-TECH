@@ -1,5 +1,7 @@
 # Pi identity verification boundary
 
+October 29 entry correction: all native recovery links and the first-party bootstrap redirect use the owner's published App Studio address `https://zaftechpu0455.pinet.com`. The separate older Developer Portal record is not deleted or reconfigured by this code change. iPhone 11 / Pi Browser 1.18 white-screen reproduction is still awaiting a physical-device follow-up; desktop/unit tests do not establish its cause or resolution.
+
 Reviewed October 19, 2026. ZAF Tech is public, free and read-only. Pi sign-in now creates an encrypted 30-minute ZAF Tech session from the appropriate server-verified identity (App Studio for SDK, Pi Platform for web OAuth). Public read-only APIs remain public. Never use sessionStorage names as authorization. No payments, wallet scopes or extra login providers are introduced.
 
 - Native Pi Browser / Pi Desktop (pi-node) in a parent shell: official SDK in the document head; await init({ version: "2.0" }) without a sandbox override, then native username auth and App Studio verification. Direct top-level Pi Browser entries must open the fixed registered Pi app https://zaftechpu0455.pinet.com rather than start an unbridged consent promise. PiNet web host (pi-net) and ordinary browsers use the existing official web OAuth callback. The portal SDK-exclusive declaration still needs final review rather than an assumed exemption.

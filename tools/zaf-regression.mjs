@@ -183,7 +183,7 @@ for (const token of [
   if (!piSignIn.includes(token)) throw new Error("Pi Browser detection regression: " + token);
 }
 const piNativeContext = readText(path.join(root, "lib/zaf/pi/native-context.ts"), "utf8");
-for (const token of ['userAgent.includes("pibrowser")', 'userAgent.includes("pi-browser")', 'window.parent === window', 'https://zaftech3771.pinet.com']) {
+for (const token of ['userAgent.includes("pibrowser")', 'userAgent.includes("pi-browser")', 'window.parent === window', 'https://zaftechpu0455.pinet.com']) {
   if (!piNativeContext.includes(token)) throw new Error("Pi app entry regression: " + token);
 }
 

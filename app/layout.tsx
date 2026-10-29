@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Michroma } from "next/font/google";
 import "./globals.css";
+import { startupGuardScript } from "@/lib/zaf/startup-guard";
 
 const michroma = Michroma({ subsets: ["latin"], weight: "400", display: "swap" });
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className="bg-background" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: startupGuardScript }} />
         <script id="zaf-pi-sdk" src="https://sdk.minepi.com/pi-sdk.js" async />
         <script dangerouslySetInnerHTML={{ __html: `
           (function () {
@@ -53,7 +55,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               document.documentElement.classList.toggle("dark", dark);
               document.documentElement.classList.toggle("light", !dark);
             } catch (_) {
-              var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+              var dark = false;
+              try { dark = typeof window.matchMedia === "function" && window.matchMedia("(prefers-color-scheme: dark)").matches; } catch (_) {}
               document.documentElement.classList.toggle("dark", dark);
               document.documentElement.classList.toggle("light", !dark);
             }
@@ -64,8 +67,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 if (meta.getAttribute("content") !== color) meta.setAttribute("content", color);
               });
             }
-            new MutationObserver(syncThemeChrome).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-            new MutationObserver(syncThemeChrome).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
+            if (typeof MutationObserver === "function") {
+              new MutationObserver(syncThemeChrome).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+              new MutationObserver(syncThemeChrome).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["content"] });
+            }
             syncThemeChrome();
           })();
         ` }} />
@@ -73,7 +78,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 html { font-family: ${GeistSans.style.fontFamily}; --font-sans: ${GeistSans.variable}; --font-mono: ${GeistMono.variable}; --font-michroma: ${michroma.style.fontFamily}; }
 `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <div id="zaf-startup-help" hidden role="status" style={{ position: "fixed", inset: 0, zIndex: 2147483647, padding: "32px 20px", background: "#f7f8fa", color: "#242833", fontFamily: "Arial, sans-serif", overflow: "auto" }}>
+          <h1 style={{ color: "#987020" }}>ZAF Tech</h1>
+          <p>The page is taking longer than expected to start.</p>
+          <p>Sayfanın açılması beklenenden uzun sürüyor.</p>
+          <p id="zaf-startup-code">ZAF-BOOT</p>
+          <p><a id="zaf-startup-retry" href="/?zaf_retry=1">Reload / Yenile</a></p>
+          <p><a href="/browser-check.html">Browser check / Tarayıcı kontrolü</a></p>
+        </div>
+        {children}
+      </body>
     </html>
   );
 }
