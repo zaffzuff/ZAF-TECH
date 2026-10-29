@@ -155,7 +155,7 @@ test("ordinary top-level web browser retains OAuth rather than the Pi entry prom
   await clickSignIn(fixture.render());
   assert.equal(fixture.navigations.length, 1);
   assert.equal(new URL(fixture.navigations[0]).origin, "https://accounts.pinet.com");
-  assert.equal(descendants(fixture.render()).some(node => node.type === "a" && node.props.href === "https://zaftech3771.pinet.com"), false);
+  assert.equal(descendants(fixture.render()).some(node => node.type === "a" && node.props.href === "https://zaftechpu0455.pinet.com"), false);
   assert.equal(fixture.requests.length, 0);
 });
 
@@ -166,7 +166,7 @@ test("framed native consent timeout offers one explicit canonical recovery link"
   assert.equal(rendered.filter(node => node.type === "dialog").length, 1);
   const links = rendered.filter(node => node.type === "a");
   assert.equal(links.length, 1);
-  assert.equal(links[0].props.href, "https://zaftech3771.pinet.com");
+  assert.equal(links[0].props.href, "https://zaftechpu0455.pinet.com");
   assert.equal(fixture.navigations.length, 0);
   assert.equal(fixture.requests.length, 0);
   assert.equal(fixture.load("@/lib/zaf/pi/oauth").isPiSignInBusy(), false);
@@ -407,7 +407,7 @@ test("native upstream 502 offers registered entry without trusting SDK identity 
   const updated = fixture.render();
   assert.match(renderedText(updated), /ZAF-PI-502/);
   const link = descendants(updated).find(node => node.type === "a");
-  assert.equal(link.props.href, "https://zaftech3771.pinet.com");
+  assert.equal(link.props.href, "https://zaftechpu0455.pinet.com");
   assert.equal(link.props.target, "_top");
   assert.equal(fixture.requests.length, 1);
   assert.equal(fixture.requests[0].url, "/api/zaf/pi/auth");

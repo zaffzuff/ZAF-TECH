@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { markAppReady } from "@/lib/zaf/startup-guard";
+import { subscribeSystemTheme } from "@/lib/zaf/theme-media";
 import { radarDetail } from "@/lib/zaf/radar-copy";
 import { translateObservationReason } from "@/lib/zaf/observation-copy";
 import { ZafComingSoon } from "@/components/zaf-coming-soon";
@@ -520,21 +522,22 @@ export function ZafTechApp() {
 
   useEffect(() => {
     const key = "zaf-tech-theme-v1";
+    markAppReady();
     let saved: string | null = null;
     try { saved = window.localStorage.getItem(key); } catch { /* System theme works without storage. */ }
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    setTheme(saved === "light" || saved === "dark" ? saved : media.matches ? "dark" : "light");
+    let media: MediaQueryList | null = null;
+    try { if (typeof window.matchMedia === "function") media = window.matchMedia("(prefers-color-scheme: dark)"); } catch { /* Use the default theme. */ }
+    setTheme(saved === "light" || saved === "dark" ? saved : media?.matches ? "dark" : "light");
     setThemeReady(true);
 
-    const syncSystemTheme = (event: MediaQueryListEvent) => {
+    const syncSystemTheme = (event: { matches: boolean }) => {
       let preference: string | null = null;
       try { preference = window.localStorage.getItem(key); } catch { /* Follow system theme. */ }
       if (preference !== "light" && preference !== "dark") {
         setTheme(event.matches ? "dark" : "light");
       }
     };
-    media.addEventListener("change", syncSystemTheme);
-    return () => media.removeEventListener("change", syncSystemTheme);
+    return subscribeSystemTheme(media, syncSystemTheme);
   }, []);
   useEffect(() => {
     if (!themeReady) return;
